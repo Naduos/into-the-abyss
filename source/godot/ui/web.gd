@@ -58,9 +58,12 @@ func _on_ipc(msg: String) -> void:
 		"net_join": _join(str(m.get("ip", "")))
 		"net_send": _send({"topic": m.get("topic"), "data": m.get("data")})
 		"net_leave": _leave()
-		"fullscreen":
+		"display":                                          # Optionen: Fenster / randloses Vollbild / Vollbild
 			var w := get_window()
-			w.mode = Window.MODE_WINDOWED if w.mode == Window.MODE_FULLSCREEN else Window.MODE_FULLSCREEN
+			match str(m.get("mode", "windowed")):
+				"borderless": w.mode = Window.MODE_FULLSCREEN            # Godot: Vollbild ohne Rand (Desktop-Auflösung)
+				"fullscreen": w.mode = Window.MODE_EXCLUSIVE_FULLSCREEN  # exklusives Vollbild
+				_: w.mode = Window.MODE_WINDOWED
 		"quit": _leave(); get_tree().quit()
 		"log": print("[page] ", m.get("text", ""))
 

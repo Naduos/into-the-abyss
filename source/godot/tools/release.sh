@@ -29,6 +29,7 @@ godot --headless --path . --import >/dev/null 2>&1 || true
 godot --headless --path . --export-pack "Windows Desktop" "$OUT/game-$V.pck" >/dev/null 2>&1
 if [ $FULL = 1 ]; then
   godot --headless --path . --export-release "Windows Desktop" "$OUT/IntoTheAbyss.exe" >/dev/null 2>&1
+  python3 tools/set_exe_icon.py "$OUT/IntoTheAbyss.exe" icon.png >/dev/null   # Programmsymbol: Assassine (Spezialisierung)
   (cd "$OUT" && zip -q IntoTheAbyss.zip IntoTheAbyss.exe IntoTheAbyss.pck godot_wry.dll)
 fi
 ENG=$(grep -o 'APP_ENGINE := "[^"]*"' boot/boot.gd | cut -d'"' -f2)   # neue exe nötig? (siehe boot.gd)

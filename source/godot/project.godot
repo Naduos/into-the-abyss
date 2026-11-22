@@ -7,6 +7,8 @@ config/name="Into the Abyss"
 config/description="Co-op roguelike deckbuilder (1–4 players)"
 config/features=PackedStringArray("4.4")
 run/main_scene="res://boot/boot.tscn"
+config/icon="res://icon.png"
+config/windows_native_icon="res://icon.ico"
 
 
 [display]
