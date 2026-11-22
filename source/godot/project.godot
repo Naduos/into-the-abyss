@@ -1,0 +1,23 @@
+; Into the Abyss – Godot-Port der Browser-Version (Start: boot/boot.tscn mit Auto-Update)
+config_version=5
+
+[application]
+
+config/name="Into the Abyss"
+config/description="Co-op roguelike deckbuilder (1–4 players)"
+config/features=PackedStringArray("4.4")
+run/main_scene="res://boot/boot.tscn"
+
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+

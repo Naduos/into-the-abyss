@@ -1,0 +1,1 @@
+{ "name": "abyss-tools", "private": true, "description": "Datenexport und Paritätstest (HTML <-> Godot)", "dependencies": { "jsdom": "^24.0.0" } }
