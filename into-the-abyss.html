@@ -419,6 +419,8 @@ html,body{margin:0;height:100%;background:#07060a;overflow:hidden;font-family:In
 .mbtn:disabled{filter:grayscale(1) brightness(.55);cursor:default}
 .panel .mbtn{margin-top:10px}
 .code{font-family:Cinzel,serif;font-size:54px;font-weight:800;letter-spacing:12px;color:#ffd770;margin:6px 0 4px;text-shadow:0 2px 10px rgba(255,200,90,.4)}
+.codein.ipin{font-size:24px;letter-spacing:2px;width:420px;text-transform:none}
+.ipinfo b{color:#ffd770}
 .codein{font-family:Cinzel,serif;font-size:40px;font-weight:800;letter-spacing:10px;width:240px;text-align:center;text-transform:uppercase;padding:8px;border-radius:12px;border:2px solid #6b5a3a;background:#120e18;color:#ffd770;margin:10px 0}
 .lobbystate{display:inline-block;margin:12px 0;padding:6px 14px;border-radius:20px;background:#3a2a1a;color:#ffcf8a;font-weight:700;font-size:13px}
 .lobbystate.ok{background:#1a3a22;color:#8affa8}
@@ -9166,7 +9168,64 @@ function peerAdapter(){
     setTimeout(() => { if(!done){ try { peer.destroy(); } catch(x){} fail({code:'timeout'}); } }, 12000);
   })};
 }
+/* ---------- Windows-Programm (Godot): Brücke zur exe ----------
+   In der exe läuft genau diese Seite in einem eingebauten Browserfenster. Die exe übernimmt
+   die Direktverbindung per IP (Port 24565, UPnP) und das Beenden. Im normalen Browser ist GODOT false. */
+const GODOT = !!(window.ipc && window.ipc.postMessage);
+const GD = {handlers:{}, info:null,
+  send(cmd, data = {}){ try { window.ipc.postMessage(JSON.stringify(Object.assign({cmd}, data))); } catch(e){} },
+  on(type, f){ (this.handlers[type] = this.handlers[type] || []).push(f); return () => { this.handlers[type] = this.handlers[type].filter(x => x !== f); }; }};
+if(GODOT) addEventListener('keydown', ev => { if(ev.key === 'F11'){ ev.preventDefault(); GD.send('fullscreen'); } }, true);
+if(GODOT) document.addEventListener('message', ev => {
+  let m; try { m = JSON.parse(ev.detail); } catch(e){ return; }
+  if(m.type === 'info'){ GD.info = m; if(NET.isHost && !S.runActive && NET.g && $('.lobbytop')) renderHostLobby(); }
+  (GD.handlers[m.type] || []).slice().forEach(f => { try { f(m); } catch(err){ console.error(err); } });
+});
+/* Direktverbindung über die exe – dieselben Funktionen wie peerAdapter */
+function godotAdapter(){
+  const connect = (cmd, data) => new Promise((resolve, reject) => {
+    const handlers = {}, peerHandlers = [], offs = [];
+    let done = false;
+    const off = () => { offs.forEach(u => u()); offs.length = 0; };
+    offs.push(GD.on('net_ok', () => { if(!done){ done = true; resolve(api); } }));
+    offs.push(GD.on('net_err', m => { if(!done){ done = true; off(); reject({code:m.code, host:m.host}); } }));
+    offs.push(GD.on('net', m => (handlers[m.topic] || []).forEach(f => { try { f({topic:m.topic, data:m.data, peer:m.peer, isMe:false, sameTab:false}); } catch(err){ console.error(err); } })));
+    offs.push(GD.on('peer_left', m => peerHandlers.forEach(f => f({left:[{peer:m.peer}], joined:[], updated:[], peers:[]}))));
+    const api = {
+      emit: async (topic, data) => GD.send('net_send', {topic, data}),
+      on: (t, f) => { (handlers[t] = handlers[t] || []).push(f); return () => { handlers[t] = handlers[t].filter(x => x !== f); }; },
+      onPeers: f => { peerHandlers.push(f); return () => {}; },
+      peers: () => [], connected: () => true,
+      leave: async () => { off(); GD.send('net_leave'); } };
+    GD.send(cmd, data);
+    setTimeout(() => { if(!done){ done = true; off(); GD.send('net_leave'); reject({code:'timeout'}); } }, 9000);
+  });
+  return { host: () => connect('net_host'), joinIp: ip => connect('net_join', {ip}) };
+}
+/* Host in der exe: gleichzeitig per Code (Internet, PeerJS) und per IP erreichbar */
+function godotRoom(){
+  const gd = godotAdapter(), peer = window.Peer ? peerAdapter() : null;
+  return {
+    join: async name => {
+      if(!NET.isHost) return peer ? peer.join(name) : Promise.reject({code:'no_internet'});
+      const parts = [];
+      const a = await gd.host().catch(e => { NET.ipErr = e.code || 'error'; return null; });
+      if(a) parts.push(a);
+      let b = null;
+      if(peer){ b = await peer.join(name).catch(e => { if(e.code === 'code_taken'){ if(a) a.leave(); throw e; } return null; }); if(b) parts.push(b); }
+      NET.codeOk = !!b;
+      if(!parts.length) throw {code: NET.ipErr || 'error'};
+      return { emit: async (t, d) => { for(const p of parts) await p.emit(t, d).catch(() => {}); },
+        on: (t, f) => { const u = parts.map(p => p.on(t, f)); return () => u.forEach(x => x()); },
+        onPeers: f => { parts.forEach(p => p.onPeers(f)); return () => {}; },
+        peers: () => [], connected: () => true,
+        leave: async () => { for(const p of parts) await p.leave().catch(() => {}); } };
+    },
+    joinIp: ip => gd.joinIp(ip) };
+}
+const looksLikeIp = s => /[.:]/.test(s) || /^\d/.test(s) || /^localhost$/i.test(s);
 (async function initRoom(){
+  if(GODOT){ NET.room = godotRoom(); NET.p2p = true; GD.send('ready'); if($('#overlay').classList.contains('show') && !S.runActive) showTitle(); return; }
   const local = location.protocol === 'file:';
   for(let i = 0; i < (local ? 0 : 100) && !(window.claude && window.claude.use); i++) await new Promise(r => setTimeout(r, 100));
   try { NET.room = window.claude && window.claude.use ? await window.claude.use('room') : null; } catch(e){ NET.room = null; }
@@ -9174,6 +9233,8 @@ function peerAdapter(){
   if($('#overlay').classList.contains('show') && !S.runActive) showTitle();
 })();
 function netError(e){
+  if(e.code === 'version') return `Your game version differs from the host's (host: version ${e.host}). Restart the game so it updates, then try again.`;
+  if(e.code === 'port') return 'Could not open port 24565 for direct connections – is the game already running?';
   if(e.code === 'no_internet') return 'No connection to the co-op server. Are you online?';
   if(e.code === 'server') return 'The co-op server is not reachable right now. Try again in a moment.';
   return 'Co-op connection failed (' + (e.code || 'error') + ').';
@@ -9321,6 +9382,7 @@ function renderHostLobby(){
   if(!canReady) NET.hostReady = false;
   lobbyShow(`<div class="lobbytop"><h1>Co-op Lobby</h1><div class="code small">${NET.code}</div><button class="copybtn" id="copyCode" title="Copy code">Copy</button>
       <div class="lobbystate ${nGuests ? 'ok' : ''}">${nGuests ? `${nGuests + 1} players connected` : 'Waiting for players…'}</div></div>
+    ${GODOT ? godotLobbyInfo() : ''}
     <p class="keys">Friends open this page, click <b>Join Co-op</b> and enter the code. Everyone picks their own heroes – 1 to 4 in total – and presses <b>Ready</b>. The game starts as soon as everyone is ready.</p>
     ${lobbyGrid(NET.assign, players, 'host')}
     ${lobbyRoster(NET.assign, players, 'host', ld.ready)}
@@ -9336,15 +9398,23 @@ function renderHostLobby(){
     });
   $('#lobbyBack').onclick = async () => { NET.hostReady = false; await leaveNet(); showTitle(); };
 }
+function godotLobbyInfo(){                                     // exe: Direktverbindung per IP anzeigen
+  const i = GD.info || {};
+  const code = NET.codeOk ? '' : '<br><span class="err">The code needs an internet connection – use the IP address instead.</span>';
+  const ip = NET.ipErr ? `<span class="err">${netError({code:NET.ipErr})}</span>`
+    : `Direct connection: same network <b>${i.lan || '…'}</b>${i.ext ? ` · internet <b>${i.ext}</b>` : ''}<br><span style="opacity:.8">${i.upnp || 'Opening port 24565 via UPnP…'}</span>`;
+  return `<p class="keys ipinfo">${ip}${code}</p>`;
+}
 async function joinGame(code){
   if(!NET.room) return;
-  code = (code || '').toUpperCase().replace(/[^A-Z]/g, '');
-  if(code.length !== 4) return renderJoin('Please enter the 4-letter code.');
+  const ipMode = GODOT && looksLikeIp((code || '').trim());
+  code = ipMode ? code.trim().replace(/\s+/g, '') : (code || '').toUpperCase().replace(/[^A-Z]/g, '');
+  if(!ipMode && code.length !== 4) return renderJoin(GODOT ? 'Please enter the 4-letter code or the host\'s IP address.' : 'Please enter the 4-letter code.');
   await leaveNet();
   NET.code = code; NET.isHost = false;
   renderGuestLobby();
-  try { NET.g = await NET.room.join('dc-' + code.toLowerCase()); }
-  catch(e){ return renderJoin(e.code === 'no_game' || e.code === 'timeout' ? `No game found with code ${code}.` : netError(e)); }
+  try { NET.g = await (ipMode ? NET.room.joinIp(code) : NET.room.join('dc-' + code.toLowerCase())); }
+  catch(e){ return renderJoin(e.code === 'no_game' || e.code === 'timeout' ? (ipMode ? `No game found at ${code}. Is the host's port 24565 (UDP) open?` : `No game found with code ${code}.`) : netError(e)); }
   let found = false;
   listen('lobby', msg => {
     if(NET.hostPeer && msg.peer !== NET.hostPeer) return;
@@ -9371,10 +9441,11 @@ async function joinGame(code){
   const hello = () => NET.g && NET.g.emit('hello', {me:NET.me}).catch(() => {});
   hello(); NET.hello = setInterval(hello, 1500);
   renderGuestLobby();
-  setTimeout(() => { if(!found && NET.code === code && !S.runActive){ leaveNet(); renderJoin(`No game found with code ${code}.`); } }, 9000);
+  setTimeout(() => { if(!found && NET.code === code && !S.runActive){ leaveNet(); renderJoin(ipMode ? `No game found at ${code}.` : `No game found with code ${code}.`); } }, 9000);
 }
 function renderJoin(err = ''){
-  showOverlay(`<h1>Join Co-op</h1><p>Enter the code your host sees:</p>
+  showOverlay(GODOT ? `<h1>Join Co-op</h1><p>Enter the code or the IP address your host sees:</p>
+    <input id="codeIn" class="codein ipin" maxlength="60" placeholder="ABCD or 192.168.0.5" autocomplete="off" spellcheck="false">` : `<h1>Join Co-op</h1><p>Enter the code your host sees:</p>
     <input id="codeIn" class="codein" maxlength="4" placeholder="ABCD" autocomplete="off">
     ${err ? `<p class="err">${err}</p>` : ''}
     <div class="mrow"><button class="mbtn" id="lobbyBack">Back</button><button class="mbtn" id="ovBtn">Join</button></div>`, () => joinGame($('#codeIn').value));
@@ -9576,7 +9647,7 @@ function showTitle(msg = ''){
   $('#tiTut').onclick = () => showTutorial();
   $('#tiGloss').onclick = ev => { ev.stopPropagation(); showGlossary('cards'); };
   $('#tiOpts').onclick = () => { openMenu(); menuPage('#mOpts'); };
-  $('#tiExit').onclick = () => { try { window.close(); } catch(e){} setTimeout(() => toast('Thanks for playing! Close this browser tab to exit.'), 150); };
+  $('#tiExit').onclick = () => { if(GODOT) return GD.send('quit'); try { window.close(); } catch(e){} setTimeout(() => toast('Thanks for playing! Close this browser tab to exit.'), 150); };
 }
 function cloudLayer(y, color, op, dur, sc, seed){                  // Parallax-Wolken: je weiter vorne, desto schneller
   const blobs = [];

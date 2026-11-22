@@ -14,7 +14,9 @@ const UPDATE_URL := "https://raw.githubusercontent.com/Naduos/into-the-abyss/mai
 const PATCH := "user://update.pck"
 const PATCH_TMP := "user://update_download.pck"
 const PATCH_INFO := "user://update.json"                # Version des heruntergeladenen Updates
-const MAIN_SCENE := "res://ui/main.tscn"
+const MAIN_SCENE := "res://ui/web.tscn"
+## Kennung der Programmdatei: ändert sich nur, wenn eine neue exe nötig ist (z. B. neue DLL).
+const APP_ENGINE := "4.4.1-wry1"
 const TIMEOUT := 8.0
 
 var label: Label
@@ -37,7 +39,7 @@ func _ready() -> void:
 	var remote = await fetch_json(url)
 	if remote == null or int(remote.get("version", 0)) <= int(local.get("version", 0)):
 		start_game(); return
-	if remote.has("engine") and remote["engine"] != Engine.get_version_info()["string"]:
+	if remote.has("engine") and remote["engine"] != APP_ENGINE:
 		_say("Version %d ist da, braucht aber eine neue Programmdatei.\nBitte das komplette Spiel neu herunterladen:\n%s" % [int(remote["version"]), remote.get("full_url", "")])
 		await get_tree().create_timer(6.0).timeout
 		start_game(); return

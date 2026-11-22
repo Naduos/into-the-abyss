@@ -15,6 +15,7 @@ OUT=../release; mkdir -p "$OUT"; rm -f "$OUT"/*
 
 # 1. Daten aus der HTML exportieren, Engine zusammensetzen
 cp "$HTML" into-the-abyss.html
+python3 tools/build_web.py "$HTML"          # die exe zeigt genau diese HTML (web/index.html)
 sh tools/export_data.sh >/dev/null
 ./build.sh
 
@@ -28,9 +29,9 @@ godot --headless --path . --import >/dev/null 2>&1 || true
 godot --headless --path . --export-pack "Windows Desktop" "$OUT/game-$V.pck" >/dev/null 2>&1
 if [ $FULL = 1 ]; then
   godot --headless --path . --export-release "Windows Desktop" "$OUT/IntoTheAbyss.exe" >/dev/null 2>&1
-  (cd "$OUT" && zip -q IntoTheAbyss.zip IntoTheAbyss.exe IntoTheAbyss.pck)
+  (cd "$OUT" && zip -q IntoTheAbyss.zip IntoTheAbyss.exe IntoTheAbyss.pck godot_wry.dll)
 fi
-ENG=$(godot --headless -s tools/engine_version.gd 2>/dev/null | tail -1)
+ENG=$(grep -o 'APP_ENGINE := "[^"]*"' boot/boot.gd | cut -d'"' -f2)   # neue exe nötig? (siehe boot.gd)
 SHA=$(sha256sum "$OUT/game-$V.pck" | cut -d' ' -f1)
 
 # 4. Ins Repo legen (alte Update-Pakete löschen) und hochladen
