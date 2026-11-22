@@ -1925,7 +1925,7 @@ const RANGER_CARDS = {
   thunderquiver:{name:'Thunder Quiver', rarity:'rare',     cost:1, type:'skill',  createCard:{key:'sparkarrow', n:3}, momentum:1, art:()=>SVG.spark},
   runeforge:   {name:'Rune Forge',      rarity:'rare',     cost:1, type:'skill',  makeRune:true, draw:1,         art:()=>SVG.rune},
   // Episch
-  chainreaction:{name:'Chain Reaction', rarity:'epic',     cost:1, type:'attack', dmg:3, detonate:2,             art:()=>SVG.detonate},
+  chainreaction:{name:'Chain Reaction', rarity:'epic',     cost:1, type:'attack', dmg:3, detonate:1,             art:()=>SVG.detonate},
   perfectseq:  {name:'Perfect Sequence',rarity:'epic',     cost:1, type:'skill',  draw:3, momentum:3,             art:()=>SVG.momentum},
   arrowhail:   {name:'Arrow Hail',      rarity:'epic',     cost:2, type:'attack', dmg:4, hits:5, random:true, mark:5, art:()=>SVG.hail},
   // Legendär
@@ -2937,8 +2937,8 @@ const RHUD_MAGIC = `<svg width="16" height="16" viewBox="0 0 40 40"><path d="M20
 const STATUS = {
   etaunt:    {icon:'tauntIcon',      flag:true, tip:() => `Taunt: your single-target attacks must hit this enemy until its next turn.`},
   bulwark:   {icon:'roleGuardIcon',  tip:n => `Bulwark: takes ${n}% less damage until its next turn.`},
-  overgrown: {icon:'roleBuffIcon',   flag:true, tip:() => `Overgrown: +25% damage and Block for this fight.`},
-  witching:  {icon:'strengthIcon',   tip:n => `Witching Hour: +${2 * n} damage per hit for the rest of the fight.`},
+  overgrown: {icon:'roleBuffIcon',   flag:true, tip:() => `Overgrown: +${AFX().overgrown}% damage and Block for this fight.`},
+  witching:  {icon:'strengthIcon',   tip:n => `Witching Hour: +${AFX().witch * n} damage per hit for the rest of the fight.`},
   roleGuard: {icon:'roleGuardIcon',  flag:true, tip:() => `Protector: regularly shields its allies with Block instead of attacking.`},
   roleTactic:{icon:'roleTacticIcon', flag:true, tip:() => `Tactician: every third turn it rallies its allies (+1 Strength).`},
   roleHeal:  {icon:'roleHealIcon',   flag:true, tip:() => `Healer: heals its allies. Low HP – take it out first!`},
@@ -3094,7 +3094,7 @@ SPECS.soulbinder = [
     starter:['soullash','soullash','tetherlash','spiritveil','spiritveil','kinshield','chainlink','chainlink','soulbindc','resonate']},
   {id:'runebinder', name:'Runebinder', color:'#b47cff', icon:'souletch', tag:'Imprints',
     desc:'Etches Imprints onto her allies\' cards: Edge (+damage), Ward (+Block), Haste (−cost), Mending (heal) and Echo (plays twice). Imprints of the same kind stack.',
-    passiveName:'Lasting Etch', passive:'After every won fight, one random Imprint in the team\'s decks becomes permanent (★).<br><span class="sp-mom">Imprint:</span> a bonus on a card in a hero\'s hand. It lasts until the end of the fight.',
+    passiveName:'Lasting Etch', passive:'After every won fight, one random attack card in the team\'s decks permanently gains <b>+2 damage</b> and one random skill or block card permanently gains <b>+2 Block</b> (★).<br><span class="sp-mom">Imprint:</span> a bonus on a card in a hero\'s hand. It lasts until the end of the fight.',
     starter:['soullash','soullash','runeburst','spiritveil','spiritveil','glyphguard','deepetch','deepetch','etchedge','etchhaste']},
   {id:'soulforger', name:'Soulforger', color:'#ffb03a', icon:'soulforge', tag:'Soulcraft',
     desc:'Forges cards for her allies: Soul Sparks, Spirit Wards and Tailored Gifts made for each class (Steel for Knights, Venom for Assassins, Embers for Mages, the Hunt for Rangers, Fury for Brawlers, Void / Dreams / Tide for each Eldritch Horror).',
@@ -3284,13 +3284,15 @@ function kinship(c){                                                 // Soulforg
 function clearSoulState(h){                                          // nach dem Kampf: Links & Imprints weg (außer dauerhafte)
   for(const c of h.deck){ delete c.link; delete c.resonant; if(c.imprints){ c.imprints = c.imprints.filter(x => x.perm); if(!c.imprints.length) delete c.imprints; } }
 }
-function lastingEtch(){                                              // Runebinder: ein Imprint wird dauerhaft
-  if(!heroList().some(x => x.spec === 'runebinder' && !x.dead)) return;
-  const pool = [];
-  for(const h of heroList()) for(const c of h.deck) for(const x of (c.imprints || [])) if(!x.perm) pool.push({h, c, x});
-  if(!pool.length) return;
-  const o = pool[Math.floor(rng() * pool.length)]; o.x.perm = true;
-  toast(`Lasting Etch: ${IMPRINTS[o.x.type].name} on ${o.h.name}'s ${cardName(o.c)} is now permanent!`);
+function lastingEtch(){                                              // Runebinder: nach jedem Sieg 2 Karten im Team dauerhaft verbessern
+  const rb = heroList().find(x => x.spec === 'runebinder' && !x.dead); if(!rb) return;
+  const all = [];
+  for(const h of heroList()) for(const c of h.deck){ const d = CARDS[c.key]; if(d && !d.unplayable) all.push({h, c, d}); }
+  const atk = all.filter(o => o.d.type === 'attack' && stats(o.c).dmg > 0), def = all.filter(o => o.d.type === 'skill' || o.d.type === 'block');
+  const msg = [];
+  if(atk.length){ const o = atk[Math.floor(rng() * atk.length)]; addImprint(o.c, 'edge', 2, rb.id, true); msg.push(`${o.h.name}'s ${cardName(o.c)} +2 damage`); }
+  if(def.length){ const o = def[Math.floor(rng() * def.length)]; addImprint(o.c, 'ward', 2, rb.id, true); msg.push(`${o.h.name}'s ${cardName(o.c)} +2 Block`); }
+  if(msg.length) toast(`Lasting Etch: ${msg.join(' · ')} (permanent ★)`);
 }
 /* Lichtfaden zwischen zwei Helden */
 function soulBeam(a, b, color, big = false){
@@ -5247,19 +5249,24 @@ const PARTY_DMG = {1:0.72, 2:1, 3:1.18, 4:1.42};
 const BIOME_ROOMS = 15, RUN_BIOMES = 4;
 
 /* ---------- Affixe: gelten im ganzen Biom für Helden UND Gegner ---------- */
+/* Biom-Affixe werden mit jedem neuen Biom des Runs stärker (Stufe 0 = erstes Biom, steigt nur beim Biomwechsel) */
+const AFX = () => { const t = S.biomeIdx || 0; return {
+  cleanseEvery: Math.max(2, 5 - t), heal: 25 + 10 * t, overgrown: 25 + 10 * t, blood: 15 + 5 * t, rise: 30 + 15 * t,
+  witch: 2 + t, stone: 3 + 2 * t, rock: 5 + 3 * t, iron: 25 + 10 * t, burn: 1 + Math.floor((t + 1) / 2), miss: 15 + 5 * t, weak: 1 + t}; };
+const ordinal = n => n + (n === 2 ? 'nd' : n === 3 ? 'rd' : 'th');
 const AFFIXES = {
-  naturesHealing:{name:"Nature's Healing", icon:'regrowIcon', desc:'Every 5th round, half of all debuffs on heroes and enemies are cleansed.'},
-  verdantBloom:  {name:'Verdant Bloom',    icon:'roleHealIcon', desc:'All healing is 25% more effective – for heroes and enemies.'},
-  overgrowth:    {name:'Overgrowth',       icon:'roleBuffIcon', desc:'At the start of every fight, one random hero and one random enemy are Overgrown: +25% damage and Block.'},
-  bloodMoon:     {name:'Blood Moon',       icon:'drainIcon', desc:'Everyone heals for 15% of the damage they deal to the other side.'},
-  restlessDead:  {name:'Restless Dead',    icon:'skullIcon', desc:'In every fight, the first hero and the first enemy that fall rise again with 30% HP.'},
-  witchingHour:  {name:'Witching Hour',    icon:'strengthIcon', desc:'Every 4th round, all heroes and enemies deal +2 damage per hit for the rest of the fight.'},
-  stoneskin:     {name:'Stoneskin',        icon:'roleGuardIcon', desc:'At the start of every round, every hero and every enemy gains 3 Block.'},
-  rockslide:     {name:'Rockslide',        icon:'debuffIcon', desc:'Every 3rd round, falling rocks deal 5 damage to every hero and every enemy.'},
-  ironVeins:     {name:'Iron Veins',       icon:'roleGuardIcon', desc:'All Block gained is 25% higher – for heroes and enemies.'},
-  scorchingSun:  {name:'Scorching Sun',    icon:'burnIcon', desc:'At the start of every round, every hero and every enemy gains 1 Burn.'},
-  sandstorm:     {name:'Sandstorm',        icon:'weakIcon', desc:'Every attack hit has a 15% chance to miss – for heroes and enemies.'},
-  shiftingSands: {name:'Shifting Sands',   icon:'weakIcon', desc:'At the start of every round, one random hero and one random enemy become Weak.'},
+  naturesHealing:{name:"Nature's Healing", icon:'regrowIcon', get desc(){ return `Every ${ordinal(AFX().cleanseEvery)} round, half of all debuffs on heroes and enemies are cleansed.`; }},
+  verdantBloom:  {name:'Verdant Bloom',    icon:'roleHealIcon', get desc(){ return `All healing is ${AFX().heal}% more effective – for heroes and enemies.`; }},
+  overgrowth:    {name:'Overgrowth',       icon:'roleBuffIcon', get desc(){ return `At the start of every fight, one random hero and one random enemy are Overgrown: +${AFX().overgrown}% damage and Block.`; }},
+  bloodMoon:     {name:'Blood Moon',       icon:'drainIcon', get desc(){ return `Everyone heals for ${AFX().blood}% of the damage they deal to the other side.`; }},
+  restlessDead:  {name:'Restless Dead',    icon:'skullIcon', get desc(){ return `In every fight, the first hero and the first enemy that fall rise again with ${AFX().rise}% HP.`; }},
+  witchingHour:  {name:'Witching Hour',    icon:'strengthIcon', get desc(){ return `Every 4th round, all heroes and enemies deal +${AFX().witch} damage per hit for the rest of the fight.`; }},
+  stoneskin:     {name:'Stoneskin',        icon:'roleGuardIcon', get desc(){ return `At the start of every round, every hero and every enemy gains ${AFX().stone} Block.`; }},
+  rockslide:     {name:'Rockslide',        icon:'debuffIcon', get desc(){ return `Every 3rd round, falling rocks deal ${AFX().rock} damage to every hero and every enemy.`; }},
+  ironVeins:     {name:'Iron Veins',       icon:'roleGuardIcon', get desc(){ return `All Block gained is ${AFX().iron}% higher – for heroes and enemies.`; }},
+  scorchingSun:  {name:'Scorching Sun',    icon:'burnIcon', get desc(){ return `At the start of every round, every hero and every enemy gains ${AFX().burn} Burn.`; }},
+  sandstorm:     {name:'Sandstorm',        icon:'weakIcon', get desc(){ return `Every attack hit has a ${AFX().miss}% chance to miss – for heroes and enemies.`; }},
+  shiftingSands: {name:'Shifting Sands',   icon:'weakIcon', get desc(){ return `At the start of every round, one random hero and one random enemy become Weak (${AFX().weak} turn${AFX().weak > 1 ? 's' : ''}).`; }},
 };
 const affixOn = k => !!(S.affix === k && S.enemies && S.enemies.length);
 
@@ -6060,7 +6067,7 @@ function biomeIntroHTML(k){
       <h1 class="bi-name" style="font-family:${B.font};color:${B.color};text-shadow:0 0 24px ${B.glow},0 4px 0 #000">${B.name}</h1>
       <p class="bi-sub">${B.sub}</p>
       <button class="bi-go" id="biomeGo">Continue</button>
-      <div class="bi-affix"><span class="bi-ai">${SVG[A.icon] || ''}</span><div><b>Affix: ${A.name}</b><span>${A.desc}</span></div></div></div>`;
+      <div class="bi-affix"><span class="bi-ai">${SVG[A.icon] || ''}</span><div><b>Affix: ${A.name}${S.biomeIdx ? ` · Level ${S.biomeIdx + 1}` : ''}</b><span>${A.desc}${S.biomeIdx ? ' Affixes grow stronger in every new biome.' : ''}</span></div></div></div>`;
 }
 function showBiomeIntro(){
   if(S.biome) AUDIO.music(S.biome);
@@ -6114,26 +6121,26 @@ async function affixFightStart(){
 async function affixRoundStart(){
   const A = S.affix; if(!A || !alive().length) return;
   const all = [...living(), ...alive()], prev = S.actor; S.actor = null;
-  if(A === 'naturesHealing' && S.round % 5 === 0){
+  if(A === 'naturesHealing' && S.round % AFX().cleanseEvery === 0){
     for(const u of all) for(const k of [...HERO_DEBUFF_KEYS, ...ENEMY_DEBUFFS, 'vulnerable']){ const v = u.status[k]; if(v){ u.status[k] = v - Math.ceil(v / 2); if(!u.status[k]) delete u.status[k]; } }
     all.forEach(updateUnit); toast("Nature's Healing: half of all debuffs fade.");
   }
   if(A === 'witchingHour' && S.round % 4 === 0){ all.forEach(u => applyStatus(u, 'witching', 1)); toast('Witching Hour: everyone hits harder!'); }
-  if(A === 'stoneskin') all.forEach(u => gainBlock(u, 3));
+  if(A === 'stoneskin') all.forEach(u => gainBlock(u, AFX().stone));
   if(A === 'rockslide' && S.round % 3 === 0){
-    toast('Rockslide!'); all.forEach(u => dealDamage(u, 5));
+    toast('Rockslide!'); all.forEach(u => dealDamage(u, AFX().rock));
     for(const e of alive()) if(e.hp <= 0) killEnemy(e);
     checkHeroDeaths(); await sleep(350);
   }
-  if(A === 'scorchingSun') all.forEach(u => { u.status.burn = (u.status.burn || 0) + 1; updateUnit(u); });
-  if(A === 'shiftingSands'){ const h = living().length ? pick(living()) : null, e = alive().length ? pick(alive()) : null; if(h) applyStatus(h, 'weak', 1); if(e) applyStatus(e, 'weak', 1); }
+  if(A === 'scorchingSun') all.forEach(u => { u.status.burn = (u.status.burn || 0) + AFX().burn; updateUnit(u); });
+  if(A === 'shiftingSands'){ const h = living().length ? pick(living()) : null, e = alive().length ? pick(alive()) : null; if(h) applyStatus(h, 'weak', AFX().weak); if(e) applyStatus(e, 'weak', AFX().weak); }
   S.actor = prev;
 }
 function affixDmg(t, amount){                                        // Treffer von einer Seite auf die andere
   const a = S.actor; if(!a || !!a.hero === !!t.hero) return amount;
-  if(a.status && a.status.overgrown) amount = Math.round(amount * 1.25);
-  if(a.status && a.status.witching) amount += 2 * a.status.witching;
-  if(S.affix === 'sandstorm' && amount > 0 && rng() < 0.15){ floatText(t, 'Miss!', 'blk'); return -1; }
+  if(a.status && a.status.overgrown) amount = Math.round(amount * (1 + AFX().overgrown / 100));
+  if(a.status && a.status.witching) amount += AFX().witch * a.status.witching;
+  if(S.affix === 'sandstorm' && amount > 0 && rng() < AFX().miss / 100){ floatText(t, 'Miss!', 'blk'); return -1; }
   return amount;
 }
 
@@ -7100,7 +7107,7 @@ function dealDamage(t, amount){
   floatText(t, dmg > 0 ? '-' + dmg : 'Blocked', dmg > 0 ? 'dmg' : 'blk');
   if(!t.hero && dmg > 0 && t.hp > 0 && t.passive && t.passive.rage) t.status.strength = (t.status.strength || 0) + t.passive.rage;   // Wut
   updateUnit(t);
-  if(S.affix === 'bloodMoon' && dmg > 0 && S.actor && !S.actor.dead && !!S.actor.hero !== !!t.hero){ const v = Math.floor(dmg * 0.15); if(v) heal(S.actor, v); }   // Blood Moon
+  if(S.affix === 'bloodMoon' && dmg > 0 && S.actor && !S.actor.dead && !!S.actor.hero !== !!t.hero){ const v = Math.floor(dmg * AFX().blood / 100); if(v) heal(S.actor, v); }   // Blood Moon
   return dmg;
 }
 /* ---------- Kampfstatistik (pro Kampf und pro Run) ---------- */
@@ -7115,12 +7122,12 @@ function loseHP(t, amount, cls){
   if(!t.hero && t.status && t.status.vulnerable) amount = Math.floor(amount * VULN_MULT);   // Vulnerable gilt auch für Gift, Burn usw.
   if(S.actor && !!t.hero !== !!S.actor.hero) statAdd(S.actor, 'dmg', Math.min(amount, t.hp), 'hp');
   t.hp = Math.max(0, t.hp - amount); retrigger(t.el, 'hit'); floatText(t, '-' + amount, cls); updateUnit(t); }
-function heal(t, amount){ if(amount <= 0 || t.dead) return; if(S.affix === 'verdantBloom') amount = Math.round(amount * 1.25); if(S.actor && !!t.hero === !!S.actor.hero) statAdd(S.actor, 'heal', Math.min(amount, t.maxHp - t.hp)); t.hp = Math.min(t.maxHp, t.hp + amount); floatText(t, '+' + amount, 'heal-f'); updateUnit(t); }
+function heal(t, amount){ if(amount <= 0 || t.dead) return; if(S.affix === 'verdantBloom') amount = Math.round(amount * (1 + AFX().heal / 100)); if(S.actor && !!t.hero === !!S.actor.hero) statAdd(S.actor, 'heal', Math.min(amount, t.maxHp - t.hp)); t.hp = Math.min(t.maxHp, t.hp + amount); floatText(t, '+' + amount, 'heal-f'); updateUnit(t); }
 function gainBlock(u, amount, fromCard = false){
   if(fromCard && u.status.brittle) amount = Math.max(0, amount - u.status.brittle);
   if(amount <= 0){ floatText(u, 'Brittle!', 'status-f'); return; }
-  if(S.affix === 'ironVeins') amount = Math.round(amount * 1.25);
-  if(u.status && u.status.overgrown) amount = Math.round(amount * 1.25);
+  if(S.affix === 'ironVeins') amount = Math.round(amount * (1 + AFX().iron / 100));
+  if(u.status && u.status.overgrown) amount = Math.round(amount * (1 + AFX().overgrown / 100));
   if(u.hero && u.spec === 'knockout'){ amount = Math.floor(amount * KO_BLOCK); if(amount <= 0) return; }   // Knockout Champion: nur 50 % Block
   if(S.actor && !!u.hero === !!S.actor.hero) statAdd(S.actor, 'block', amount, u === S.actor ? 'self' : 'others');   // Stats: auf sich selbst / auf andere
   u.block += amount; retrigger(u.el, 'shield'); floatText(u, '+' + amount + ' Block', 'blk'); updateUnit(u);
@@ -7183,7 +7190,7 @@ function withNeighbors(primary, n){
   return [primary, ...others.slice(0, n)];
 }
 function checkHeroDeaths(){
-  heroList().forEach(h => { if(!h.dead && h.hp <= 0 && S.affix === 'restlessDead' && S.restless && !S.restless.hero && alive().length){ S.restless.hero = true; h.hp = Math.max(1, Math.round(h.maxHp * 0.3)); floatText(h, 'Rises again!', 'heal-f'); updateUnit(h); } });
+  heroList().forEach(h => { if(!h.dead && h.hp <= 0 && S.affix === 'restlessDead' && S.restless && !S.restless.hero && alive().length){ S.restless.hero = true; h.hp = Math.max(1, Math.round(h.maxHp * AFX().rise / 100)); floatText(h, 'Rises again!', 'heal-f'); updateUnit(h); } });
   heroList().forEach(h => { if(!h.dead && h.hp <= 0){ h.dead = true; h.block = 0; h.status = {}; floatText(h, 'Fallen!', 'dmg'); updateUnit(h); } });
 }
 const allHeroesDead = () => !living().length;
@@ -7482,7 +7489,7 @@ async function playCard(h, i, target){
 }
 function killEnemy(e){
   if(S.affix === 'restlessDead' && S.restless && !S.restless.enemy && !e.minion && !e.dead){   // Restless Dead: der erste Gegner steht wieder auf
-    S.restless.enemy = true; e.hp = Math.max(1, Math.round(e.maxHp * 0.3)); floatText(e, 'Rises again!', 'heal-f'); updateUnit(e); return;
+    S.restless.enemy = true; e.hp = Math.max(1, Math.round(e.maxHp * AFX().rise / 100)); floatText(e, 'Rises again!', 'heal-f'); updateUnit(e); return;
   }
   for(const x of living()) if(x.spec === 'tidecaller' && !e.dead) gainDepth(x, 1);          // Pressure of the Deep
   const poisonLeft = e.status.poison || 0;
@@ -8100,7 +8107,7 @@ function rollGem(elite = false, h = null){
 }
 async function victory(){
   S.phase = 'post'; S.active = null;
-  lastingEtch(); heroList().forEach(clearSoulState); S.links = {};
+  heroList().forEach(clearSoulState); lastingEtch(); S.links = {};
   const wasBoss = !!(S.special && S.special.boss);
   if(wasBoss && S.room >= ROOMS_PER_RUN) return runWon();
   if(wasBoss) await banner(`${S.special.name} has fallen!`, `The heroes recover fully. ${ROOMS_PER_RUN - S.room} rooms to go.`, 2000);

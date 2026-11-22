@@ -1,5 +1,5 @@
-{"version": 5, "engine": "4.4.1-wry1", "sha256": "7934b55da85ff97014118410dc5998c69ad5e4ca6f2984aea23a456565f63753",
- "pck_url": "https://raw.githubusercontent.com/Naduos/into-the-abyss/main/updates/game-5.pck",
+{"version": 6, "engine": "4.4.1-wry1", "sha256": "975d4dcf630c50259af21249ccd03256f4eb3ed377b1aa6609c183901325c6af",
+ "pck_url": "https://raw.githubusercontent.com/Naduos/into-the-abyss/main/updates/game-6.pck",
  "full_url": "https://github.com/Naduos/into-the-abyss#download",
  "zip_url": "https://raw.githubusercontent.com/Naduos/into-the-abyss/main/download/IntoTheAbyss.zip",
  "files": {"IntoTheAbyss.exe": "91f1bc1d7e4f1596bed1bbaeef351407a33429420dbfdb366307ca0ee9170a98", "godot_wry.dll": "a8fb72d3570708874f92e5e55384c35127c056c1554eb7a06b5997d050831e5b"}}
