@@ -63,20 +63,15 @@ func _on_ipc(msg: String) -> void:
 		"quit": _leave(); get_tree().quit()
 		"log": print("[page] ", m.get("text", ""))
 
-## Anzeige: Fenster / randlos (Fenster ohne Rahmen über den ganzen Bildschirm) / Vollbild.
-## Exklusives Vollbild wird nicht benutzt: Dort bleibt das eingebaute Browserfenster schwarz.
+## Anzeige: Fenster / Vollbild. (Exklusives Vollbild und ein randloses Fenster funktionieren mit dem
+## eingebauten Browserfenster nicht – beides wurde entfernt; alte Einstellung "borderless" = Vollbild.)
 func _display(mode: String) -> void:
 	var w := get_window()
 	var scr := DisplayServer.window_get_current_screen()
 	match mode:
-		"fullscreen":
+		"fullscreen", "borderless":
 			w.borderless = false
 			w.mode = Window.MODE_FULLSCREEN
-		"borderless":
-			w.mode = Window.MODE_WINDOWED
-			w.borderless = true
-			w.position = DisplayServer.screen_get_position(scr)
-			w.size = DisplayServer.screen_get_size(scr)
 		_:
 			var was_big := w.mode != Window.MODE_WINDOWED or w.borderless
 			w.mode = Window.MODE_WINDOWED

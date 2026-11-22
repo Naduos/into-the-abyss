@@ -1005,7 +1005,7 @@ body.ontitle #hud{visibility:hidden}
       <div class="orow"><span>Screen shake</span><div class="seg" id="optShake"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
       <div class="orow"><span>Lightning flashes</span><div class="seg" id="optFlash"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
       <div class="orow"><span>Show hotkeys on cards</span><div class="seg" id="optKeys"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
-      <div class="orow"><span>Display</span><div class="seg" id="optDisplay"><button data-d="windowed">Window</button><button data-d="borderless" class="gdonly">Borderless</button><button data-d="fullscreen">Fullscreen</button></div></div>
+      <div class="orow"><span>Display</span><div class="seg" id="optDisplay"><button data-d="windowed">Window</button><button data-d="fullscreen">Fullscreen</button></div></div>
       <div class="orow"><span>Master volume</span><div class="vol"><input type="range" min="0" max="100" step="1" id="optVol" data-k="vol"><b id="optVolN"></b></div></div>
       <div class="orow"><span>Music</span><div class="vol"><input type="range" min="0" max="100" step="1" id="optMusic" data-k="music"><b id="optMusicN"></b></div></div>
       <div class="orow"><span>Sound effects</span><div class="vol"><input type="range" min="0" max="100" step="1" id="optSfx" data-k="sfx"><b id="optSfxN"></b></div></div>
@@ -9221,7 +9221,7 @@ const GD = {handlers:{}, info:null,
   send(cmd, data = {}){ try { window.ipc.postMessage(JSON.stringify(Object.assign({cmd}, data))); } catch(e){} },
   on(type, f){ (this.handlers[type] = this.handlers[type] || []).push(f); return () => { this.handlers[type] = this.handlers[type].filter(x => x !== f); }; }};
 if(GODOT) addEventListener('keydown', ev => { if(ev.key === 'F11'){ ev.preventDefault();
-  if(OPT.display === 'windowed') setDisplay(OPT.lastFull || 'borderless'); else { OPT.lastFull = OPT.display; setDisplay('windowed'); } } }, true);
+  setDisplay(displayMode() === 'windowed' ? 'fullscreen' : 'windowed'); } }, true);
 if(GODOT) document.addEventListener('message', ev => {
   let m; try { m = JSON.parse(ev.detail); } catch(e){ return; }
   if(m.type === 'toast') toast(m.text);
@@ -10274,7 +10274,8 @@ function applyOptions(){
 [['#optSpeed','speed'],['#optShake','shake'],['#optKeys','keys'],['#optFlash','flash']].forEach(([sel,key]) =>
   document.querySelectorAll(sel + ' button').forEach(b => b.addEventListener('click', () => { OPT[key] = +b.dataset.v; applyOptions(); })));
 /* Anzeige: exe = Fenster / randloses Vollbild / exklusives Vollbild; Browser = Fenster / Vollbild */
-function displayMode(){ return GODOT ? (OPT.display || 'windowed') : (document.fullscreenElement ? 'fullscreen' : 'windowed'); }
+function displayMode(){ if(OPT.display === 'borderless') OPT.display = 'fullscreen';   // Randlos gibt es nicht mehr
+  return GODOT ? (OPT.display || 'windowed') : (document.fullscreenElement ? 'fullscreen' : 'windowed'); }
 function setDisplay(mode){
   if(GODOT){ OPT.display = mode; GD.send('display', {mode}); applyOptions(); return; }
   try { if(mode === 'windowed'){ if(document.fullscreenElement) document.exitFullscreen(); }
@@ -10289,7 +10290,7 @@ document.addEventListener('fullscreenchange', () => applyOptions());
   el.addEventListener('keydown', ev => ev.stopPropagation());
   if(k === 'sfx') el.addEventListener('change', () => AUDIO.sfx('hit', {}));      // Hörprobe beim Loslassen
 });
-if(GODOT) GD.send('display', {mode: OPT.display || 'windowed'});
+if(GODOT) GD.send('display', {mode: displayMode()});
 const menuOpen = () => $('#menu').classList.contains('show');
 function menuPage(id){ ['#mMain','#mOpts','#mConfirm'].forEach(p => $(p).style.display = p === id ? '' : 'none'); }
 function openMenu(){
