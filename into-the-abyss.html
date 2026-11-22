@@ -9217,6 +9217,7 @@ if(GODOT) addEventListener('keydown', ev => { if(ev.key === 'F11'){ ev.preventDe
   if(OPT.display === 'windowed') setDisplay(OPT.lastFull || 'borderless'); else { OPT.lastFull = OPT.display; setDisplay('windowed'); } } }, true);
 if(GODOT) document.addEventListener('message', ev => {
   let m; try { m = JSON.parse(ev.detail); } catch(e){ return; }
+  if(m.type === 'toast') toast(m.text);
   if(m.type === 'info'){ GD.info = m; if(NET.isHost && !S.runActive && NET.g && $('.lobbytop')) renderHostLobby(); }
   (GD.handlers[m.type] || []).slice().forEach(f => { try { f(m); } catch(err){ console.error(err); } });
 });
@@ -10104,7 +10105,7 @@ for(const k in CARDS){ const d = CARDS[k]; if(d.char !== 'mage') continue;
   if(d.cond) [].concat(d.cond).forEach(cd => { if(cd.dmg) cd.dmg = Math.round(cd.dmg * MAGE_BUFF); });
 }
 const heroPortrait = (id, w = 52) => SVG[id].replace(/width="\d+" height="\d+"/, `width="${w}" height="${Math.round(w*1.3)}"`);
-let partySel = ['knight','mage'];
+let partySel = [];                                  // keine Vorauswahl – der Spieler wählt selbst
 function showPartyPick(){
   const n = partySel.length;
   showOverlay(`<h1>Choose your heroes</h1><p>Pick <b>one to four</b> of the ${CLASS_ORDER.length} heroes. You control all of them, one after the other.

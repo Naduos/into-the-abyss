@@ -34,6 +34,12 @@ if [ $FULL = 1 ]; then
 fi
 ENG=$(grep -o 'APP_ENGINE := "[^"]*"' boot/boot.gd | cut -d'"' -f2)   # neue exe nötig? (siehe boot.gd)
 SHA=$(sha256sum "$OUT/game-$V.pck" | cut -d' ' -f1)
+# Prüfsummen der Programmdateien: Das Spiel tauscht exe/DLL selbst aus, wenn sie abweichen (ui/web.gd)
+if [ $FULL = 1 ]; then
+  FILES="{\"IntoTheAbyss.exe\": \"$(sha256sum "$OUT/IntoTheAbyss.exe" | cut -d' ' -f1)\", \"godot_wry.dll\": \"$(sha256sum "$OUT/godot_wry.dll" | cut -d' ' -f1)\"}"
+else
+  FILES=$(python3 -c "import json;print(json.dumps(json.load(open('$CLONE/updates/latest.json')).get('files', {})))" 2>/dev/null || echo '{}')
+fi
 
 # 4. Ins Repo legen (alte Update-Pakete löschen) und hochladen
 mkdir -p "$CLONE/updates" "$CLONE/download"
@@ -42,7 +48,9 @@ cp "$OUT/game-$V.pck" "$CLONE/updates/"
 cat > "$CLONE/updates/latest.json" <<EOF
 {"version": $V, "engine": "$ENG", "sha256": "$SHA",
  "pck_url": "$RAW/updates/game-$V.pck",
- "full_url": "https://github.com/$REPO#download"}
+ "full_url": "https://github.com/$REPO#download",
+ "zip_url": "$RAW/download/IntoTheAbyss.zip",
+ "files": $FILES}
 EOF
 [ $FULL = 1 ] && cp "$OUT/IntoTheAbyss.zip" "$CLONE/download/IntoTheAbyss.zip"
 cp "$HTML" "$CLONE/into-the-abyss.html"

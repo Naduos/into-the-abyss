@@ -47,6 +47,7 @@ func _ready() -> void:
 	add_child(wv)
 	wv.connect("ipc_message", _on_ipc)
 	print("WEB_READY version=", version)
+	_self_update()
 
 # ---------- Seite -> exe ----------
 func _on_ipc(msg: String) -> void:
@@ -58,14 +59,85 @@ func _on_ipc(msg: String) -> void:
 		"net_join": _join(str(m.get("ip", "")))
 		"net_send": _send({"topic": m.get("topic"), "data": m.get("data")})
 		"net_leave": _leave()
-		"display":                                          # Optionen: Fenster / randloses Vollbild / Vollbild
-			var w := get_window()
-			match str(m.get("mode", "windowed")):
-				"borderless": w.mode = Window.MODE_FULLSCREEN            # Godot: Vollbild ohne Rand (Desktop-Auflösung)
-				"fullscreen": w.mode = Window.MODE_EXCLUSIVE_FULLSCREEN  # exklusives Vollbild
-				_: w.mode = Window.MODE_WINDOWED
+		"display": _display(str(m.get("mode", "windowed")))
 		"quit": _leave(); get_tree().quit()
 		"log": print("[page] ", m.get("text", ""))
+
+## Anzeige: Fenster / randlos (Fenster ohne Rahmen über den ganzen Bildschirm) / Vollbild.
+## Exklusives Vollbild wird nicht benutzt: Dort bleibt das eingebaute Browserfenster schwarz.
+func _display(mode: String) -> void:
+	var w := get_window()
+	var scr := DisplayServer.window_get_current_screen()
+	match mode:
+		"fullscreen":
+			w.borderless = false
+			w.mode = Window.MODE_FULLSCREEN
+		"borderless":
+			w.mode = Window.MODE_WINDOWED
+			w.borderless = true
+			w.position = DisplayServer.screen_get_position(scr)
+			w.size = DisplayServer.screen_get_size(scr)
+		_:
+			var was_big := w.mode != Window.MODE_WINDOWED or w.borderless
+			w.mode = Window.MODE_WINDOWED
+			w.borderless = false
+			if was_big:
+				w.size = Vector2i(1280, 720)
+				w.position = DisplayServer.screen_get_position(scr) + (DisplayServer.screen_get_size(scr) - w.size) / 2
+
+# ---------- Programmdateien selbst aktualisieren (exe/DLL) ----------
+## Die pck-Updates können die exe nicht ändern (z. B. das Symbol im Explorer). Steht in latest.json
+## eine andere exe/DLL, lädt das Spiel im Hintergrund die Zip, prüft die Prüfsummen und tauscht die
+## Dateien: die laufende Datei wird in *.old umbenannt (unter Windows erlaubt), die neue nimmt ihren
+## Platz ein. Wirksam ab dem nächsten Start.
+func _self_update(test_dir := "", test_url := "") -> void:
+	var exe := OS.get_executable_path()
+	var dir := test_dir if test_dir != "" else exe.get_base_dir()
+	if test_dir == "" and (not OS.has_feature("template") or not OS.has_feature("windows")): return
+	for f in DirAccess.get_files_at(dir):                  # Reste vom letzten Tausch aufräumen
+		if f.ends_with(".old"): DirAccess.remove_absolute(dir.path_join(f))
+	var url: String = test_url if test_url != "" else load("res://boot/boot.gd").UPDATE_URL
+	var req := HTTPRequest.new(); req.timeout = 10; add_child(req)
+	if req.request(url) != OK: req.queue_free(); return
+	var res = await req.request_completed
+	req.queue_free()
+	if res[0] != HTTPRequest.RESULT_SUCCESS or res[1] != 200: return
+	var remote = JSON.parse_string((res[3] as PackedByteArray).get_string_from_utf8())
+	if typeof(remote) != TYPE_DICTIONARY or typeof(remote.get("files")) != TYPE_DICTIONARY: return
+	var todo := {}
+	for name in remote["files"]:
+		var path := dir.path_join(name)
+		if FileAccess.get_sha256(path).to_lower() != str(remote["files"][name]).to_lower(): todo[name] = remote["files"][name]
+	if todo.is_empty(): return
+	print("Programmdateien veraltet: ", todo.keys())
+	var zip_path := "user://program_update.zip"
+	var dl := HTTPRequest.new(); dl.timeout = 0; dl.download_file = zip_path; add_child(dl)
+	if dl.request(str(remote.get("zip_url", ""))) != OK: dl.queue_free(); return
+	res = await dl.request_completed
+	dl.queue_free()
+	if res[0] != HTTPRequest.RESULT_SUCCESS or res[1] != 200: return
+	var zr := ZIPReader.new()
+	if zr.open(ProjectSettings.globalize_path(zip_path)) != OK: return
+	var done := []
+	for name in todo:
+		var data := zr.read_file(name)
+		var hc := HashingContext.new(); hc.start(HashingContext.HASH_SHA256); hc.update(data)
+		if hc.finish().hex_encode() != str(todo[name]).to_lower(): continue
+		var path := dir.path_join(name)
+		var f := FileAccess.open(path + ".new", FileAccess.WRITE)
+		if f == null: continue
+		f.store_buffer(data); f.close()
+		DirAccess.remove_absolute(path + ".old")
+		if DirAccess.rename_absolute(path, path + ".old") == OK and DirAccess.rename_absolute(path + ".new", path) == OK:
+			done.append(name)
+		else:
+			DirAccess.rename_absolute(path + ".old", path)        # zurück, falls etwas schiefging
+			DirAccess.remove_absolute(path + ".new")
+	zr.close()
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(zip_path))
+	if not done.is_empty():
+		print("Programmdateien aktualisiert: ", done)
+		_post({"type": "toast", "text": "Program files updated – they take effect the next time you start the game."})
 
 func _post(d: Dictionary) -> void:
 	if test_posts != null: test_posts.append(d.duplicate(true)); return
