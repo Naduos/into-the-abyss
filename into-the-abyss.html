@@ -8356,7 +8356,7 @@ function buddyHTML(ev, dec){
   let html = `<div class="buddy"><button class="buddyroll done" id="buddyRoll" style="--rc:${R.color}" disabled>${R.name}!</button>`;
   if(ev.stage === 'hero'){
     html += `<p>A <b style="color:${R.color}">${R.name}</b> card: <b>${steps}</b> modification${steps > 1 ? 's' : ''} and <b>${steps}</b> gem slot${steps > 1 ? 's' : ''}. Who gets the card?</p>
-      <div class="rolepick">${heroList().map(h => `<button class="rp buddyhero" data-h="${h.id}" ${dec ? '' : 'disabled'}>${heroPortrait(h.id, 40)}<b>${h.name}</b></button>`).join('')}</div>`;
+      <div class="rolepick">${heroList().map(h => `<button class="rp buddyhero" data-h="${h.id}" ${dec ? '' : 'disabled'}>${heroPortrait(h.id, 40, true)}<b>${h.name}</b></button>`).join('')}</div>`;
   } else {
     html += `<div class="buddy-row"><div id="buddyPreview"></div><div class="buddy-side">`;
     if(ev.stage === 'mods'){
@@ -8509,7 +8509,7 @@ function showFormation(){
   const me = myRole(), myHero = S.party.find(mine), ready = S.formReady || {};
   const full = !bench.length;
   const who = id => S.mode === 'solo' ? '' : (S.roles[id] === me ? 'You' : SLOT_NAME[S.roles[id]]);
-  const heroBox = id => `<div class="fhero ${formSel === id ? 'sel' : ''} ${myHero ? '' : 'locked'}" draggable="false" data-id="${id}">${heroPortrait(id, 56)}</div>`;
+  const heroBox = id => `<div class="fhero ${formSel === id ? 'sel' : ''} ${myHero ? '' : 'locked'}" draggable="false" data-id="${id}">${heroPortrait(id, 56, true)}</div>`;
   const nReady = players.filter(sl => ready[sl]).length;
   const cells = order.map((id, i) => ({id, i})).reverse();                    // wie im Kampf: hinten links … vorne rechts
   showOverlay(`<div class="formation"><h1>Formation</h1>
@@ -10111,7 +10111,14 @@ for(const k in CARDS){ const d = CARDS[k]; if(d.char !== 'mage') continue;
   if(d.blizzard) d.blizzard = {...d.blizzard, dmg:Math.round((d.blizzard.dmg || 0) * MAGE_BUFF) + 1};
   if(d.cond) [].concat(d.cond).forEach(cd => { if(cd.dmg) cd.dmg = Math.round(cd.dmg * MAGE_BUFF); });
 }
-const heroPortrait = (id, w = 52) => SVG[id].replace(/width="\d+" height="\d+"/, `width="${w}" height="${Math.round(w*1.3)}"`);
+/* Porträt eines Helden. spec = true: im laufenden Run das Bild der gewählten Spezialisierung (gilt automatisch auch für neue Specs) */
+const heroPortrait = (id, w = 52, spec = false) => {
+  const h = spec && S.heroes ? S.heroes[id] : null;
+  const k = h && h.spec ? (h.spec === 'acolyte' ? 'acolyte_' + corruptStage(h) : h.spec) : null;
+  const svg = k && SPEC_ART[k] ? SPEC_ART[k] : SVG[id];
+  const m = /width="(\d+)" height="(\d+)"/.exec(svg), ratio = m ? m[2] / m[1] : 1.3;
+  return svg.replace(/width="\d+" height="\d+"/, `width="${w}" height="${Math.round(w * ratio)}"`);
+};
 let partySel = [];                                  // keine Vorauswahl – der Spieler wählt selbst
 function showPartyPick(){
   const n = partySel.length;
