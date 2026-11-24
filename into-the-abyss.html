@@ -3601,16 +3601,25 @@ function addCorruption(h, n){
   if(corruptStage(h) > before){ toast(`${h.name} is changing… (${h.corruption} Corruption)`); retrigger(h.el, 'shield'); }
   updateUnit(h); renderHand();
 }
+function corruptMind(h){                                            // Acolyte bei 0 Sanity: Corrupted Mind
+  h.sanity = SANITY_MAX; h.mindStun = true; h.energy = 0;
+  floatText(h, 'Corrupted Mind!', 'dmg'); retrigger(h.el, 'hit'); updateUnit(h);
+}
+async function checkMindBreak(h){                                    // Sanity während des eigenen Zugs auf 0 -> Zug sofort vorbei
+  if(!h || h.spec !== 'acolyte' || h.dead || sanityOf(h) > 0) return false;
+  if(S.phase !== 'hero' || h.turnDone) return false;                 // außerhalb seines Zugs: Sanity bleibt 0, der nächste Zug geht verloren (eldritchTurnStart)
+  corruptMind(h);
+  toast(`${h.name}'s mind breaks – his turn ends.`); await sleep(500);
+  await endHeroTurn(h);
+  return true;
+}
 function eldritchTurnStart(h){                                        // Sanity-Verlust, ggf. Corrupted Mind
   if(h.id !== 'eldritch' || h.dead) return false;
   if(h.spec === 'tidecaller') gainDepth(h, 1);
   if(h.spec !== 'acolyte') return false;
   const loss = Math.floor((h.corruption || 0) / 10);
   if(loss){ h.sanity = Math.max(0, (h.sanity ?? SANITY_MAX) - loss); floatText(h, `-${loss} Sanity`, 'status-f'); }
-  if(h.sanity <= 0){
-    h.sanity = SANITY_MAX; h.mindStun = true; h.turnDone = true; h.energy = 0;   // Corrupted Mind: Zug und alles Mana weg
-    floatText(h, 'Corrupted Mind!', 'dmg'); updateUnit(h); return true;
-  }
+  if(h.sanity <= 0){ corruptMind(h); h.turnDone = true; return true; }   // Corrupted Mind: Zug und alle Energie weg
   updateUnit(h); return false;
 }
 /* ---------- Dream ---------- */
@@ -7486,6 +7495,7 @@ async function playCard(h, i, target){
     }
   }
   if(h.dead){ h.turnDone = true; return checkTeamDone(); }
+  for(const x of heroList()) if(x.spec === 'acolyte' && await checkMindBreak(x) && x === h) return;   // Acolyte: Sanity auf 0 gefallen
 }
 function killEnemy(e){
   if(S.affix === 'restlessDead' && S.restless && !S.restless.enemy && !e.minion && !e.dead){   // Restless Dead: der erste Gegner steht wieder auf
@@ -8517,9 +8527,9 @@ function showFormation(){
     <div class="frow">${cells.map(({id, i}) => `<div class="fslot ${i === 0 ? 'front' : ''} ${id ? '' : 'empty'}" data-i="${i}">
         <div class="flabel">${FORM_LABEL[i]}</div>
         ${id ? heroBox(id) : '<div class="fempty">+</div>'}
-        <b>${id ? HEROES[id].name : '&nbsp;'}</b><span class="fown">${id ? who(id) : ''}</span></div>`).join('')}
+        <b>${id ? heroLabel(id) : '&nbsp;'}</b><span class="fown">${id ? who(id) : ''}</span></div>`).join('')}
       <div class="fenemy">Enemies ▶</div></div>
-    <div class="fbench ${bench.length ? '' : 'emptyb'}" data-bench="1"><div class="fbl">Bench</div>${bench.length ? bench.map(id => `<div class="fbh">${heroBox(id)}<b>${HEROES[id].name}</b><span class="fown">${who(id)}</span></div>`).join('') : '<span class="fbn">Everyone is in position.</span>'}</div>
+    <div class="fbench ${bench.length ? '' : 'emptyb'}" data-bench="1"><div class="fbl">Bench</div>${bench.length ? bench.map(id => `<div class="fbh">${heroBox(id)}<b>${heroLabel(id)}</b><span class="fown">${who(id)}</span></div>`).join('') : '<span class="fbn">Everyone is in position.</span>'}</div>
     ${S.mode === 'solo' ? '' : `<p class="lobbyroster">${players.map(sl => `<span class="${sl === me ? 'me' : ''}"><b>${sl === me ? 'You' : SLOT_NAME[sl]}</b>: ${ready[sl] ? '<em class="rdy">Ready ✓</em>' : 'choosing…'}</span>`).join('')}</p>`}
     <div class="mrow"><button class="mbtn ${ready[me] ? 'on' : ''}" id="formReady" ${myHero && (full || ready[me]) ? '' : 'disabled'}>${!full ? 'Place every hero first' : ready[me] ? `Ready ✓ – waiting (${nReady}/${players.length})` : (S.mode === 'solo' ? 'Confirm Formation' : 'Ready')}</button></div></div>`, null, true);
   const send = o => { if(!busy() && myHero) dispatch({t:'formation', h:myHero, order:o}); };
@@ -10111,6 +10121,8 @@ for(const k in CARDS){ const d = CARDS[k]; if(d.char !== 'mage') continue;
   if(d.blizzard) d.blizzard = {...d.blizzard, dmg:Math.round((d.blizzard.dmg || 0) * MAGE_BUFF) + 1};
   if(d.cond) [].concat(d.cond).forEach(cd => { if(cd.dmg) cd.dmg = Math.round(cd.dmg * MAGE_BUFF); });
 }
+/* Name eines Helden: im laufenden Run der Name der Spezialisierung, sonst der Klassenname */
+const heroLabel = id => { const h = S.heroes && S.heroes[id], sp = h && h.spec && specOf(id, h.spec); return sp ? sp.name : HEROES[id].name; };
 /* Porträt eines Helden. spec = true: im laufenden Run das Bild der gewählten Spezialisierung (gilt automatisch auch für neue Specs) */
 const heroPortrait = (id, w = 52, spec = false) => {
   const h = spec && S.heroes ? S.heroes[id] : null;
