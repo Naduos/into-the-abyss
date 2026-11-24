@@ -27,6 +27,8 @@ var upnp_thread: Thread
 var info := {"type": "info"}
 var version := 0
 var test_posts = null                   # nur für Tests: Array statt Browserfenster
+const WIN_CFG := "user://window.cfg"    # zuletzt gezogene Fenstergröße/-position (wird beim Start wiederhergestellt)
+var _win_save_t := 0.0
 
 func _ready() -> void:
 	version = int(_read_version().get("version", 0))
@@ -46,6 +48,8 @@ func _ready() -> void:
 	wv.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(wv)
 	wv.connect("ipc_message", _on_ipc)
+	_restore_window()
+	get_window().size_changed.connect(func(): _win_save_t = 0.6)   # gespeichert, kurz nachdem man aufhört zu ziehen
 	print("WEB_READY version=", version)
 	_self_update()
 
@@ -77,8 +81,43 @@ func _display(mode: String) -> void:
 			w.mode = Window.MODE_WINDOWED
 			w.borderless = false
 			if was_big:
-				w.size = Vector2i(1280, 720)
-				w.position = DisplayServer.screen_get_position(scr) + (DisplayServer.screen_get_size(scr) - w.size) / 2
+				var saved := _saved_window()
+				w.size = saved.get("size", Vector2i(1280, 720))
+				w.position = saved.get("pos", DisplayServer.screen_get_position(scr) + (DisplayServer.screen_get_size(scr) - w.size) / 2)
+
+# ---------- Fenstergröße merken ----------
+func _tick_window_save(delta: float) -> void:
+	if _win_save_t > 0.0:
+		_win_save_t -= delta
+		if _win_save_t <= 0.0: _save_window()
+
+func _save_window() -> void:
+	var w := get_window()
+	if w.mode != Window.MODE_WINDOWED or w.borderless: return
+	var cf := ConfigFile.new()
+	cf.set_value("window", "size", w.size)
+	cf.set_value("window", "pos", w.position)
+	cf.save(WIN_CFG)
+
+func _saved_window() -> Dictionary:
+	var cf := ConfigFile.new()
+	if cf.load(WIN_CFG) != OK: return {}
+	var s: Vector2i = cf.get_value("window", "size", Vector2i(1280, 720))
+	var p: Vector2i = cf.get_value("window", "pos", Vector2i(-99999, -99999))
+	s = Vector2i(clampi(s.x, 640, 7680), clampi(s.y, 360, 4320))
+	var d := {"size": s}
+	# Position nur übernehmen, wenn sie noch auf einem Bildschirm liegt
+	for i in DisplayServer.get_screen_count():
+		if Rect2i(DisplayServer.screen_get_position(i), DisplayServer.screen_get_size(i)).has_point(p + Vector2i(40, 20)):
+			d["pos"] = p; break
+	return d
+
+func _restore_window() -> void:
+	var w := get_window()
+	if w.mode != Window.MODE_WINDOWED: return
+	var d := _saved_window()
+	if d.has("size"): w.size = d["size"]
+	if d.has("pos"): w.position = d["pos"]
 
 # ---------- Programmdateien selbst aktualisieren (exe/DLL) ----------
 ## Die pck-Updates können die exe nicht ändern (z. B. das Symbol im Explorer). Steht in latest.json
@@ -201,6 +240,7 @@ func _raw(id: int, d: Dictionary) -> void:
 	peer.put_packet(JSON.stringify(d).to_utf8_buffer())
 
 func _process(_d: float) -> void:
+	_tick_window_save(_d)
 	if peer == null: return
 	peer.poll()
 	if peer != null and not is_host and peer.get_connection_status() == MultiplayerPeer.CONNECTION_DISCONNECTED:

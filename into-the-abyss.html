@@ -502,7 +502,8 @@ body:not(.godot) .gdonly{display:none}
 .shop-item .price.disc s{color:#9a8aa8;font-weight:600;margin-right:2px}.shop-item .price.disc em{font-style:normal;margin-left:6px;padding:0 5px;border-radius:6px;background:#2a7a2a;color:#eaffea;font-size:12px}
 .hist{flex:0 0 100%;display:flex;flex-direction:column;gap:10px;font:13px/1.45 Inter,sans-serif;color:#ddd2ea}.hround h4{margin:0 0 4px;font-family:Cinzel,serif;color:#ffcf6a;font-size:15px}
 .hrow{padding:3px 10px;border-left:3px solid #555;margin:2px 0;background:rgba(255,255,255,.03);border-radius:4px}.hrow.hh{border-color:#5a9aff}.hrow.he{border-color:#ff5a5a}
-.hrow .hdmg{color:#ff7a6e}.hrow .hblk{color:#8fc7ff}.hrow .hheal{color:#7cd47c}.hrow .hst{color:#c9a8ff}
+.hrow .hdmg{color:#ff7a6e}.hrow .hblk{color:#8fc7ff}.hrow .hheal{color:#7cd47c}.hrow .hst{color:#c9a8ff}.hrow .hrm{color:#ffb86a}.hrow .harr{color:#ffcf6a;font-weight:800}
+.erole{display:inline-flex;vertical-align:-3px;margin-left:5px;cursor:help}
 .guniq{width:150px;flex:none;display:inline-flex;flex-direction:column;align-items:center;gap:14px;vertical-align:top}.guniq-cap{font-size:11px;color:#c9b8ff;max-width:150px;text-align:center;line-height:1.2}
 .card.gonly{box-shadow:0 0 0 2px rgba(255,207,106,.5),0 10px 20px rgba(0,0,0,.65)}
 #cardDetail{position:absolute;inset:0;z-index:95;background:rgba(5,3,8,.85);display:flex;align-items:center;justify-content:center;cursor:pointer}
@@ -651,6 +652,11 @@ body.ontitle #hud{visibility:hidden}
 .hsw.done{opacity:.5}.hsw.done span::after{content:' ✓';color:#7cd47c}
 .unit.player.done .sprite{filter:grayscale(.6) brightness(.8)}
 .rhud{position:absolute;top:-30px;left:50%;transform:translateX(-50%);display:flex;gap:6px;align-items:center;z-index:3}
+/* Anzeigen über den Helden stapeln sich, nie übereinander: unten Ranger-Zähler, darüber eingehender Schaden, darüber Soulbinder-Zähler */
+.hudstack{position:absolute;left:50%;bottom:calc(100% + 4px);transform:translateX(-50%);display:flex;flex-direction:column-reverse;align-items:center;gap:4px;z-index:3;pointer-events:none}
+.hudstack>*{pointer-events:auto}
+.hudstack>.incoming,.hudstack>.rhud,.hudstack>.soulhud{position:static;transform:none;top:auto;bottom:auto;left:auto}
+.hudstack>.rhud:empty,.hudstack>.soulhud:empty{display:none}
 .rh-type{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid rgba(0,0,0,.5);box-shadow:0 2px 6px #000;cursor:help}
 .rh-atk{background:#c0392b}.rh-blk{background:#2a6fd6}.rh-skl{background:#2f9a4a}.rh-none{background:#3a3342;border-style:dashed;border-color:#6b6078}
 .rh-type svg{max-width:16px;max-height:16px}
@@ -2204,9 +2210,9 @@ const DRUNK_OPTS = {
     {id:'heal',     name:'Second Wind',  text:'Heal 1 per hit.'},
   ],
   off:[
-    {id:'plunder',  name:'Plunder',      text:'Steals a buff per target (Strength → your Power, max. 1 per target).'},
+    {id:'plunder',  name:'Plunder',      text:'Steals one buff per target and gives it to you: Taunt → your Taunt, Strength → your Power (max 3), Bulwark → your Guard, Intangible → you become Invisible.'},
     {id:'pierce',   name:'Pierce',       text:'Ignores Block.'},
-    {id:'solo',     name:'Focus',        text:'If only one enemy is left, every hit Crits.'},
+    {id:'solo',     name:'Focus',        text:'If all hits land on the same enemy, every hit Crits.'},
   ],
 };
 
@@ -2346,9 +2352,9 @@ Object.assign(SPEC_ART, {
 <path d="M54 44 Q57 42 60 44 M64 44 Q67 42 70 44" stroke="#5a2a14" stroke-width="2" fill="none" stroke-linecap="round"/>
 <ellipse cx="54" cy="50" rx="3.5" ry="2" fill="#f07a7a" opacity=".7"/><ellipse cx="70" cy="50" rx="3.5" ry="2" fill="#f07a7a" opacity=".7"/>
 <path d="M58 53 Q62 57 66 53" stroke="#a0404a" stroke-width="2" fill="none" stroke-linecap="round"/>
+<circle cx="30" cy="92" r="5" fill="#e8b48c"/>
 <g><animateTransform attributeName="transform" type="rotate" values="0 78 68;22 78 68;-55 78 68;0 78 68;120 78 68;120 78 68;-100 78 68;-92 78 68;-104 78 68;0 78 68;0 78 68" keyTimes="0;0.08;0.16;0.28;0.40;0.50;0.64;0.70;0.76;0.88;1" dur="5s" repeatCount="indefinite"/>
 <path d="M78 68 Q94 70 102 58" stroke="#e8b48c" stroke-width="9" fill="none" stroke-linecap="round"/>
-<circle cx="30" cy="92" r="5" fill="#e8b48c"/>
 <g transform="translate(104 52) rotate(-30)"><animate attributeName="opacity" values="1;1;0;0;1;1" keyTimes="0;0.16;0.161;0.46;0.461;1" dur="5s" repeatCount="indefinite"/><path d="M-3 -16 H3 V-9 Q7 -6 7 0 V16 Q7 19 4 19 H-4 Q-7 19 -7 16 V0 Q-7 -6 -3 -9Z" fill="#4a8a3a" stroke="#1e3a14" stroke-width="2"/><rect x="-6" y="0" width="12" height="8" fill="#f2e2b0"/></g>
 <circle cx="102" cy="56" r="5" fill="#e8b48c"/></g>
 <g opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.159;0.16;0.32;0.34;1" dur="5s" repeatCount="indefinite"/>
@@ -2403,7 +2409,7 @@ const GEM_TYPES = {
   protection: {name:'Protection',    minTier:1,                  color:'#4a90e2', adj:'Guarded',  fx:t=>`+${t} Block`},
   knowledge:  {name:'Knowledge',     minTier:2,                  color:'#f2d24b', adj:'Wise',     fx:t=>`Draw +${t-1} card${t>2?'s':''}`},
   radius:     {name:'Radius',        minTier:3, attackOnly:true, noAoe:true, color:'#ff8a3a', adj:'Wide', fx:t=>`Hits +${t-2} more enem${t>3?'ies':'y'}`},
-  cuts:       {name:'Thousand Cuts', minTier:4, attackOnly:true, color:'#e055c8', adj:'Flurry',   fx:t=>`Card triggers ${t===4?'twice':(t-2)+' times'}, costs +1`},
+  cuts:       {name:'Thousand Cuts', minTier:4, attackOnly:true, noFleet:true, color:'#e055c8', adj:'Flurry',   fx:t=>`Card triggers ${t===4?'twice':(t-2)+' times'}, costs +1, Vanish (once per fight)`},
   infinite:   {name:'Infinite',      minTier:5,                  color:'#2ee6d6', adj:'Infinite', fx:()=>`Costs 1 less`},
   energy:     {name:'Energy',        minTier:5,                  color:'#5ac8ff', adj:'Charged',  fx:()=>`Gain 1 Energy`},
   vampire:    {name:'Vampire',       minTier:2, attackOnly:true, color:'#c41a2a', adj:'Vampiric', fx:t=>`Heal ${t-1} HP per hit that deals damage (max 10 per card)`},
@@ -2544,7 +2550,7 @@ function stats(c){
       case 'protection': s.block += t*f; break;
       case 'knowledge':  s.draw += (t-1)*f; break;
       case 'radius':     s.extra += (t-2)*f; break;
-      case 'cuts':       s.repeats += (t-3)*f; s.cost += 1; break;
+      case 'cuts':       s.repeats += (t-3); s.cost += 1; s.exhaust = true; break;   // Thousand Cuts: immer Vanish, keine Fleeting-Version
       case 'infinite':   s.cost -= f; break;
       case 'energy':     s.energy += f; break;
       case 'vampire':    s.leech += (t-1)*f; s.leechCap += VAMPIRE_CAP*f; break;
@@ -2985,7 +2991,7 @@ buffIcon:`<svg width="22" height="22" viewBox="0 0 40 40"><circle cx="20" cy="20
 /* ================== Statuseffekte ================== */
 const RHUD_MAGIC = `<svg width="16" height="16" viewBox="0 0 40 40"><path d="M20 3 L24 16 L37 20 L24 24 L20 37 L16 24 L3 20 L16 16Z" fill="#d9ffd0"/></svg>`;
 const STATUS = {
-  etaunt:    {icon:'tauntIcon',      flag:true, tip:() => `Taunt: your single-target attacks must hit this enemy until its next turn. Only works while it is the front enemy.`},
+  etaunt:    {icon:'tauntIcon',      flag:true, tip:() => `Taunt (buff): your single-target attacks must hit this enemy until its next turn. Only works while it is the front enemy. Can be plundered.`},
   bulwark:   {icon:'roleGuardIcon',  tip:n => `Bulwark: takes ${n}% less damage until its next turn.`},
   overgrown: {icon:'roleBuffIcon',   flag:true, tip:() => `Overgrown: +${AFX().overgrown}% damage and Block for this fight.`},
   witching:  {icon:'strengthIcon',   tip:n => `Witching Hour: +${AFX().witch * n} damage per hit for the rest of the fight.`},
@@ -6598,6 +6604,20 @@ async function execute(a){
 /* =====================================================================
    DARSTELLUNG
    ===================================================================== */
+// Passt der Kartentext nicht in das Textfeld, wird er schrittweise kleiner (bis 7.5px) – gemessen, sobald die Karte im Bild ist
+function fitCardDesc(el, tries = 0){
+  if(PREVIEW) return;
+  requestAnimationFrame(() => {
+    if(!el.isConnected){ if(tries < 20) fitCardDesc(el, tries + 1); return; }
+    const d = el.querySelector('.cdesc'); if(!d || !d.clientHeight) return;
+    const inner = d.querySelector('.tinydesc');
+    let fs = parseFloat(getComputedStyle(inner || d).fontSize) || 12;
+    let guard = 0;
+    while(d.scrollHeight > d.clientHeight + 1 && fs > 7.5 && guard++ < 12){
+      fs -= 0.5; (inner || d).style.fontSize = fs + 'px'; (inner || d).style.lineHeight = '1.1';
+    }
+  });
+}
 function makeCard(c){
   const d = CARDS[c.key], s = stats(c);
   const name = cardName(c);
@@ -6637,6 +6657,7 @@ function makeCard(c){
     el.classList.add('foil');
     el.insertAdjacentHTML('beforeend', `<div class="foilfx"><i class="sheen"></i>${[[18,22,0],[78,40,.7],[30,70,1.4],[84,82,2.1],[50,12,1.1],[14,52,2.6]].map(([x, y, b]) => `<i class="spark" style="left:${x}%;top:${y}%;animation-delay:${b}s"></i>`).join('')}</div><div class="foiltag" data-tip="Foil card: shiny, and +50% to its base values.">FOIL</div>`);
   }
+  fitCardDesc(el);                                                    // zu viel Text: Schrift etwas kleiner
   el._card = c;                                                      // für Rechtsklick-Details und Hover-Erklärungen überall
   return el;
 }
@@ -6645,17 +6666,31 @@ const sortCards = list => list.slice().sort((a,b) =>
   CARDS[a.key].type.localeCompare(CARDS[b.key].type) || CARDS[a.key].name.localeCompare(CARDS[b.key].name) || b.gems.length - a.gems.length);
 const sortGems = list => list.slice().sort((a,b) => b.tier - a.tier || GEM_ORDER.indexOf(a.type) - GEM_ORDER.indexOf(b.type));
 
+/* ---------- Gegner-Typen: Symbol hinter dem Namen normaler Gegner, grobe Beschreibung beim Drübermausen ---------- */
+const ROLE_SVG = (inner, c) => `<svg width="15" height="15" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#1a1222" stroke="${c}" stroke-width="1.6"/>${inner}</svg>`;
+const ENEMY_ROLES = {                                                  // nach e.cls der Gegnerdefinition
+  tank:     {name:'Tank',      desc:'Stands in front, taunts and shields its allies with Block.', icon:() => ROLE_SVG('<path d="M12 5 L18 7.5 V12 Q18 17 12 19.5 Q6 17 6 12 V7.5Z" fill="#5a9aff"/>', '#5a9aff')},
+  healer:   {name:'Healer',    desc:'Heals its allies – kill it first.', icon:() => ROLE_SVG('<path d="M12 6 V18 M6 12 H18" stroke="#7cd47c" stroke-width="3.4" stroke-linecap="round"/>', '#5ab85a')},
+  summoner: {name:'Summoner',  desc:'Calls smaller creatures to fight.', icon:() => ROLE_SVG('<circle cx="12" cy="9" r="3.2" fill="#c9a8ff"/><path d="M6 19 Q12 11 18 19" fill="#c9a8ff"/><path d="M4 7 l2 2 M20 7 l-2 2" stroke="#c9a8ff" stroke-width="1.6"/>', '#a87aff')},
+  mage:     {name:'Mage',      desc:'Area spells and strong bolts.', icon:() => ROLE_SVG('<path d="M12 4 L13.8 9.5 L19.5 9.5 L15 13 L16.8 18.5 L12 15.2 L7.2 18.5 L9 13 L4.5 9.5 L10.2 9.5Z" fill="#ffb84a"/>', '#ff9a2a')},
+  warlock:  {name:'Warlock',   desc:'Curses the heroes with debuffs (Weak, Poison, Brittle …).', icon:() => ROLE_SVG('<circle cx="12" cy="11" r="5.5" fill="#c05aff"/><circle cx="10" cy="10.5" r="1.2" fill="#1a1222"/><circle cx="14" cy="10.5" r="1.2" fill="#1a1222"/><path d="M9.5 17 h5" stroke="#c05aff" stroke-width="2"/>', '#a03aff')},
+  archer:   {name:'Archer',    desc:'Ranged: strong single shots and piercing arrows.', icon:() => ROLE_SVG('<path d="M7 5 Q16 12 7 19" stroke="#ffcf6a" stroke-width="1.8" fill="none"/><path d="M7 12 H19 M16 9.5 L19 12 L16 14.5" stroke="#ffcf6a" stroke-width="1.8" fill="none"/>', '#d8a040')},
+  special:  {name:'Specialist',desc:'A unique creature of this biome with its own tricks – read its name tooltip.', icon:() => ROLE_SVG('<path d="M12 5 L14 10 L19 10 L15 13.5 L16.5 18.5 L12 15.5 L7.5 18.5 L9 13.5 L5 10 L10 10Z" fill="none" stroke="#7ae0d0" stroke-width="1.8"/>', '#4ac0b0')},
+  berserker:{name:'Berserker', desc:'Stands in front and attacks almost every turn.', icon:() => ROLE_SVG('<path d="M8 17 L16 7" stroke="#8a5a2a" stroke-width="3" stroke-linecap="round"/><path d="M14 4.5 Q20 5 19.5 11 L15 8.5Z" fill="#ff5a5a"/>', '#ff4a4a')},
+};
+function enemyRole(e){ const c = e.ecls || e.cls; return c && ENEMY_ROLES[c] ? c : null; }   // Typ steht in der Gegnerdefinition (cls → ecls)
+function roleTag(u){ if(u.boss || u.elite || u.minion) return ''; const r = enemyRole(u), R = r && ENEMY_ROLES[r]; return R ? `<span class="erole" data-tip="${R.name}: ${R.desc}">${R.icon()}</span>` : ''; }
 function buildUnit(u, isHero){ if(PREVIEW) return document.createElement('div');
   const el = document.createElement('div');
   el.className = 'unit ' + (isHero ? 'player hero-' + u.id : 'enemy') + (u.flyer ? ' flyer' : '') + (u.elite ? ' elite' : '') + (u.boss ? ' boss' : '') + (u.minion ? ' minion' : '') + (u.cls ? ' ' + u.cls : '');
   el.innerHTML = `
-    ${isHero ? (u.id === 'ranger' ? '<div class="rhud"></div>' : '') + '<div class="soulhud"></div>' + (u.id === 'eldritch' ? '<div class="servants"></div>' : '') : '<div class="intent hidden"></div>' + (u.passive && u.passive.interrupt ? '<div class="shiftctr"></div>' : '')}
-    <div class="bars">${isHero ? '<div class="incoming"></div>' : ''}<div class="blockb">${blockBadge}<span></span></div>
+    ${isHero ? (u.id === 'eldritch' ? '<div class="servants"></div>' : '') : '<div class="intent hidden"></div>' + (u.passive && u.passive.interrupt ? '<div class="shiftctr"></div>' : '')}
+    <div class="bars">${isHero ? `<div class="hudstack">${u.id === 'ranger' ? '<div class="rhud"></div>' : ''}<div class="incoming"></div><div class="soulhud"></div></div>` : ''}<div class="blockb">${blockBadge}<span></span></div>
       <div class="hp"><div class="hpghost"></div><div class="hpfill"></div><span class="hptext"></span></div>${isHero && u.id === 'eldritch' ? '<div class="sanity"><div class="sanfill"></div><span></span></div>' : ''}</div>
     <div class="statuses"></div>
     ${isHero ? '<div class="energy"></div>' : ''}
     <div class="sprite">${SVG[u.key]}<div class="regrowTag"></div></div>
-    <div class="uname">${u.elite ? '<span class="etag">Elite</span>' : u.boss ? '<span class="etag boss">Boss</span>' : ''}${u.name}${isHero ? '<span class="who"></span><div class="specname"></div>' : ''}</div>`;
+    <div class="uname">${u.elite ? '<span class="etag">Elite</span>' : u.boss ? '<span class="etag boss">Boss</span>' : ''}${u.name}${isHero ? '<span class="who"></span><div class="specname"></div>' : roleTag(u)}</div>`;
   u.el = el;
   if(!isHero && u.desc) el.querySelector('.uname').dataset.tip = `${u.name}: ${u.desc}`;
   if(!isHero){ const ie = el.querySelector('.intent'); ie.addEventListener('mouseenter', () => showAtkArrows(u)); ie.addEventListener('mouseleave', hideAtkArrows); }
@@ -7054,6 +7089,7 @@ function cardKeywords(c){
   if(s.craft || (c.tmp && c.by)) add('Soulcraft (Soulbinder)');
   if(s.corrupt || tiersOf(d)) add('Corruption (Eldritch Horror)');
   if(s.mindStun || s.dreamStun) add('Corrupted Mind');
+  if(s.style === 'off') add('Offensive (Drunk Master)'); if(s.style === 'def') add('Defensive (Drunk Master)');
   if(s.dream || s.dreamAll || s.collapse || s.spread || s.dreamDouble || s.eatAll || s.bleed) add('Dream (Dreamweaver)');
   if(s.depthGain || s.summon || s.gemSummon || s.sacrifice || s.feed || s.fuse || d.perDepth) add('Depth (Tidecaller)');
   return N.map(n => GLOSS_STATUS.find(x => x[1] === n)).filter(Boolean);
@@ -7368,10 +7404,17 @@ const histName = u => u ? (u.hero ? heroLabel(u.id) : u.name) : '?';
 function histBegin(actor, what, quiet){
   if(PREVIEW || !S.history) return null;
   const e = {round:S.round || 1, hero:!!actor.hero, who:histName(actor), what, fx:[], quiet};
+  e._snap = new Map([...heroList(), ...(S.enemies || [])].filter(u => !u.dead).map(u => [u, {...u.status}]));   // für „entfernt/verbraucht“
   S.history.push(e); if(S.history.length > 400) S.history.shift();
   (S.histStack = S.histStack || []).push(e); return e;
 }
 function histEnd(e){ if(!e || !S.histStack) return; const k = S.histStack.lastIndexOf(e); if(k >= 0) S.histStack.splice(k, 1);
+  if(e._snap){                                                        // Stapel, die diese Aktion entfernt/verbraucht hat (Mark detoniert, Dream verbraucht …)
+    const rm = [];
+    e._snap.forEach((before, u) => { if(u.dead) return;
+      for(const key in before){ const b = +before[key] || 0, a = +(u.status[key] || 0); if(b > a && STATUS[key]) rm.push({who:histName(u), kind:'rm:' + key, n:b - a, hero:!!u.hero}); } });
+    e.fx.unshift(...rm); delete e._snap;
+  }
   if(e.quiet && !e.fx.length && S.history){ const j = S.history.lastIndexOf(e); if(j >= 0) S.history.splice(j, 1); } }
 function histAdd(u, kind, n){
   if(PREVIEW || !n || n <= 0 || !S.histStack || !S.histStack.length) return;
@@ -7386,18 +7429,24 @@ function histTick(u, n, cls){                                         // Schaden
 }
 function histFxText(f){
   const st = f.kind.startsWith('st:') ? f.kind.slice(3) : null;
+  if(f.kind.startsWith('rm:')){ const k = f.kind.slice(3); return `<span class="hrm">${f.n} ${STATUS_LABEL[k] || k[0].toUpperCase() + k.slice(1)} removed</span> from ${f.who}`; }
   if(f.kind === 'hp') return `<b class="hdmg">${f.n} damage</b> to ${f.who}`;
   if(f.kind === 'absorbed') return `<span class="hblk">${f.n} blocked</span> by ${f.who}`;
   if(f.kind === 'block') return `<span class="hblk">+${f.n} Block</span> ${f.who}`;
   if(f.kind === 'heal') return `<span class="hheal">+${f.n} HP</span> ${f.who}`;
   return `<span class="hst">${STATUS_LABEL[st] || (STATUS[st] ? st[0].toUpperCase() + st.slice(1) : st)} ${f.n}</span> → ${f.who}`;
 }
+function histLine(e){                                                // „20 Mark removed from X → 20 damage to X, …“
+  if(!e.fx.length) return '<i>no effect</i>';
+  const rm = e.fx.filter(f => f.kind.startsWith('rm:')), rest = e.fx.filter(f => !f.kind.startsWith('rm:'));
+  return rm.length && rest.length ? rm.map(histFxText).join(', ') + ' <span class="harr">→</span> ' + rest.map(histFxText).join(', ') : e.fx.map(histFxText).join(', ');
+}
 function showHistory(){
   const g = $('#vGrid'); const H = S.history || [];
   if(!H.length){ g.innerHTML = '<div class="vempty">Nothing happened yet in this fight.</div>'; return; }
   const rounds = [...new Set(H.map(e => e.round))].sort((a, b) => b - a);   // neueste Runde oben
   g.innerHTML = `<div class="hist">${rounds.map(r => `<div class="hround"><h4>Turn ${r}</h4>${H.filter(e => e.round === r).map(e =>
-    `<div class="hrow ${e.hero ? 'hh' : 'he'}"><b>${e.who}</b>${e.what ? ` – ${e.what}` : ''}: ${e.fx.length ? e.fx.map(histFxText).join(', ') : '<i>no effect</i>'}</div>`).join('')}</div>`).join('')}</div>`;
+    `<div class="hrow ${e.hero ? 'hh' : 'he'}"><b>${e.who}</b>${e.what ? ` – ${e.what}` : ''}: ${histLine(e)}</div>`).join('')}</div>`).join('')}</div>`;
 }
 /* ---------- Kampfstatistik (pro Kampf und pro Run) ---------- */
 const STAT_KEYS = ['dmg','heal','block','debuff','buff'];
@@ -7504,6 +7553,7 @@ async function playCardInner(h, i, target){
   updateUnit(h);
   await sleep(160);
   h.hand.splice(i, 1); h.discard.push(c);
+  h.turnPlayed = h.turnPlayed || {}; h.turnPlayed[c.id] = (h.turnPlayed[c.id] || 0) + 1; c.replayTax = 0;   // sofort zählen: zieht die Karte sich selbst (Mischen) wieder, kostet sie mehr
   renderHand();
   const recipient = (target && target.hero && !target.dead && heroTargetable(d)) ? target : h;
   let enemyTarget = target && !target.hero ? target : null;
@@ -7551,7 +7601,7 @@ async function playCardInner(h, i, target){
   if(s.selfDmg){ loseHP(h, s.selfDmg, 'dmg'); await sleep(250); checkHeroDeaths(); }
   h._consumeOwed = s.consumeOwed;
   const opt = s.style ? (S.playOpt || DRUNK_OPTS[s.style][0].id) : null;
-  const soloCrit = opt === 'solo' && alive().length === 1;
+  let soloCrit = false;                                              // Focus: wird vor den Treffern ausgewürfelt (siehe unten)
   const plundered = new Set();
   let paybackSpent = 0;
   if(s.consumePayback && h.status.payback){ paybackSpent = h.status.payback; delete h.status.payback; updateUnit(h); }
@@ -7574,13 +7624,16 @@ async function playCardInner(h, i, target){
       retrigger(h.el, 'lunge');
       await sleep(120);
       const hits = s.hitsMax ? rand(s.hitsMin, s.hitsMax) : s.hits;
+      const pre = (s.random || h.spec === 'drunkmaster') && !s.aoe ? Array.from({length:hits}, () => pick(alive())) : null;   // Ziele vorher würfeln
+      soloCrit = opt === 'solo' && !!pre && pre.length > 0 && pre.every(x => x === pre[0]);   // Focus: alle Treffer auf denselben Gegner → alle critten
+      if(soloCrit) floatText(pre[0], 'Focus!', 'crit-f');
       let firstHit = true;
       for(let k = 0; k < hits; k++){
         if(!alive().length || h.dead) break;
         let group;
         if(s.aoe) group = alive();
         else {
-          const primary = (s.random || h.spec === 'drunkmaster') ? pick(alive()) : (enemyTarget && !enemyTarget.dead ? enemyTarget : pick(alive()));
+          const primary = pre ? (pre[k] && !pre[k].dead ? pre[k] : pick(alive())) : (enemyTarget && !enemyTarget.dead ? enemyTarget : pick(alive()));
           group = withNeighbors(primary, s.extra);
         }
         for(const t of group){
@@ -7622,10 +7675,15 @@ async function playCardInner(h, i, target){
           else dealt = dealDamage(t, amount);
           if(opt === 'steal'){ const got = blockBefore - t.block; if(got > 0) gainBlock(h, got); }
           if(opt === 'heal') heal(h, 1);
-          if(opt === 'transfer'){ const dbf = HERO_DEBUFFS.find(([k]) => h.status[k] > 0); if(dbf){ h.status[dbf[0]]--; if(!h.status[dbf[0]]) delete h.status[dbf[0]]; updateUnit(h); if(!t.dead) applyStatus(t, dbf[1], 1); } }
-          if(opt === 'plunder' && !plundered.has(t) && !t.dead){
-            if(t.status.strength > 0){ plundered.add(t); const n = Math.min(3, t.status.strength); delete t.status.strength; updateUnit(t); applyStatus(h, 'power', n); floatText(t, 'Plundered!', 'status-f'); }
-            else if(t.status.intangible){ plundered.add(t); delete t.status.intangible; updateUnit(t); floatText(t, 'Plundered!', 'status-f'); }
+          if(opt === 'transfer' && !t.dead && t.hp > 0){ const dbf = HERO_DEBUFFS.find(([k]) => h.status[k] > 0); if(dbf){ h.status[dbf[0]]--; if(!h.status[dbf[0]]) delete h.status[dbf[0]]; updateUnit(h); applyStatus(t, dbf[1], 1); floatText(h, `Hangover → ${STATUS_LABEL[dbf[1]] || dbf[1]}`, 'status-f'); } }   // nur wenn das Ziel überlebt, sonst geht der Debuff verloren
+          if(opt === 'plunder' && !plundered.has(t) && !t.dead){            // Plunder: einen Buff des Gegners stehlen (pro Ziel 1×)
+            const st = t.status, give = [
+              ['etaunt',     () => { applyStatus(h, 'taunt', 1); return 'Taunt'; }],
+              ['strength',   n => { applyStatus(h, 'power', Math.min(3, n)); return 'Strength'; }],
+              ['bulwark',    n => { applyStatus(h, 'guard', Math.max(1, Math.round(n / 10))); return 'Bulwark'; }],
+              ['intangible', () => { applyStatus(h, 'invis', 1); return 'Intangible'; }],
+            ].find(([k]) => st[k] > 0);
+            if(give){ const [k, fn] = give, n = st[k]; delete st[k]; plundered.add(t); updateUnit(t); const nm = fn(n); floatText(t, `${nm} plundered!`, 'status-f'); if(k === 'etaunt') setTimeout(() => living().forEach(syncRage), 0); }
           }
           if(s.leech && dealt > 0 && leeched < s.leechCap){ const x = Math.min(s.leech, s.leechCap - leeched); leeched += x; heal(h, x); }
           if(t.hp <= 0){
@@ -7699,7 +7757,7 @@ async function playCardInner(h, i, target){
       if(e.hp <= 0){
         killEnemy(e); killed = true;
         const next = alive().filter(x => x !== e);
-        if(next.length){ const to = next[Math.floor(rng() * next.length)]; applyStatus(to, 'mark', n); floatText(to, 'Chain!', 'crit-f'); }
+        if(next.length){ const to = next[Math.floor(rng() * next.length)]; applyStatus(to, 'mark', n); floatText(to, `Chain! +${n} Marks`, 'crit-f'); }   // Marks des getöteten Gegners springen über (werden addiert)
       }
       await sleep(260);
     };
@@ -7751,7 +7809,6 @@ async function playCardInner(h, i, target){
     if(s.draw) drawCards(h, s.draw);
   }
   if(s.exhaust){ h.discard = h.discard.filter(x => x !== c); (h.vanished = h.vanished || []).push(c); if(!c.tmp) floatText(h, 'Once per fight', 'status-f'); }
-  h.turnPlayed = h.turnPlayed || {}; h.turnPlayed[c.id] = (h.turnPlayed[c.id] || 0) + 1; c.replayTax = 0;   // dieselbe Karte erneut gezogen = teurer
   for(let r = 0; r < s.repeats && !h.dead; r++){                       // Echo/Mehrfach: auch Soulbinder- und Eldritch-Effekte wiederholen
     if(r > 0) await sleep(220);
     await soulEffects(h, c, s, target);
@@ -7765,7 +7822,7 @@ async function playCardInner(h, i, target){
     h.lastType = d.type; h.turnPlays = (h.turnPlays || 0) + 1; updateUnit(h);
     if(h.spec === 'stormweaver' && h.turnPlays % 3 === 0) addTempCard(h, 'sparkarrow', 1);   // Chain Lightning
   }
-  if(s.returnOnKill && killed && h.discard.includes(c)){ h.discard = h.discard.filter(x => x !== c); h.hand.push(c); floatText(h, 'Returns!', 'dmg'); }
+  if(s.returnOnKill && killed && h.discard.includes(c)){ h.discard = h.discard.filter(x => x !== c); h.hand.push(c); c.replayTax = 0; floatText(h, 'Returns!', 'dmg'); }
   if(h.spec === 'templar' && d.type !== 'attack' && !h.dead){                 // Holy Retribution
     gainBlock(h, 1); applyStatus(h, 'thorns', 2);
   }
@@ -9026,6 +9083,8 @@ const GLOSS_STATUS = [
   ['burnIcon','Burn','Enemies lose HP equal to their Burn at the START of their turn, heroes at the start of their turn. Ignores Block, then goes down by 1.'],
   ['iceIcon','Ice','At 10 stacks (bosses: 20) the enemy is Frozen. An enemy can never be frozen two turns in a row.'],
   ['frozenIcon','Frozen','Skips its next turn.'],
+  ['strengthIcon','Offensive (Drunk Master)','When you play it, choose one: <b>Plunder</b> – steals one buff per target (Taunt, Strength → Power, Bulwark → Guard, Intangible → Invisible). <b>Pierce</b> – ignores Block. <b>Focus</b> – if all hits land on the same enemy, every hit Crits.'],
+  ['roleGuardIcon','Defensive (Drunk Master)','When you play it, choose one: <b>Absorb</b> – damage that hits Block becomes your own Block. <b>Pass the Hangover</b> – every hit passes 1 stack of your debuffs to the target. <b>Second Wind</b> – heal 1 per hit.'],
   ['ccImmuneIcon','CC Immunity','An enemy can lose a turn (Frozen, Corrupted Mind, stuns) only every other round. Right after losing a turn it is immune until it has acted again.'],
   ['brittleIcon','Brittle','Block gained from cards is reduced by this amount. Lasts for the whole fight.'],
   ['strengthIcon','Strength','Attacks deal this much extra damage.'],
@@ -9399,7 +9458,7 @@ function showCamp(h, p){
   showOverlay(`<div class="herohead">${h.name}</div><h1>Campfire</h1>
     <p>A quiet place to rest. ${h.name} chooses <b>one</b>: rest, take a gem out of a card or upgrade a card – each hero for themselves.</p>
     <div class="camp">
-      <button class="campopt" id="campRest" ${chosen ? 'disabled' : ''}><div class="ci">${campFireSVG}</div><b>Rest</b><span>Heal 30% of max HP<br><em>${note(p.restDone, healAmt > 0 ? `+${healAmt} HP` : 'Already at full HP')}</em></span></button>
+      <button class="campopt" id="campRest" ${chosen ? 'disabled' : ''} data-tip="${h.name}: ${h.hp} / ${h.maxHp} HP${healAmt > 0 ? ` → ${h.hp + healAmt} / ${h.maxHp} after resting` : ' (full)'}"><div class="ci">${campFireSVG}</div><b>Rest</b><span>Heal 30% of max HP<br><em>${note(p.restDone, healAmt > 0 ? `+${healAmt} HP` : 'Already at full HP')}</em></span></button>
       <button class="campopt" id="campGem" ${anyGems && !chosen ? '' : 'disabled'}><div class="ci">${gemSVG({type:'damage', tier:3}, 56)}</div><b>Unsocket</b><span>Take one gem out of a card<br><em>${note(p.unsocketDone, anyGems ? 'It goes back into the bag' : 'No socketed gems yet')}</em></span></button>
       <button class="campopt" id="campUp" ${anyUp && !chosen ? '' : 'disabled'}><div class="ci">${SVG.anvil || SVG.hammer || gemSVG({type:'protection', tier:5}, 56)}</div><b>Upgrade</b><span>Upgrade one card (+)<br><em>${note(p.upgradeDone, anyUp ? '+25% values or −1 Energy' : 'Nothing to upgrade')}</em></span></button>
     </div>
