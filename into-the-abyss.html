@@ -89,6 +89,8 @@ html,body{margin:0;height:100%;background:#07060a;overflow:hidden;font-family:In
 .unit.hit .sprite{animation:hit .35s}
 @keyframes hit{0%{filter:brightness(3) saturate(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}100%{transform:none;filter:none}}
 .unit.shield .sprite{animation:shieldUp .45s}
+.unit.stealthed .sprite .stealthbody{opacity:.08 !important}
+.unit.stealthed:not(:has(.stealthbody)) .sprite svg{opacity:.2;transition:opacity .4s}
 @keyframes shieldUp{0%{filter:drop-shadow(0 0 0 #4aa3ff)}40%{filter:drop-shadow(0 0 18px #4aa3ff) brightness(1.3)}100%{filter:none}}
 .float{position:absolute;left:50%;top:45%;transform:translateX(-50%);font-weight:800;font-size:30px;pointer-events:none;z-index:20;white-space:nowrap;
   text-shadow:0 2px 0 #000,0 0 6px #000;animation:floatUp 1s ease-out forwards}
@@ -106,7 +108,7 @@ html,body{margin:0;height:100%;background:#07060a;overflow:hidden;font-family:In
 .targeting .enemy:not(.dead):hover .uname{color:#ff9a8a}
 
 /* ---------- Unten ---------- */
-#hand{position:absolute;left:190px;right:300px;bottom:30px;height:230px;display:flex;justify-content:center;align-items:flex-end}
+#hand{position:absolute;left:190px;right:300px;bottom:-72px;height:230px;display:flex;justify-content:center;align-items:flex-end}
 .card{--r:0deg;--y:0px;width:140px;height:214px;flex:none;margin:0 -7px;border-radius:12px;position:relative;cursor:pointer;
   background:linear-gradient(160deg,#3a3145,#1a1520);border:3px solid #888;box-shadow:0 10px 20px rgba(0,0,0,.65);
   transform:translateY(var(--y)) rotate(var(--r));transition:transform .15s,box-shadow .15s,opacity .2s,filter .2s}
@@ -115,6 +117,10 @@ html,body{margin:0;height:100%;background:#07060a;overflow:hidden;font-family:In
 .card:hover{transform:translateY(-38px) scale(1.08);z-index:5;box-shadow:0 16px 28px rgba(0,0,0,.7)}
 .card.dragging{opacity:.25}
 #hand .card{touch-action:none}
+#hand .card:hover,#hand .card.keephov{transform:translateY(-104px) scale(1.08);z-index:5}
+#hand .card.keephov{transition:none}
+#hand .card:hover::after,#hand .card.keephov::after{content:'';position:absolute;left:0;right:0;top:100%;height:120px}   /* Hover-Fläche bleibt unter der angehobenen Karte */   /* Handkarten: 1/3 unter dem Rand, beim Drübermausen ganz sichtbar */
+#hand .card.selected{transform:translateY(-118px) scale(1.1)}
 .dragGhost{position:fixed;z-index:9999;pointer-events:none;margin:0 !important;opacity:.92;box-shadow:0 18px 34px rgba(0,0,0,.75);transition:box-shadow .12s}
 .dragGhost.ready{box-shadow:0 0 0 3px #ffd35a,0 0 30px #ffcf4a,0 18px 34px rgba(0,0,0,.75)}
 .unit.enemy.dropHover .sprite{filter:drop-shadow(0 0 16px #ff4a3a) brightness(1.2) !important}
@@ -140,6 +146,7 @@ html,body{margin:0;height:100%;background:#07060a;overflow:hidden;font-family:In
 .cdesc i{font-style:normal;font-weight:800}
 .cost.down{color:#7dff8a}.cost.more{color:#ff9a8a}.cost.replay{color:#ff3a3a;text-shadow:0 0 6px #ff0000}
 .cdesc b{color:#ffe08a}
+.cdesc .kwy{color:#ffe08a;font-weight:700}
 .cdesc .condl{color:#ffb25a;font-weight:800}
 .cdesc .condtop{display:block}
 .cdesc .tinydesc{font-size:10px;line-height:1.12;display:block}
@@ -202,6 +209,7 @@ html,body{margin:0;height:100%;background:#07060a;overflow:hidden;font-family:In
 /* ---------- HUD Deck-Knopf ---------- */
 #hud{z-index:45}
 #gemBtn{margin-right:8px}
+.bag-gold{flex:0 0 100%;display:flex;align-items:center;gap:18px;font:800 22px Inter,sans-serif;padding:6px 4px}.bag-gold .mbtn{font-size:14px;padding:6px 14px}
 .hudBtn{font-family:Cinzel,serif;font-size:16px;font-weight:800;color:#2a1a05;padding:5px 14px;border-radius:9px;cursor:pointer;
   border:2px solid #6b4a12;background:linear-gradient(#ffd770,#d99a22);box-shadow:0 3px 0 #6b4a12}
 .hudBtn span{display:inline-block;min-width:22px;padding:0 5px;margin-left:4px;border-radius:6px;background:rgba(0,0,0,.25);color:#fff}
@@ -220,6 +228,7 @@ html,body{margin:0;height:100%;background:#07060a;overflow:hidden;font-family:In
 .vgrid{flex:1;overflow-y:auto;display:flex;flex-wrap:wrap;gap:30px 26px;align-content:flex-start;padding:20px 20px 30px}
 .vgrid .card,.reward .card{margin:0;transform:none;cursor:default}
 .vgrid .card:hover{transform:scale(1.06)}
+.vgrid>.card{margin:0 5px}            /* feste Spaltenbreite 150px */
 .vempty{color:#777;font-style:italic;padding:20px}
 
 /* ---------- Belohnung ---------- */
@@ -227,7 +236,8 @@ html,body{margin:0;height:100%;background:#07060a;overflow:hidden;font-family:In
 .reward{display:flex;gap:34px;justify-content:center;margin:28px 0 8px}
 .reward .card{cursor:pointer}
 .reward .card:hover{transform:translateY(-12px) scale(1.08)}
-.reward .rlabel{text-align:center;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-top:18px;color:var(--rc)}
+.reward>div{flex:0 0 190px;width:190px;display:flex;flex-direction:column;align-items:center}
+.reward .rlabel{white-space:nowrap;text-align:center;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-top:18px;color:var(--rc)}
 .panel button.skip{background:linear-gradient(#5a5262,#3a3442);color:#ddd;border-color:#222;box-shadow:0 5px 0 #222;font-size:16px;padding:10px 26px}
 
 /* ---------- Edelsteine ---------- */
@@ -405,7 +415,7 @@ body:not(.godot) .gdonly{display:none}
 .heroTargeting .unit.player:not(.dead){cursor:crosshair}
 .heroTargeting .unit.player:not(.dead) .sprite{filter:drop-shadow(0 0 6px rgba(90,255,140,.6))}
 .heroTargeting .unit.player:not(.dead):hover .sprite{filter:drop-shadow(0 0 16px #5aff8a) brightness(1.15)}
-#handOwner{position:absolute;left:190px;right:300px;bottom:252px;text-align:center;font-family:Cinzel,serif;font-size:13px;color:#cbbfd8;letter-spacing:1px;text-shadow:0 1px 3px #000;pointer-events:none}
+#handOwner{position:absolute;left:190px;right:300px;bottom:150px;text-align:center;font-family:Cinzel,serif;font-size:13px;color:#cbbfd8;letter-spacing:1px;text-shadow:0 1px 3px #000;pointer-events:none}
 .card.spectate{cursor:default;filter:brightness(.8)}
 .card.spectate:hover{transform:translateY(var(--y)) rotate(var(--r))}
 .card.c-mage{background:linear-gradient(160deg,#2c2a4a,#14122a)}
@@ -485,6 +495,15 @@ body:not(.godot) .gdonly{display:none}
 .gs-ic svg{display:block}
 .gclass{display:inline-flex;align-items:center;gap:8px}.gclass svg{display:block}
 .gback{margin:4px 0}.ghead small{font:12px Inter,sans-serif;color:#9a90a8}
+#kwPrev{position:absolute;z-index:121;pointer-events:none;width:150px;display:flex;flex-direction:column;align-items:center;gap:6px}#kwPrev .kwpt{font-size:12px;color:#c9b8ff;background:rgba(10,8,20,.9);padding:3px 8px;border-radius:6px;white-space:nowrap}#kwPrev .card{margin:0;transform:none}
+.incoming.dmgprev{display:flex;bottom:auto;top:-30px;z-index:40;pointer-events:none;cursor:default}
+.incoming .dpk{font-style:normal;color:#ffcf4a;margin-left:3px;display:flex;align-items:center;gap:1px;font-size:12px}
+.incoming.dmgprev.lethal{border-color:#c89a2a}
+.shop-item .price.disc s{color:#9a8aa8;font-weight:600;margin-right:2px}.shop-item .price.disc em{font-style:normal;margin-left:6px;padding:0 5px;border-radius:6px;background:#2a7a2a;color:#eaffea;font-size:12px}
+.hist{flex:0 0 100%;display:flex;flex-direction:column;gap:10px;font:13px/1.45 Inter,sans-serif;color:#ddd2ea}.hround h4{margin:0 0 4px;font-family:Cinzel,serif;color:#ffcf6a;font-size:15px}
+.hrow{padding:3px 10px;border-left:3px solid #555;margin:2px 0;background:rgba(255,255,255,.03);border-radius:4px}.hrow.hh{border-color:#5a9aff}.hrow.he{border-color:#ff5a5a}
+.hrow .hdmg{color:#ff7a6e}.hrow .hblk{color:#8fc7ff}.hrow .hheal{color:#7cd47c}.hrow .hst{color:#c9a8ff}
+.guniq{width:150px;flex:none;display:inline-flex;flex-direction:column;align-items:center;gap:14px;vertical-align:top}.guniq-cap{font-size:11px;color:#c9b8ff;max-width:150px;text-align:center;line-height:1.2}
 .card.gonly{box-shadow:0 0 0 2px rgba(255,207,106,.5),0 10px 20px rgba(0,0,0,.65)}
 #cardDetail{position:absolute;inset:0;z-index:95;background:rgba(5,3,8,.85);display:flex;align-items:center;justify-content:center;cursor:pointer}
 #cardDetail .cd-inner{background:#17121f;border:2px solid #6b5a3a;border-radius:16px;padding:12px 28px 10px;text-align:center}
@@ -618,14 +637,16 @@ body.ontitle #hud{visibility:hidden}
 .shiftctr{position:absolute;top:-58px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:4px;background:#2a1408;border:2px solid #ff9a3a;border-radius:12px;padding:2px 9px 2px 5px;font:800 14px Inter,sans-serif;color:#ffd27a;z-index:4;cursor:help;box-shadow:0 2px 8px #000}
 .shiftctr.hot{background:#5a1a08;animation:pulse .8s infinite alternate}
 @keyframes pulse{to{transform:translateX(-50%) scale(1.12)}}
-#leftDock{position:absolute;left:14px;bottom:8px;display:flex;flex-direction:column;gap:6px;z-index:30;width:150px}
-#heroSwitch{display:flex;flex-direction:column;gap:4px;width:150px}
-#goldPanel{display:flex;align-items:center;gap:6px;background:rgba(20,12,30,.88);border:1.5px solid #6b5a3a;border-radius:10px;padding:4px 8px;font:800 17px Inter,sans-serif;color:#ffd770;width:fit-content;max-width:150px}
-#goldPanel .goldBox{margin:0}
+#leftDock{position:absolute;left:14px;bottom:8px;display:flex;flex-direction:column;gap:6px;z-index:30;width:176px}
+#heroSwitch{display:flex;flex-direction:column;gap:4px;width:176px}
+#goldPanel{display:flex;align-items:center;gap:8px;padding:2px 0;font:800 17px Inter,sans-serif;color:#ffd770;width:fit-content;white-space:nowrap;text-shadow:0 1px 3px #000}
+#goldPanel .goldBox{margin:0;white-space:nowrap;display:inline-flex;align-items:center}
+#goldWho{display:none !important}
+.unit.player .uname{display:none}   /* keine Klassen-/Spec-Namen unter den Helden */
 #goldWho{font:600 11px Inter,sans-serif;color:#c8b8e0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #leftDock.idle #goldPanel{display:none}
 .hsw{display:flex;align-items:center;gap:6px;padding:2px 8px 2px 4px;height:28px;border-radius:8px;border:2px solid #4a3f58;background:#1d1726;color:#e8dcf0;font:700 12px Inter,sans-serif;cursor:pointer;text-align:left}
-.hsw svg{flex:none}.hsw span{flex:1}.hsw b{color:#8fd0ff;font-size:12px}
+.hsw svg{flex:none}.hsw span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;text-align:left}.hsw b{color:#8fd0ff;font-size:12px}
 .hsw.on{border-color:#ffcf4a;background:#3a2e1a;box-shadow:0 0 10px rgba(255,200,80,.4)}
 .hsw.done{opacity:.5}.hsw.done span::after{content:' ✓';color:#7cd47c}
 .unit.player.done .sprite{filter:grayscale(.6) brightness(.8)}
@@ -663,6 +684,8 @@ body.ontitle #hud{visibility:hidden}
 .rewardbtns{justify-content:center;gap:14px;margin-top:6px}
 .panel .rewardbtns .mbtn,.panel .rewardbtns .skip{width:auto;flex:none;min-width:150px;margin-top:10px}
 .panel .rewardbtns .skip small{display:block;font-family:Inter;font-size:11px;font-weight:600;opacity:.75}
+.panel .rewardbtns .mbtn,.panel .rewardbtns button.skip{width:150px;min-width:150px;height:62px;margin:10px 0 0;padding:8px 14px;border-radius:12px;font-family:Cinzel,serif;font-weight:800;font-size:18px;line-height:1.15;display:flex;flex-direction:column;align-items:center;justify-content:center}   /* Reroll und Skip gleich groß */
+.panel .rewardbtns .skip small,.panel .rewardbtns .mbtn small{margin-top:2px}
 #gsFuse{margin-left:12px;padding:3px 10px;border-radius:8px;font-family:Inter;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:none;cursor:pointer;
   color:#2a1a05;border:2px solid #6b4a12;background:linear-gradient(#ffd770,#d99a22)}
 #gsFuse:disabled{filter:grayscale(1) brightness(.55);cursor:default}
@@ -956,7 +979,7 @@ body.ontitle #hud{visibility:hidden}
     <button id="glossBtn" class="hudBtn" title="Glossary: all cards, gems and status effects">Glossary</button><button id="statsBtn" class="hudBtn" title="Damage, healing, Block, debuffs and buffs per hero">Stats</button>
     <span class="fightLbl">Room <span class="hl" id="fightNo">1</span></span></div>
     <div id="biomeLbl" class="biomeLbl"></div><span id="turnNo" style="display:none">1</span>
-    <div><button id="gemBtn" class="hudBtn" title="View your gems">Gems <span id="gemNo">0</span></button>
+    <div><button id="gemBtn" class="hudBtn" title="Your bag: Gold and gems">Bag <span id="gemNo">0</span></button>
     <button id="deckBtn" class="hudBtn" title="View your whole deck">Deck <span id="deckNo">10</span></button></div>
   </div>
 
@@ -1025,6 +1048,7 @@ body.ontitle #hud{visibility:hidden}
 </div>
 
 <script>
+let PREVIEW = false;   // Schadensvorschau läuft (alles sofort, ohne Anzeige)
 /* ================== Grafiken ================== */
 const SVG = {
 knight:`<svg width="140" height="172" viewBox="0 0 140 172">
@@ -1791,7 +1815,7 @@ thief:`<svg width="124" height="164" viewBox="0 0 124 164">
 <path d="M46 44 Q62 32 80 44" stroke="#3a2414" stroke-width="6" fill="none" stroke-linecap="round"/>
 </svg>`,
 assassin:`<svg width="124" height="164" viewBox="0 0 124 164">
-<ellipse cx="62" cy="158" rx="40" ry="6" fill="#000" opacity=".45"/><g><animate attributeName="opacity" values="1;1;0.08;0.08;1;1" keyTimes="0;0.75;0.78;0.91;0.94;1" dur="12s" repeatCount="indefinite"/>
+<ellipse cx="62" cy="158" rx="40" ry="6" fill="#000" opacity=".45"/><g class="stealthbody"><animate attributeName="opacity" values="1;1;0.08;0.08;1;1" keyTimes="0;0.95;0.956;0.982;0.988;1" dur="60s" repeatCount="indefinite"/>
 <path d="M28 156 L36 88 Q62 76 88 88 L96 156 Q84 144 76 156 Q68 144 62 156 Q56 144 48 156 Q40 144 28 156Z" fill="#141418" stroke="#000" stroke-width="2.5"/>
 <path d="M44 92 L62 88 L80 92 L78 128 L46 128Z" fill="#1d1d24" stroke="#000" stroke-width="2"/>
 <path d="M46 96 L78 122 M78 96 L46 122" stroke="#26262e" stroke-width="3"/>
@@ -1809,7 +1833,7 @@ assassin:`<svg width="124" height="164" viewBox="0 0 124 164">
 <circle cx="55" cy="56.5" r="1.6" fill="#ff6a6a"/><circle cx="69" cy="56.5" r="1.6" fill="#ff6a6a"/>
 <g opacity="0"><animate attributeName="opacity" values="0;0;.95;.95;0;0" keyTimes="0;0.3;0.38;0.7;0.78;1" dur="4.5s" repeatCount="indefinite"/><path d="M51 67 Q62 78 73 67 Q68 73 62 74 Q56 73 51 67Z" fill="#ff3a3a" opacity=".85"/><path d="M55 69 v3 M59 70 v4 M63 70 v4 M67 69 v3" stroke="#1d1d24" stroke-width="1"/></g>
 <path d="M62 26 Q72 12 88 16 Q76 22 74 34" fill="#141418" stroke="#000" stroke-width="2"/>
-</g><circle cx="62" cy="100" r="26" fill="#6a6a78" opacity="0"><animate attributeName="opacity" values="0;0;.85;0;0;.85;0;0" keyTimes="0;0.74;0.765;0.81;0.9;0.925;0.965;1" dur="12s" repeatCount="indefinite"/><animate attributeName="r" values="10.4;10.4;26;39.0;10.4;26;39.0;39.0" keyTimes="0;0.74;0.765;0.81;0.9;0.925;0.965;1" dur="12s" repeatCount="indefinite"/></circle><circle cx="40" cy="120" r="18" fill="#6a6a78" opacity="0"><animate attributeName="opacity" values="0;0;.85;0;0;.85;0;0" keyTimes="0;0.74;0.765;0.81;0.9;0.925;0.965;1" dur="12s" repeatCount="indefinite"/><animate attributeName="r" values="7.2;7.2;18;27.0;7.2;18;27.0;27.0" keyTimes="0;0.74;0.765;0.81;0.9;0.925;0.965;1" dur="12s" repeatCount="indefinite"/></circle><circle cx="86" cy="116" r="20" fill="#6a6a78" opacity="0"><animate attributeName="opacity" values="0;0;.85;0;0;.85;0;0" keyTimes="0;0.74;0.765;0.81;0.9;0.925;0.965;1" dur="12s" repeatCount="indefinite"/><animate attributeName="r" values="8.0;8.0;20;30.0;8.0;20;30.0;30.0" keyTimes="0;0.74;0.765;0.81;0.9;0.925;0.965;1" dur="12s" repeatCount="indefinite"/></circle><circle cx="62" cy="60" r="20" fill="#6a6a78" opacity="0"><animate attributeName="opacity" values="0;0;.85;0;0;.85;0;0" keyTimes="0;0.74;0.765;0.81;0.9;0.925;0.965;1" dur="12s" repeatCount="indefinite"/><animate attributeName="r" values="8.0;8.0;20;30.0;8.0;20;30.0;30.0" keyTimes="0;0.74;0.765;0.81;0.9;0.925;0.965;1" dur="12s" repeatCount="indefinite"/></circle><circle cx="46" cy="80" r="15" fill="#6a6a78" opacity="0"><animate attributeName="opacity" values="0;0;.85;0;0;.85;0;0" keyTimes="0;0.74;0.765;0.81;0.9;0.925;0.965;1" dur="12s" repeatCount="indefinite"/><animate attributeName="r" values="6.0;6.0;15;22.5;6.0;15;22.5;22.5" keyTimes="0;0.74;0.765;0.81;0.9;0.925;0.965;1" dur="12s" repeatCount="indefinite"/></circle><circle cx="80" cy="76" r="16" fill="#6a6a78" opacity="0"><animate attributeName="opacity" values="0;0;.85;0;0;.85;0;0" keyTimes="0;0.74;0.765;0.81;0.9;0.925;0.965;1" dur="12s" repeatCount="indefinite"/><animate attributeName="r" values="6.4;6.4;16;24.0;6.4;16;24.0;24.0" keyTimes="0;0.74;0.765;0.81;0.9;0.925;0.965;1" dur="12s" repeatCount="indefinite"/></circle><circle cx="62" cy="140" r="18" fill="#6a6a78" opacity="0"><animate attributeName="opacity" values="0;0;.85;0;0;.85;0;0" keyTimes="0;0.74;0.765;0.81;0.9;0.925;0.965;1" dur="12s" repeatCount="indefinite"/><animate attributeName="r" values="7.2;7.2;18;27.0;7.2;18;27.0;27.0" keyTimes="0;0.74;0.765;0.81;0.9;0.925;0.965;1" dur="12s" repeatCount="indefinite"/></circle></svg>`,
+</g><circle cx="62" cy="100" r="26" fill="#6a6a78" opacity="0"><animate attributeName="opacity" values="0;0;.85;0;0;.85;0;0" keyTimes="0;0.948;0.953;0.962;0.98;0.985;0.993;1" dur="60s" repeatCount="indefinite"/><animate attributeName="r" values="10.4;10.4;26;39.0;10.4;26;39.0;39.0" keyTimes="0;0.948;0.953;0.962;0.98;0.985;0.993;1" dur="60s" repeatCount="indefinite"/></circle><circle cx="40" cy="120" r="18" fill="#6a6a78" opacity="0"><animate attributeName="opacity" values="0;0;.85;0;0;.85;0;0" keyTimes="0;0.948;0.953;0.962;0.98;0.985;0.993;1" dur="60s" repeatCount="indefinite"/><animate attributeName="r" values="7.2;7.2;18;27.0;7.2;18;27.0;27.0" keyTimes="0;0.948;0.953;0.962;0.98;0.985;0.993;1" dur="60s" repeatCount="indefinite"/></circle><circle cx="86" cy="116" r="20" fill="#6a6a78" opacity="0"><animate attributeName="opacity" values="0;0;.85;0;0;.85;0;0" keyTimes="0;0.948;0.953;0.962;0.98;0.985;0.993;1" dur="60s" repeatCount="indefinite"/><animate attributeName="r" values="8.0;8.0;20;30.0;8.0;20;30.0;30.0" keyTimes="0;0.948;0.953;0.962;0.98;0.985;0.993;1" dur="60s" repeatCount="indefinite"/></circle><circle cx="62" cy="60" r="20" fill="#6a6a78" opacity="0"><animate attributeName="opacity" values="0;0;.85;0;0;.85;0;0" keyTimes="0;0.948;0.953;0.962;0.98;0.985;0.993;1" dur="60s" repeatCount="indefinite"/><animate attributeName="r" values="8.0;8.0;20;30.0;8.0;20;30.0;30.0" keyTimes="0;0.948;0.953;0.962;0.98;0.985;0.993;1" dur="60s" repeatCount="indefinite"/></circle><circle cx="46" cy="80" r="15" fill="#6a6a78" opacity="0"><animate attributeName="opacity" values="0;0;.85;0;0;.85;0;0" keyTimes="0;0.948;0.953;0.962;0.98;0.985;0.993;1" dur="60s" repeatCount="indefinite"/><animate attributeName="r" values="6.0;6.0;15;22.5;6.0;15;22.5;22.5" keyTimes="0;0.948;0.953;0.962;0.98;0.985;0.993;1" dur="60s" repeatCount="indefinite"/></circle><circle cx="80" cy="76" r="16" fill="#6a6a78" opacity="0"><animate attributeName="opacity" values="0;0;.85;0;0;.85;0;0" keyTimes="0;0.948;0.953;0.962;0.98;0.985;0.993;1" dur="60s" repeatCount="indefinite"/><animate attributeName="r" values="6.4;6.4;16;24.0;6.4;16;24.0;24.0" keyTimes="0;0.948;0.953;0.962;0.98;0.985;0.993;1" dur="60s" repeatCount="indefinite"/></circle><circle cx="62" cy="140" r="18" fill="#6a6a78" opacity="0"><animate attributeName="opacity" values="0;0;.85;0;0;.85;0;0" keyTimes="0;0.948;0.953;0.962;0.98;0.985;0.993;1" dur="60s" repeatCount="indefinite"/><animate attributeName="r" values="7.2;7.2;18;27.0;7.2;18;27.0;27.0" keyTimes="0;0.948;0.953;0.962;0.98;0.985;0.993;1" dur="60s" repeatCount="indefinite"/></circle></svg>`,
 deathbringer:`<svg width="124" height="164" viewBox="0 0 124 164">
 <ellipse cx="62" cy="158" rx="40" ry="6" fill="#000" opacity=".4"/>
 <ellipse cx="110" cy="157" rx="9" ry="3" fill="#7cff3a" opacity=".45"/><ellipse cx="18" cy="157" rx="8" ry="3" fill="#7cff3a" opacity=".45"/>
@@ -2250,7 +2274,8 @@ async function knockoutPunch(h){                                       // der gr
   updateUnit(h);
   for(const e of S.enemies) if(e.boss && !e.dead) await checkBossPhase(e);
 }
-async function checkPunch(h){
+async function checkPunch(h){ const hi = histBegin(h, 'Knockout Punch', true); try { return await checkPunchInner(h); } finally { histEnd(hi); } }
+async function checkPunchInner(h){
   while(!h.dead && h.spec === 'knockout' && (h.status.fury || 0) >= FURY_NEED && alive().length){
     h.status.fury -= FURY_NEED; await knockoutPunch(h);
   }
@@ -2263,7 +2288,7 @@ function cashOwed(h, t){                                              // "Deserv
   floatText(t, `Paid in full! +${n}`, 'crit-f');
   const blk = Math.floor(n / 2);
   if(blk) living().forEach(x => gainBlock(x, blk));
-  heroList().filter(x => x.spec === 'nightfighter' && !x.dead).forEach(x => { x.status.paybackNext = (x.status.paybackNext || 0) + n; updateUnit(x); });
+  heroList().filter(x => x.spec === 'nightfighter' && !x.dead).forEach(x => { x.status.paybackNext = (x.status.paybackNext || 0) + n; statAdd(x, 'buff', n, 'payback'); updateUnit(x); });   // Stats: Payback zählt als Buff
   return n;
 }
 const HERO_DEBUFFS = [['poison','poison'], ['burn','burn'], ['weak','weak'], ['brittle','vulnerable'], ['drained','weak']];
@@ -2548,8 +2573,15 @@ function stats(c){
   }
   if(c.resonant && c.link){
     const m = v => Math.round(v * SURGE_MULT);
-    s.dmg = m(s.dmg); s.block = m(s.block); s.blockAll = m(s.blockAll); s.heal = m(s.heal); s.healAll = m(s.healAll);
-    if(s.dmgMax){ s.dmgMin = m(s.dmgMin); s.dmgMax = m(s.dmgMax); } if(s.backstab) s.backstab = s.backstab.map(m);
+    for(const k of [...UP_STATS, 'draw', 'energy', 'allyDraw', 'drawAll', 'depthGain', 'sanity', 'corrupt', 'leech', 'leechFlat', 'fury', 'combo', 'reach', 'extra', 'link'])   // ALLES +50 %: Schaden, Block, Karten, Energie, Buffs, Debuffs …
+      if(typeof s[k] === 'number' && s[k] > 0) s[k] = m(s[k]);
+    if(s.backstab) s.backstab = s.backstab.map(m);
+    if(Array.isArray(s.gold)) s.gold = s.gold.map(m);
+    if(s.buff) s.buff = {...s.buff, n:m(s.buff.n)};
+    if(s.blizzard) s.blizzard = {...s.blizzard, dmg:m(s.blizzard.dmg || 0), ice:m(s.blizzard.ice || 0)};
+    if(s.imprint && s.imprint.n) s.imprint = {...s.imprint, n:m(s.imprint.n)};
+    if(s.createCard) s.createCard = {...s.createCard, n:m(s.createCard.n)};
+    if(s.craft) s.craft = {...s.craft, n:m(s.craft.n)};
     s.surge = true;
   }
   if(d.punchCard){                                                      // Knockout Punch: Werte (inkl. Edelsteine) gelten für den Fury-Schlag, nicht fürs Ausspielen
@@ -2572,6 +2604,7 @@ const heroTargetable = d => !d.selfOnly && (d.allyTarget || (!d.dmg && !d.blockA
 const UP_STATS = ['dream','dreamAll','depthGain','feed','perDepth','perServant','perServantBlock','sanity','perLink','perLinkBlock','perImprint','perImprintBlock','guard','power','owed','consumePayback','mark','markAll','momentum','detonate','detonateAll','spendMomentum','runeScale','dmg','dmgMin','dmgMax','block','blockAll','heal','healAll','thorns','thornsAll','poison','poisonAll','burn','burnAll','ice','iceAll','weak','weakAll','vuln','vulnAll','flameArmor','frostArmor','staticArmor'];
 const upVal = v => Math.max(v + 1, Math.round(v * 1.25));             // +25 %, mindestens +1
 const upgradeKind = d => {
+  if(d.buddy) return 'buddy';                                           // Buddy-Karte: alle Werte +50 %
   if(d.type === 'curse' || d.unplayable || d.custom) return null;
   if(d.cost >= 5) return 'cost';                                        // 5-Energie-Karten werden billiger
   if(UP_STATS.some(k => typeof d[k] === 'number' && d[k] > 0) || d.backstab || d.blizzard) return 'stats';
@@ -2583,6 +2616,13 @@ const canUpgrade = c => !c.upgraded && !!upgradeKind(CARDS[c.key]);
 function applyUpgrade(s, d){
   const kind = upgradeKind(d);
   if(kind === 'cost'){ s.cost = Math.max(0, s.cost - 1); return; }
+  if(kind === 'buddy'){                                                 // Build your Buddy: jeder Wert +50 % (mind. +1)
+    const b = v => Math.max(v + 1, Math.round(v * 1.5));
+    for(const k of [...UP_STATS, 'draw', 'energy', 'gold', 'allyDraw', 'drawAll', 'chain', 'extra', 'leech', 'leechCap']) if(typeof s[k] === 'number' && s[k] > 0) s[k] = b(s[k]);
+    if(s.buff) s.buff = {...s.buff, n:b(s.buff.n)};
+    if(Array.isArray(s.gold)) s.gold = s.gold.map(b);
+    return;
+  }
   if(kind === 'extra'){
     if(s.draw) s.draw += 1; else if(s.energy) s.energy += 2;
     if(s.buff) s.buff = {...s.buff, n:upVal(s.buff.n)};
@@ -2605,7 +2645,7 @@ function applyFoil(s, d){
 }
 function upgradeHint(c){
   const k = upgradeKind(CARDS[c.key]);
-  return k === 'cost' ? '−1 Energy cost' : k === 'stats' ? '+25% to its values' : k === 'extra' ? 'stronger effect' : '';
+  return k === 'buddy' ? '+50% to all its values' : k === 'cost' ? '−1 Energy cost' : k === 'stats' ? '+25% to its values' : k === 'extra' ? 'stronger effect' : '';
 }
 function cardName(c){ return baseCardName(c) + (c.upgraded ? '+' : ''); }
 function baseCardName(c){
@@ -2618,9 +2658,19 @@ function baseCardName(c){
   if(types.length === 3) return `${GEM_TYPES[types[2]].adj} ${pair} ${d.name}`;
   return `${types.length === 4 ? 'Mythic' : 'Godforged'} ${pair} ${d.name}`;
 }
+// Begriffe, die beim Drübermausen erklärt werden, stehen gelb im Kartentext (und werden dort nicht mehr erklärt)
+const KW_TERMS = {'Mark (Ranger)':['Marks','Marked','Mark'], 'Runes (Rift Architect)':['Runes','Rune'], 'Soulbind (Soulbinder)':['Soulbind','Soulbound'],
+  'Imprint (Soulbinder)':['Imprints','Imprint'], 'Dream (Dreamweaver)':['Dream','Nightmare'], 'Played again':[]};
+function kwHighlight(html, c){
+  let names; try { names = cardKeywords(c).map(x => x[1]); } catch(e){ return html; }
+  const terms = names.flatMap(n => KW_TERMS[n] || [n.replace(/ \(.*\)$/, '')]).filter(Boolean).sort((a, b) => b.length - a.length);
+  if(!terms.length) return html;
+  const re = new RegExp('\\b(' + terms.map(x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\b', 'g');
+  return html.split(/(<[^>]+>)/).map(p => p.startsWith('<') ? p : p.replace(re, '<span class="kwy">$1</span>')).join('');
+}
 function cardDesc(c){
   const d = CARDS[c.key], s = stats(c);
-  if(d.text) return d.text;
+  if(d.text) return kwHighlight(d.text, c);
   const n = (v, base) => `<b${v > base ? ' class="up"' : ''}>${v}</b>`;
   const L = [];
   if(s.surge) L.push('<b class="up">✦ Resonating: +50%!</b>');
@@ -2632,10 +2682,9 @@ function cardDesc(c){
   if(s.blockAll) L.push(`ALL heroes gain ${n(s.blockAll, d.blockAll)} Block.`);
   if(s.thorns) L.push(`Gain <b>${s.thorns}</b> Thorns.`);
   if(s.thornsAll) L.push(`ALL heroes gain <b>${s.thornsAll}</b> Thorns.`);
-  if(s.flameArmor) L.push(`Attackers get <b>${s.flameArmor}</b> Burn per hit.`);
-  if(s.frostArmor) L.push(`Attackers get <b>${s.frostArmor}</b> Ice per hit.`);
-  if(s.staticArmor) L.push(`Attackers take <b>1–${s.staticArmor}</b> damage per hit.`);
-  if(s.thorns || s.thornsAll || s.flameArmor || s.frostArmor || s.staticArmor) L.push('<i class="dur">(until your next turn)</i>');
+  if(s.flameArmor) L.push(`Gain <b>${s.flameArmor}</b> Flame Armor.`);
+  if(s.frostArmor) L.push(`Gain <b>${s.frostArmor}</b> Ice Armor.`);
+  if(s.staticArmor) L.push(`Gain <b>1–${s.staticArmor}</b> Static Armor.`);
   if(s.dmg){
     const times = s.hitsMax ? ` <b>${s.hitsMin}–${s.hitsMax}</b> times` : s.hits === 2 ? ' twice' : s.hits > 2 ? ` <b>${s.hits}</b> times` : '';
     const dv = s.dmgMax ? `<b${s.dmgMax > d.dmgMax || s.dmgMin > d.dmgMin ? ' class="up"' : ''}>${s.dmgMin}–${s.dmgMax}</b>` : n(s.dmg, d.dmg);
@@ -2648,7 +2697,7 @@ function cardDesc(c){
     if(s.soloMult) L.push('<i class="up">Double damage against a lone enemy.</i>');
     if(s.execute) L.push('<i class="up">Double damage if the target is below half HP.</i>');
     if(s.bonusRange) L.push(`<b class="up">+0–${s.bonusRange}</b> damage per hit.`);
-    if(s.crit) L.push('<b class="crit">Crit:</b> double damage vs the rearmost enemy.');
+    if(s.crit) L.push('Crit.');
     if(s.returnOnKill) L.push('If it kills, return it to your hand.');
     if(s.extra) L.push(`Also hits <b${s.extra > (d.chain||0) ? ' class="up"' : ''}>${s.extra}</b> nearby enem${s.extra > 1 ? 'ies' : 'y'}.`);
   }
@@ -2665,14 +2714,14 @@ function cardDesc(c){
   if(s.vuln) L.push(`Apply ${n(s.vuln, d.vuln)} Vulnerable.`);
   if(s.vulnAll) L.push(`Apply ${n(s.vulnAll, d.vulnAll)} Vulnerable to ALL enemies.`);
   if(s.weakAll) L.push(`Apply ${n(s.weakAll, d.weakAll)} Weak to ALL enemies.`);
-  if(s.invis) L.push('Become <b>Invisible</b>.');
+  if(s.invis) L.push('Become Invisible.');
   if(s.gold) L.push(`Steal <b>${s.gold[0]}–${s.gold[1]}</b> Gold.`);
   if(s.makeGem) L.push('Create a random gem (Uncommon or better).');
   if(s.poisonDouble) L.push('Double the target\'s Poison, then it takes damage equal to its Poison.');
   if(d.punchCard){
     L.push(`At ${FURY_NEED} Fury: <b>${s.punchDmg}${s.punchRange ? `–${s.punchDmg + s.punchRange}` : ''}</b> (+10% Max HP)${s.punchHits > 1 ? ` ×${s.punchHits}` : ''} to the enemy with the most HP${s.punchExtra ? ` +${s.punchExtra} more` : ''}${s.punchRepeats > 1 ? `, ${s.punchRepeats}×` : ''}.${s.punchLeech ? ` Heal ${s.punchLeech}/hit.` : ''}`);
   }
-  if(s.taunt) L.push('<b class="crit">Taunt:</b> enemies attack only you until your next turn. Enemies that would not attack, attack you anyway.');
+  if(s.taunt) L.push('Taunt.');
   if(s.guard) L.push(`Gain <b>${s.guard}</b> Guard.`);
   if(s.power) L.push(`Gain <b>${s.power}</b> Power.`);
   if(s.combo) L.push(`Your next Knockout Punch hits <b>${s.combo}</b> more time${s.combo > 1 ? 's' : ''}.`);
@@ -2682,7 +2731,7 @@ function cardDesc(c){
   if(s.selfWeak) L.push(`Become Weak (${s.selfWeak}).`);
   if(s.owed) L.push(`<b>${s.owed}</b> Deserves a Beating${s.dmg && s.hits > 1 ? ' per hit' : ''}.`);
   if(s.consumeOwed) L.push('Cashes in Deserves a Beating.');
-  if(s.consumePayback) L.push(`Spend all Payback: <b>+${s.consumePayback}</b> damage per stack, heal 50% of them.`);
+  if(s.consumePayback) L.push(`Spend all Payback: <b>+${s.consumePayback}</b> damage per stack.`);
   if(s.style) L.push(`<b class="crit">${s.style === 'def' ? 'Defensive' : 'Offensive'}:</b> choose ${DRUNK_OPTS[s.style].map(o => o.name).join(', ')}.`);
   if(s.mark) L.push(`Apply <b>${s.mark}</b> Mark${s.dmg && (s.hits > 1 || s.hitsMax) ? ' per hit' : ''}${s.dmg && s.aoe ? ' to ALL enemies' : ''}.`);
   if(s.markAll) L.push(`Apply <b>${s.markAll}</b> Mark to ALL enemies.`);
@@ -2739,11 +2788,11 @@ function cardDesc(c){
   if(s.sanity) L.push(`Restore <b>${s.sanity}</b> Sanity.`);
   if(s.sanityCost) L.unshift(`<span class="sancostl">Costs <b>${s.sanityCost}</b> Sanity.</span>`);
   if(s.leechFlat) L.push(`${s.morphed ? '<b class="poison">Lifesteal:</b> heal' : 'Heal'} <b>${s.leechFlat}</b> HP.`);
-  if(s.mindStun) L.push('<b class="crit">Corrupted Mind:</b> the target loses its next turn.');
+  if(s.mindStun) L.push('Inflict Corrupted Mind.');
   if(s.corrupt) L.push(`<b class="poison">+${s.corrupt} Corruption</b>`);
   if(tiersOf(d)) L.push(`<span class="ctiers">${tierLines(d)}</span>`);
   if(s.drawAll) L.push(`ALL heroes draw <b>${s.drawAll}</b> card${s.drawAll > 1 ? 's' : ''}.`);
-  if(c.tmp) L.push(`<i class="dur">${c.by && S.heroes[c.by] && c.by !== (heroOfCard(c) || {}).id ? 'Gift from the ' + S.heroes[c.by].name + '. ' : ''}Vanishes after use.</i>`);
+  if(c.tmp) L.push(`<i class="dur">${c.by && S.heroes[c.by] && c.by !== (heroOfCard(c) || {}).id ? 'Gift from the ' + S.heroes[c.by].name + '. ' : ''}${c.by ? '' : 'Vanishes after use.'}</i>`);   // Soulcraft-Erklärung kommt per Hover
   if(s.poisonTrigger) L.push('ALL enemies take damage equal to their Poison.');
   if(s.poisonPop) L.push('Then the target takes damage equal to its Poison.');
   if(s.blizzard) L.push(`For <b>${s.blizzard.turns}</b> turns, at the start of the enemy turn deal <b>${s.blizzard.dmg}</b> damage and <b>${s.blizzard.ice}</b> Ice to ALL enemies.`);
@@ -2752,6 +2801,7 @@ function cardDesc(c){
   if(d.cond && condText(d, s, false)) L.push(condText(d, s, false));
   if(s.exhaust && d.type !== 'buff' && !c.tmp) L.push('<i class="dur">Once per fight.</i>');
   if(d.type === 'buff' && !c.tmp) L.push('<b class="vanishkw">Vanish</b>');
+  for(let i = 0; i < L.length; i++) L[i] = kwHighlight(L[i], c);         // Hover-Begriffe gelb
   const long = !!d.cond || L.join(' ').replace(/<[^>]+>/g, '').length > 60;
   const tag = s.morphed ? '' : d.selfOnly ? '<span class="tgt">Self only</span>' : heroTargetable(d) ? '<span class="tgt">Any hero</span>' : '';
   const plain = L.join(' ').replace(/<[^>]+>/g, '').length;
@@ -2935,7 +2985,7 @@ buffIcon:`<svg width="22" height="22" viewBox="0 0 40 40"><circle cx="20" cy="20
 /* ================== Statuseffekte ================== */
 const RHUD_MAGIC = `<svg width="16" height="16" viewBox="0 0 40 40"><path d="M20 3 L24 16 L37 20 L24 24 L20 37 L16 24 L3 20 L16 16Z" fill="#d9ffd0"/></svg>`;
 const STATUS = {
-  etaunt:    {icon:'tauntIcon',      flag:true, tip:() => `Taunt: your single-target attacks must hit this enemy until its next turn.`},
+  etaunt:    {icon:'tauntIcon',      flag:true, tip:() => `Taunt: your single-target attacks must hit this enemy until its next turn. Only works while it is the front enemy.`},
   bulwark:   {icon:'roleGuardIcon',  tip:n => `Bulwark: takes ${n}% less damage until its next turn.`},
   overgrown: {icon:'roleBuffIcon',   flag:true, tip:() => `Overgrown: +${AFX().overgrown}% damage and Block for this fight.`},
   witching:  {icon:'strengthIcon',   tip:n => `Witching Hour: +${AFX().witch * n} damage per hit for the rest of the fight.`},
@@ -2943,8 +2993,8 @@ const STATUS = {
   roleTactic:{icon:'roleTacticIcon', flag:true, tip:() => `Tactician: every third turn it rallies its allies (+1 Strength).`},
   roleHeal:  {icon:'roleHealIcon',   flag:true, tip:() => `Healer: heals its allies. Low HP – take it out first!`},
   roleBuff:  {icon:'roleBuffIcon',   flag:true, tip:() => `Buffer: makes its allies stronger. Low HP – take it out first!`},
-  taunt:     {icon:'tauntIcon',      flag:true, tip:() => `Taunt: enemies attack only this hero until his next turn – area attacks too. Enemies that would not attack hit him anyway with their weakest attack.`},
-  guard:     {icon:'guardIcon',      tip:n => `Guard ${n}: takes ${Math.min(GUARD_MAX, n * GUARD_PCT) * 100}% less damage. Each hit taken removes 1 stack.`},
+  taunt:     {icon:'tauntIcon',      flag:true, tip:() => `Taunt: single-target enemy attacks hit only this hero until his next turn (area and splash attacks stay as they are). Enemies that would not attack hit him anyway with a weak attack. Only works in the front slot – moved back, the Taunt breaks.`},
+  guard:     {icon:'guardIcon',      tip:n => `Guard ${n}: takes ${Math.round(Math.min(GUARD_MAX, n * GUARD_PCT) * 10) * 10}% less damage. Each hit taken removes 1 stack.`},
   power:     {icon:'powerIcon',      tip:n => `Power ${n}: the next hit deals +${n * POWER_DMG} damage, then Power is used up.`},
   combo:     {icon:'comboIcon',      tip:n => `Combo: the next Knockout Punch hits ${n} more time${n > 1 ? 's' : ''}.`},
   reach:     {icon:'reachIcon',      tip:n => `Reach: the next Knockout Punch hits ${n} more enem${n > 1 ? 'ies' : 'y'}.`},
@@ -2962,7 +3012,7 @@ const STATUS = {
   drained:   {icon:'drainIcon',      tip:n => `Drained: gets ${n} less Energy at the start of the next round.`},
   aegis:     {icon:'aegisIcon',      tip:n => `Aegis: a ${n}-point shield that absorbs damage before Block and HP. Break it before the Annihilation Beam fires!`},
   bond:      {icon:'bondIcon',       flag:true, tip:() => `Twin Bond: when the other twin dies, this one gains 5 Strength and heals.`},
-  interrupt: {icon:'interruptIcon',  flag:true, tip:() => `Restless: every ${SHIFT_LIMIT} cards your team plays, it interrupts your turn, acts immediately and changes form.`},
+  interrupt: {icon:'interruptIcon',  flag:true, tip:() => `Restless: after ${shiftLimit()} cards played by your team it interrupts – your turn ends and it transforms. Bear: Block + heals 15%. Hawk: Strength for the fight. Serpent: Poison on all heroes. Every transform is stronger than the last.`},
   mark:      {icon:'markIcon',       tip:n => `Mark: this enemy takes +${n}% damage from every hit (from every hero). Marks stay until a Detonate effect makes them explode – the explosion also gets the +${n}%.`},
   momentum:  {icon:'momentumIcon',   tip:n => `Momentum: ${n} (max 10). Gained by playing a different card type than your previous card, and by cards. Finishers spend it.`},
   plan:      {icon:'planIcon',       tip:n => `Master Plan (buff): whenever you gain Momentum, gain ${n} more until the end of the fight.`},
@@ -2975,10 +3025,11 @@ const STATUS = {
   venomEdge: {icon:'venomEdgeIcon',     tip:n => `Venomous Edge (buff): every hit of this hero's attacks applies ${n} Poison until the end of the fight.`},
   invis:     {icon:'invisIcon',     flag:true, tip:() => `Invisible: takes no damage from enemy attacks until this hero's next turn – if all teammates are dead, the enemies find you and you take 50% damage. The next attack card deals double damage – that uses up Invisible.`},
   weak:      {icon:'weakIcon',      tip:n => `Weak: deals ${100 - WEAK_MULT*100}% less attack damage. ${n} turn${n>1?'s':''} left.`},
-  poison:    {icon:'poisonIcon',    tip:(n,u) => u.hero ? `Poison: you take ${n} damage at the END of the round (after the enemies) – Block absorbs it. Then it is reduced by 1.` : `Poison: loses ${n} HP at the END of its turn (ignores Block), then Poison is reduced by 1.`},
+  poison:    {icon:'poisonIcon',    tip:(n,u) => u.hero ? `Poison: you lose ${n} HP at the END of the round (after the enemies), ignoring Block. Then it is reduced by 1.` : `Poison: loses ${n} HP at the END of its turn (ignores Block), then Poison is reduced by 1.`},
   burn:      {icon:'burnIcon',      tip:(n,u) => u.hero ? `Burn: you lose ${n} HP at the start of your turn (ignores Block), then it is reduced by 1.` : `Burn: loses ${n} HP at the START of its turn (ignores Block), then Burn is reduced by 1.`},
   ice:       {icon:'iceIcon',       tip:(n,u) => `Ice: at ${u.boss ? ICE_BOSS : ICE_NORMAL} stacks it is Frozen and skips its next turn. Can't be frozen two turns in a row.`},
   frozen:    {icon:'frozenIcon',    flag:true, tip:() => `Frozen: skips its next turn.`},
+  ccImmune:  {icon:'ccImmuneIcon',  flag:true, tip:() => `CC Immunity: just lost a turn – can't be frozen or stunned again until it has acted.`},
   brittle:   {icon:'brittleIcon',   tip:n => `Brittle: Block gained from cards is reduced by ${n}. Lasts for this fight.`},
   strength:  {icon:'strengthIcon',  tip:n => `Strength: attacks deal ${n} more damage.`},
   thorns:    {icon:'thornsIcon',    tip:(n,u) => u.hero ? `Thorns: every enemy hit on this hero deals ${n} damage back to the attacker. Lasts until this hero's next turn.` : `Thorns: every time you hit it, you take ${n} damage.`},
@@ -3074,13 +3125,25 @@ const SOUL_CARDS = {
   soulavatar:  {name:'Soul Avatar',     rarity:'epic',   custom:true, crafted:true, cost:0, type:'attack', dmg:12, block:8, art:()=>SVG.soulspark},
   giftsteel:   {name:'Gift of Steel',   rarity:'uncommon', custom:true, crafted:true, cost:0, type:'block', block:9, thorns:2, art:()=>SVG.soulgift},
   giftvenom:   {name:'Gift of Venom',   rarity:'uncommon', custom:true, crafted:true, cost:0, type:'attack', dmg:4, poison:5, art:()=>SVG.soulgift},
-  giftember:   {name:'Gift of Embers',  rarity:'uncommon', custom:true, crafted:true, cost:0, type:'attack', dmg:5, burn:3, ice:3, art:()=>SVG.soulgift},
+  giftember:   {name:'Gift of Embers',  rarity:'uncommon', custom:true, crafted:true, cost:0, type:'attack', dmg:4, burn:4, art:()=>SVG.soulgift},
   gifthunt:    {name:'Gift of the Hunt',rarity:'uncommon', custom:true, crafted:true, cost:0, type:'attack', dmg:6, mark:10, momentum:1, art:()=>SVG.soulgift},
   giftfury:    {name:'Gift of Fury',    rarity:'uncommon', custom:true, crafted:true, cost:0, type:'skill', guard:3, power:1, art:()=>SVG.soulgift},
   giftvoid:    {name:'Gift of the Void',rarity:'uncommon', custom:true, crafted:true, cost:0, type:'attack', dmg:7, sanity:6, art:()=>SVG.soulgift},
   giftdreams:  {name:'Gift of Dreams',  rarity:'uncommon', custom:true, crafted:true, cost:0, type:'attack', dmg:4, dream:3, art:()=>SVG.soulgift},
   gifttide:    {name:'Gift of the Tide',rarity:'uncommon', custom:true, crafted:true, cost:0, type:'skill', depthGain:3, draw:1, art:()=>SVG.soulgift},
-  giftsoul:    {name:'Gift of Souls',   rarity:'uncommon', custom:true, crafted:true, cost:0, type:'attack', dmg:6, draw:1, art:()=>SVG.soulgift},
+  giftrage:    {name:'Gift of Rage',    rarity:'uncommon', custom:true, crafted:true, cost:0, type:'attack', dmg:10, vuln:1, selfDmg:2, art:()=>SVG.soulgift},
+  giftglory:   {name:'Gift of Glory',   rarity:'uncommon', custom:true, crafted:true, cost:0, type:'attack', dmg:5, block:5, gold:[2, 4], art:()=>SVG.soulgift},
+  giftfrost:   {name:'Gift of Frost',   rarity:'uncommon', custom:true, crafted:true, cost:0, type:'attack', dmg:4, ice:3, block:3, art:()=>SVG.soulgift},
+  giftthunder: {name:'Gift of Thunder', rarity:'uncommon', custom:true, crafted:true, cost:0, type:'attack', dmg:6, dmgMin:2, dmgMax:11, art:()=>SVG.soulgift},
+  giftgreed:   {name:'Gift of Greed',   rarity:'uncommon', custom:true, crafted:true, cost:0, type:'attack', dmg:5, gold:[4, 8], art:()=>SVG.soulgift},
+  giftshadow:  {name:'Gift of Shadows', rarity:'uncommon', custom:true, crafted:true, cost:0, type:'skill', invis:true, draw:2, selfOnly:true, art:()=>SVG.soulgift},
+  giftgale:    {name:'Gift of the Gale',rarity:'uncommon', custom:true, crafted:true, cost:0, type:'attack', dmg:3, random:true, mark:5, createCard:{key:'sparkarrow', n:1}, art:()=>SVG.soulgift},
+  giftrift:    {name:'Gift of the Rift',rarity:'uncommon', custom:true, crafted:true, cost:0, type:'attack', dmg:4, runeScale:1, momentum:1, art:()=>SVG.soulgift},
+  giftspirits: {name:'Gift of Spirits', rarity:'uncommon', custom:true, crafted:true, cost:0, type:'attack', dmg:2, hitsMin:2, hitsMax:5, random:true, style:'off', art:()=>SVG.soulgift},
+  giftnight:   {name:'Gift of the Night',rarity:'uncommon', custom:true, crafted:true, cost:0, type:'attack', dmg:3, hits:2, owed:1, art:()=>SVG.soulgift},
+  giftthread:  {name:'Gift of Threads', rarity:'uncommon', custom:true, crafted:true, cost:0, type:'skill', link:1, draw:1, block:3, art:()=>SVG.soulgift},
+  giftetch:    {name:'Gift of Etching', rarity:'uncommon', custom:true, crafted:true, cost:0, type:'skill', imprint:{type:'smart', n:2}, draw:1, art:()=>SVG.soulgift},
+  giftsoul:    {name:'Gift of Souls',   rarity:'uncommon', custom:true, crafted:true, cost:0, type:'attack', dmg:5, craft:{kind:'soulspark', n:1, to:'ally'}, art:()=>SVG.soulgift},
 };
 for(const k in SOUL_CARDS){ if(CARDS[k]) console.warn('duplicate card key', k); const d = SOUL_CARDS[k]; d.char = 'soulbinder'; d.costConverted = true; CARDS[k] = d; }
 const GIFT_BY_CLASS = {knight:'giftsteel', assassin:'giftvenom', mage:'giftember', ranger:'gifthunt', brawler:'giftfury', soulbinder:'giftsoul'};
@@ -3089,15 +3152,15 @@ HEROES.soulbinder = {id:'soulbinder', name:'Soulbinder', key:'soulbinder', maxHp
 CLASS_INFO.soulbinder = 'Support who links, strengthens and creates cards for the whole team.';
 SPECS.soulbinder = [
   {id:'chainweaver', name:'Chainweaver', color:'#5ff0e0', icon:'soulthread', tag:'Soul Network',
-    desc:'Soulbinds cards of different heroes. Playing a linked card makes its partner Resonate – the Resonating card hits 50% harder and its partner\'s owner draws a card.',
-    passiveName:'Soul Network', passive:'Whenever a Soulbind completes, ALL enemies take 3 damage for every active Soulbind.<br><span class="sp-mom">Soulbind:</span> play one linked card → its partner Resonates. Play the Resonating card → +50% values and the other owner draws 1. Links last the whole fight.',
+    desc:'Soulbinds cards of different heroes. Playing a linked card makes its partner Resonate – all values of the Resonating card rise by 50% (damage, Block, cards, Energy, buffs, debuffs) and its partner\'s owner draws a card.',
+    passiveName:'Soul Network', passive:'Whenever a Soulbind completes, ALL enemies take 3 damage for every active Soulbind.<br><span class="sp-mom">Soulbind:</span> play one linked card → its partner Resonates. Play the Resonating card → ALL its values +50% (also cards, Energy, buffs, debuffs) and the other owner draws 1. Links last the whole fight.',
     starter:['soullash','soullash','tetherlash','spiritveil','spiritveil','kinshield','chainlink','chainlink','soulbindc','resonate']},
   {id:'runebinder', name:'Runebinder', color:'#b47cff', icon:'souletch', tag:'Imprints',
     desc:'Etches Imprints onto her allies\' cards: Edge (+damage), Ward (+Block), Haste (−cost), Mending (heal) and Echo (plays twice). Imprints of the same kind stack.',
     passiveName:'Lasting Etch', passive:'After every won fight, one random attack card in the team\'s decks permanently gains <b>+2 damage</b> and one random skill or block card permanently gains <b>+2 Block</b> (★).<br><span class="sp-mom">Imprint:</span> a bonus on a card in a hero\'s hand. It lasts until the end of the fight.',
     starter:['soullash','soullash','runeburst','spiritveil','spiritveil','glyphguard','deepetch','deepetch','etchedge','etchhaste']},
   {id:'soulforger', name:'Soulforger', color:'#ffb03a', icon:'soulforge', tag:'Soulcraft',
-    desc:'Forges cards for her allies: Soul Sparks, Spirit Wards and Tailored Gifts made for each class (Steel for Knights, Venom for Assassins, Embers for Mages, the Hunt for Rangers, Fury for Brawlers, Void / Dreams / Tide for each Eldritch Horror).',
+    desc:'Forges cards for her allies: Soul Sparks, Spirit Wards and Tailored Gifts made for each specialization, using that hero\'s own mechanics.',
     passiveName:'Kinship', passive:'Whenever any hero plays a card she created, she gains 1 Energy (max 3 per round).<br><span class="sp-mom">Soulcraft:</span> created cards cost 0 and vanish after use.',
     starter:['soullash','soullash','forgestrike','spiritveil','spiritveil','kindredgift','kindredgift','spiritblade','wardcraft','soulforgec']},
 ];
@@ -3148,7 +3211,15 @@ function linkCards(c1, c2, resonant){
   c1.link = c2.link = id;
   if(resonant){ c1.resonant = c2.resonant = true; }
 }
-const GIFT_BY_SPEC = {acolyte:'giftvoid', dreamweaver:'giftdreams', tidecaller:'gifttide'};   // Eldritch: pro Spezialisierung
+// REGEL: Jede Spezialisierung bekommt einen eigenen Tailored Gift mit ihren Mechaniken (neue Specs hier eintragen!)
+const GIFT_BY_SPEC = {
+  templar:'giftsteel', barbarian:'giftrage', gladiator:'giftglory',
+  fire:'giftember', ice:'giftfrost', storm:'giftthunder',
+  thief:'giftgreed', assassin:'giftshadow', deathbringer:'giftvenom',
+  deadeye:'gifthunt', stormweaver:'giftgale', rift:'giftrift',
+  knockout:'giftfury', drunkmaster:'giftspirits', nightfighter:'giftnight',
+  chainweaver:'giftthread', runebinder:'giftetch', soulforger:'giftsoul',
+  acolyte:'giftvoid', dreamweaver:'giftdreams', tidecaller:'gifttide'};
 function giftFor(t){ return GIFT_BY_SPEC[t.spec] || GIFT_BY_CLASS[t.id] || 'soulspark'; }
 function craftCards(h, craft, target){
   const to = craft.to === 'all' ? living()
@@ -3295,7 +3366,7 @@ function lastingEtch(){                                              // Runebind
   if(msg.length) toast(`Lasting Etch: ${msg.join(' · ')} (permanent ★)`);
 }
 /* Lichtfaden zwischen zwei Helden */
-function soulBeam(a, b, color, big = false){
+function soulBeam(a, b, color, big = false){ if(PREVIEW) return;
   if(window.__SIM || !a || !b || !a.el || !b.el) return;
   const st = $('#stage'), sr = st.getBoundingClientRect(), k = stageScale();
   const pa = a.el.querySelector('.sprite').getBoundingClientRect(), pb = b.el.querySelector('.sprite').getBoundingClientRect();
@@ -3311,7 +3382,7 @@ function soulBeam(a, b, color, big = false){
   st.appendChild(el); setTimeout(() => el.remove(), 1100);
 }
 /* Soul-HUD über den Helden: verbundene / schwingende Karten auf der Hand */
-function soulHud(u, el){
+function soulHud(u, el){ if(PREVIEW) return;
   const box = el.querySelector('.soulhud'); if(!box) return;
   const hand = inCombat() ? (u.hand || []) : [];
   const linked = hand.filter(c => c.link && S.links && S.links[c.link]);
@@ -3605,12 +3676,12 @@ function corruptMind(h){                                            // Acolyte b
   h.sanity = SANITY_MAX; h.mindStun = true; h.energy = 0;
   floatText(h, 'Corrupted Mind!', 'dmg'); retrigger(h.el, 'hit'); updateUnit(h);
 }
-async function checkMindBreak(h){                                    // Sanity während des eigenen Zugs auf 0 -> Zug sofort vorbei
+async function checkMindBreak(h){ if(PREVIEW) return;                                    // Sanity während des eigenen Zugs auf 0 -> Zug sofort vorbei
   if(!h || h.spec !== 'acolyte' || h.dead || sanityOf(h) > 0) return false;
   if(S.phase !== 'hero' || h.turnDone) return false;                 // außerhalb seines Zugs: Sanity bleibt 0, der nächste Zug geht verloren (eldritchTurnStart)
   corruptMind(h);
   toast(`${h.name}'s mind breaks – his turn ends.`); await sleep(500);
-  await endHeroTurn(h);
+  await endHeroTurn(h, true);                                        // erzwungen: kein Wiederaufnehmen
   return true;
 }
 function eldritchTurnStart(h){                                        // Sanity-Verlust, ggf. Corrupted Mind
@@ -3619,11 +3690,11 @@ function eldritchTurnStart(h){                                        // Sanity-
   if(h.spec !== 'acolyte') return false;
   const loss = Math.floor((h.corruption || 0) / 10);
   if(loss){ h.sanity = Math.max(0, (h.sanity ?? SANITY_MAX) - loss); floatText(h, `-${loss} Sanity`, 'status-f'); }
-  if(h.sanity <= 0){ corruptMind(h); h.turnDone = true; return true; }   // Corrupted Mind: Zug und alle Energie weg
+  if(h.sanity <= 0){ corruptMind(h); h.turnDone = true; h.forcedEnd = true; return true; }   // Corrupted Mind: Zug und alle Energie weg
   updateUnit(h); return false;
 }
 /* ---------- Dream ---------- */
-function nightmareSkull(e){                                        // schwarzer Schattentotenkopf über dem Gegner
+function nightmareSkull(e){ if(PREVIEW) return;                                        // schwarzer Schattentotenkopf über dem Gegner
   if(!e.el) return;
   const d = document.createElement('div'); d.className = 'nmskull';
   d.innerHTML = `<svg viewBox="0 0 118 132"><defs><radialGradient id="nmG" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#2a1a3a"/><stop offset=".7" stop-color="#0a0410"/><stop offset="1" stop-color="#000"/></radialGradient></defs>
@@ -3646,7 +3717,7 @@ function nightmare(e){
   if(e.hp <= 0) killEnemy(e);
 }
 function mindStunEnemy(e){
-  if(e.dead || e.mindCD) return;
+  if(e.dead || e.mindCD || e.ccImmune || e.frozen){ if(!e.dead && e.ccImmune) floatText(e, 'CC immune', 'status-f'); return; }   // nur alle 2 Runden Zug verlieren
   e.mindStun = true; floatText(e, 'Corrupted Mind', 'status-f'); updateUnit(e);
 }
 function addDream(e, n){
@@ -3666,7 +3737,8 @@ function summonServant(h, key){
   if(key === 'sleeper'){ living().forEach(x => { gainBlock(x, 10, true); drawCards(x, 1); }); }
   updateUnit(h);
 }
-async function servantsAct(h){
+async function servantsAct(h){ const hi = histBegin(h, 'Servants', true); try { return await servantsActInner(h); } finally { histEnd(hi); } }
+async function servantsActInner(h){
   const list = servantsOf(h); if(!list.length || h.dead) return;
   for(const sv of list.slice()){
     if(!alive().length) break;
@@ -3679,7 +3751,7 @@ async function servantsAct(h){
   }
   for(const e of S.enemies) if(e.boss && !e.dead) await checkBossPhase(e);
 }
-function servantHud(u, el){
+function servantHud(u, el){ if(PREVIEW) return;
   const box = el.querySelector('.servants'); if(!box) return;
   const list = inCombat() ? (u.servants || []) : [];
   box.innerHTML = !list.length ? '' : `<div class="svcount ${list.length >= SERVANT_MAX ? 'full' : ''}" data-tip="Servants: ${list.length}/${SERVANT_MAX}. Summoning one more lets you pick one to send back.">${SVG.depthIcon.replace(/width="22" height="22"/, 'width="13" height="13"')}${list.length}/${SERVANT_MAX}</div><div class="svrow">` + list.map(sv => `<div class="servant" data-tip="${SERVANTS[sv.key].name}: ${SERVANTS[sv.key].text.replace('{a}', sv.atk)}">${SERVANT_ART[sv.key]}${sv.atk ? `<b>${sv.atk}</b>` : ''}</div>`).join('') + (list.length ? '</div>' : '');
@@ -4038,10 +4110,20 @@ const SHIFT_FORMS = {
   serpent:{name:'Serpent', art:'serpentform', ai:e => ({dmg:4, poison:3, weak:1, name:'Venom Fang'})},
   hawk:   {name:'Hawk',    art:'hawkform',    ai:e => ({dmg:5, hits:2, brittle:1, name:'Diving Talons'})},
 };
-const SHIFT_LIMIT = 10;                                               // nach 10 gespielten Karten unterbricht er den Spielerzug
+const SHIFT_LIMIT = 10;                                               // (alt, nur noch Fallback)
+const shiftLimit = () => 5 + 3 * Math.max(1, (S.heroes ? heroList().filter(h => !h.dead).length : 2));   // 1 Held: 8 Karten · 2: 11 · 3: 14 · 4: 17
+/* Verwandlung bei der Unterbrechung: jede weitere wird stärker – mehrere Verwandlungen sollen gefährlich werden */
+async function shiftEffect(e){
+  if(e.dead) return;
+  const n = e.shifts = (e.shifts || 0) + 1;
+  if(e.form === 'bear'){ gainBlock(e, 10 + 6 * n); heal(e, Math.round(e.maxHp * 0.15)); floatText(e, 'Bear: Shield + Heal', 'status-f'); }
+  else if(e.form === 'hawk'){ applyStatus(e, 'strength', 2 + n); floatText(e, `Hawk: +${2 + n} Strength`, 'dmg'); }
+  else if(e.form === 'serpent'){ S.actor = e; living().forEach(h => applyStatus(h, 'poison', 3 + 2 * n)); S.actor = null; floatText(e, `Serpent: ${3 + 2 * n} Poison on all`, 'poison-f'); }
+  updateUnit(e); await sleep(700);
+}
 const SHIFTER_BOSS = {
   id:'shifter', key:'wolfform', name:'Morrgan the Shapeshifter', hp:135, boss:true, passive:{interrupt:1},
-  desc:`Changes between animal forms – Wolf, Bear (Armored), Serpent and Hawk. Every ${SHIFT_LIMIT} cards your team plays, he interrupts your turn and acts immediately!`,
+  desc:`Starts as a Wolf. After a number of cards played by your team (more heroes: more cards) he interrupts: your turn ends and he transforms – Bear (Block + heals 15%), Hawk (gains Strength) or Serpent (Poison on all heroes). Each transform is stronger than the last!`,
   ai:e => SHIFT_FORMS[e.form || 'wolf'].ai(e),
 };
 const BOSSES = [BOSS, AEGIS_BOSS, SHIFTER_BOSS];
@@ -4070,6 +4152,18 @@ giftfury:`<rect x="10" y="22" width="34" height="24" rx="3" fill="#7a1a1a" strok
 giftvoid:`<rect x="10" y="22" width="34" height="24" rx="3" fill="#2a1a3a" stroke="#0a0410" stroke-width="2"/><path d="M27 22 V46 M10 32 H44" stroke="#b47cff" stroke-width="3"/><ellipse cx="27" cy="12" rx="11" ry="7" fill="#1a0a2a" stroke="#b47cff" stroke-width="1.6"/><circle cx="27" cy="12" r="3.5" fill="#d8ff5a"/><circle cx="27" cy="12" r="1.5" fill="#000"/>`,
 giftdreams:`<rect x="10" y="22" width="34" height="24" rx="3" fill="#2a2a6a" stroke="#0a0a2a" stroke-width="2"/><path d="M27 22 V46 M10 32 H44" stroke="#ffe07a" stroke-width="3"/><path d="M30 4 A9 9 0 1 0 36 18 A7 7 0 1 1 30 4Z" fill="#ffe07a"/><circle cx="17" cy="8" r="1.4" fill="#fff"/><circle cx="40" cy="6" r="1.2" fill="#fff"/>`,
 gifttide:`<rect x="10" y="22" width="34" height="24" rx="3" fill="#1a4a6a" stroke="#06182a" stroke-width="2"/><path d="M27 22 V46 M10 32 H44" stroke="#5ad8ff" stroke-width="3"/><path d="M10 17 Q16 9 22 15 Q28 21 34 13 Q40 7 46 13" stroke="#5ad8ff" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M14 20 Q20 14 26 19" stroke="#bff0ff" stroke-width="1.6" fill="none"/>`,
+giftrage:`<rect x="10" y="22" width="34" height="24" rx="3" fill="#6a1a0a" stroke="#2a0402" stroke-width="2"/><path d="M27 22 V46 M10 32 H44" stroke="#ff4a2a" stroke-width="3"/><path d="M16 20 L36 4" stroke="#8a6a3a" stroke-width="3"/><path d="M32 3 Q42 4 40 14 Q36 9 30 9Z" fill="#c8ccd4" stroke="#4a4a54" stroke-width="1.2"/><circle cx="20" cy="12" r="2" fill="#d81a1a"/><circle cx="17" cy="16" r="1.3" fill="#d81a1a"/>`,
+giftglory:`<rect x="10" y="22" width="34" height="24" rx="3" fill="#8a6a1a" stroke="#3a2a04" stroke-width="2"/><path d="M27 22 V46 M10 32 H44" stroke="#fff0a8" stroke-width="3"/><path d="M16 20 Q12 10 20 4 M38 20 Q42 10 34 4" stroke="#6ab83a" stroke-width="2.4" fill="none"/><g fill="#8ad84a"><ellipse cx="15" cy="13" rx="2" ry="3.5"/><ellipse cx="39" cy="13" rx="2" ry="3.5"/><ellipse cx="17" cy="7" rx="2" ry="3"/><ellipse cx="37" cy="7" rx="2" ry="3"/></g><circle cx="27" cy="13" r="5" fill="#ffd34a" stroke="#8a5a0a" stroke-width="1.2"/>`,
+giftfrost:`<rect x="10" y="22" width="34" height="24" rx="3" fill="#2a5a8a" stroke="#0a1a3a" stroke-width="2"/><path d="M27 22 V46 M10 32 H44" stroke="#e8faff" stroke-width="3"/><g stroke="#bff4ff" stroke-width="2.2" stroke-linecap="round"><path d="M27 3 V21 M19 7 L35 17 M35 7 L19 17"/></g><circle cx="27" cy="12" r="2.4" fill="#fff"/>`,
+giftthunder:`<rect x="10" y="22" width="34" height="24" rx="3" fill="#4a4a1a" stroke="#1a1a04" stroke-width="2"/><path d="M27 22 V46 M10 32 H44" stroke="#ffe27a" stroke-width="3"/><path d="M14 12 Q14 4 22 5 Q26 0 33 4 Q41 4 40 12Z" fill="#5a5a7a" stroke="#2a2a3a" stroke-width="1.2"/><path d="M28 11 L22 20 H27 L24 26 L33 15 H28 L31 11Z" fill="#ffe27a" stroke="#8a6a0a" stroke-width="1"/>`,
+giftgreed:`<rect x="10" y="22" width="34" height="24" rx="3" fill="#5a4a1a" stroke="#2a1a04" stroke-width="2"/><path d="M27 22 V46 M10 32 H44" stroke="#ffd34a" stroke-width="3"/><path d="M19 9 Q19 4 27 4 Q35 4 35 9 L38 20 H16Z" fill="#8a6a3a" stroke="#3a2a0a" stroke-width="1.4"/><path d="M20 9 H34" stroke="#3a2a0a" stroke-width="2"/><circle cx="27" cy="15" r="3.5" fill="#ffd34a" stroke="#8a5a0a" stroke-width="1"/>`,
+giftshadow:`<rect x="10" y="22" width="34" height="24" rx="3" fill="#1a1a24" stroke="#000" stroke-width="2"/><path d="M27 22 V46 M10 32 H44" stroke="#7a8a9a" stroke-width="3"/><path d="M27 3 Q38 5 38 14 Q38 21 27 21 Q16 21 16 14 Q16 5 27 3Z" fill="#0a0a10" stroke="#4a5a6a" stroke-width="1.4"/><path d="M21 13 l4 1.5 M33 13 l-4 1.5" stroke="#9dff4a" stroke-width="2" stroke-linecap="round"/>`,
+giftgale:`<rect x="10" y="22" width="34" height="24" rx="3" fill="#2a4a5a" stroke="#0a1a24" stroke-width="2"/><path d="M27 22 V46 M10 32 H44" stroke="#9af0ff" stroke-width="3"/><path d="M12 10 Q22 4 30 10 Q36 14 42 8" stroke="#9af0ff" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M12 18 L36 14" stroke="#8a6a3a" stroke-width="2"/><path d="M38 13 l-4 -3 v6Z" fill="#ffe27a"/><circle cx="20" cy="16" r="1.5" fill="#ffe27a"/>`,
+giftrift:`<rect x="10" y="22" width="34" height="24" rx="3" fill="#3a1a5a" stroke="#10041a" stroke-width="2"/><path d="M27 22 V46 M10 32 H44" stroke="#d8b4ff" stroke-width="3"/><ellipse cx="27" cy="12" rx="9" ry="9" fill="#1a0a2a" stroke="#b47cff" stroke-width="2"/><ellipse cx="27" cy="12" rx="5" ry="5" fill="none" stroke="#e8d0ff" stroke-width="1.4" stroke-dasharray="2 2"/><path d="M27 7 L30 12 L27 17 L24 12Z" fill="#b47cff"/>`,
+giftspirits:`<rect x="10" y="22" width="34" height="24" rx="3" fill="#3a5a2a" stroke="#122a0a" stroke-width="2"/><path d="M27 22 V46 M10 32 H44" stroke="#d8c87a" stroke-width="3"/><path d="M23 3 H31 V7 Q36 10 36 16 Q36 21 27 21 Q18 21 18 16 Q18 10 23 7Z" fill="#c89a4a" stroke="#5a3a0a" stroke-width="1.4"/><path d="M22 4 H32" stroke="#8a2a1a" stroke-width="2.4"/><path d="M20 15 H34" stroke="#5a3a0a" stroke-width="1.4"/>`,
+giftnight:`<rect x="10" y="22" width="34" height="24" rx="3" fill="#1a1a3a" stroke="#04040f" stroke-width="2"/><path d="M27 22 V46 M10 32 H44" stroke="#ff4a8a" stroke-width="3"/><path d="M30 3 A8 8 0 1 0 36 15 A6 6 0 1 1 30 3Z" fill="#c8c8e8"/><rect x="15" y="11" width="13" height="9" rx="2" fill="#5a3a1a" stroke="#2a1a04" stroke-width="1.2"/><path d="M19 11 V9 H24 V11" stroke="#2a1a04" stroke-width="1.2" fill="none"/>`,
+giftthread:`<rect x="10" y="22" width="34" height="24" rx="3" fill="#1a4a4a" stroke="#041a1a" stroke-width="2"/><path d="M27 22 V46 M10 32 H44" stroke="#5ff0e0" stroke-width="3"/><circle cx="18" cy="12" r="5" fill="none" stroke="#5ff0e0" stroke-width="2.4"/><circle cx="36" cy="12" r="5" fill="none" stroke="#5ff0e0" stroke-width="2.4"/><path d="M22 12 Q27 6 32 12" stroke="#bffaf4" stroke-width="2" fill="none"/>`,
+giftetch:`<rect x="10" y="22" width="34" height="24" rx="3" fill="#2a1e3a" stroke="#0a0410" stroke-width="2"/><path d="M27 22 V46 M10 32 H44" stroke="#b48aff" stroke-width="3"/><path d="M19 4 H35 V20 H19Z" fill="#3a2a5a" stroke="#d8b8ff" stroke-width="1.4"/><path d="M27 6 V18 M22 9 L32 15 M32 9 L22 15" stroke="#e8d8ff" stroke-width="1.8"/>`,
 giftsoul:`<rect x="10" y="22" width="34" height="24" rx="3" fill="#4a3a6a" stroke="#1a0a2a" stroke-width="2"/><path d="M27 22 V46 M10 32 H44" stroke="#9af0ff" stroke-width="3"/><path d="M27 4 Q35 8 34 16 Q32 21 27 21 Q22 21 20 16 Q19 8 27 4Z" fill="#9af0ff" opacity=".85" stroke="#fff" stroke-width="1.2"/><circle cx="24.5" cy="13" r="1.4" fill="#1a2a4a"/><circle cx="29.5" cy="13" r="1.4" fill="#1a2a4a"/>`,
 /* ---- Swirls ---- */
 whirlwind:`<path d="M8 14 Q27 6 46 14 Q27 20 8 14Z M12 24 Q27 18 42 24 Q27 29 12 24Z M17 33 Q27 29 37 33 Q27 37 17 33Z M22 41 Q27 39 32 41 Q27 44 22 41Z" fill="#c8d8e8" stroke="#5a7a9a" stroke-width="1.5"/><path d="M38 8 L44 4 L42 10Z" fill="#c8ccd4"/><path d="M10 30 L4 34 L9 36Z" fill="#c8ccd4"/>`,
@@ -5267,8 +5361,8 @@ const AFFIXES = {
   naturesHealing:{name:"Nature's Healing", icon:'regrowIcon', get desc(){ return `Every ${ordinal(AFX().cleanseEvery)} round, half of all debuffs on heroes and enemies are cleansed.`; }},
   verdantBloom:  {name:'Verdant Bloom',    icon:'roleHealIcon', get desc(){ return `All healing is ${AFX().heal}% more effective – for heroes and enemies.`; }},
   overgrowth:    {name:'Overgrowth',       icon:'roleBuffIcon', get desc(){ return `At the start of every fight, one random hero and one random enemy are Overgrown: +${AFX().overgrown}% damage and Block.`; }},
-  bloodMoon:     {name:'Blood Moon',       icon:'drainIcon', get desc(){ return `Everyone heals for ${AFX().blood}% of the damage they deal to the other side.`; }},
-  restlessDead:  {name:'Restless Dead',    icon:'skullIcon', get desc(){ return `In every fight, the first hero and the first enemy that fall rise again with ${AFX().rise}% HP.`; }},
+  bloodMoon:     {name:'Blood Moon',       icon:'drainIcon', get desc(){ return `Enemies heal for ${AFX().blood}% of the damage they deal to heroes. Heroes do not heal from it.`; }},
+  restlessDead:  {name:'Restless Dead',    icon:'skullIcon', get desc(){ return `In every fight, the first enemy that falls rises again with ${AFX().rise}% HP. Heroes do not rise.`; }},
   witchingHour:  {name:'Witching Hour',    icon:'strengthIcon', get desc(){ return `Every 4th round, all heroes and enemies deal +${AFX().witch} damage per hit for the rest of the fight.`; }},
   stoneskin:     {name:'Stoneskin',        icon:'roleGuardIcon', get desc(){ return `At the start of every round, every hero and every enemy gains ${AFX().stone} Block.`; }},
   rockslide:     {name:'Rockslide',        icon:'debuffIcon', get desc(){ return `Every 3rd round, falling rocks deal ${AFX().rock} damage to every hero and every enemy.`; }},
@@ -5517,7 +5611,7 @@ const BIOME_ELITES = {
 const BIOME_BOSSES = {
   /* Wald: Gestaltwandler (Tierformen wie bisher) */
   morrgan: {id:'shifter', key:'wolfform', name:'Morrgan the Shapeshifter', hp:135, boss:true, passive:{interrupt:1},
-    desc:'The druid of the raging woods changes between animal forms – Wolf, Bear (Armored), Serpent and Hawk. Every 10 cards your team plays, he interrupts your turn and acts immediately!',
+    desc:'The druid of the raging woods starts as a Wolf. After a number of cards played by your team (more heroes: more cards) he interrupts: your turn ends and he transforms – Bear (Block + heals 15%), Hawk (gains Strength) or Serpent (Poison on all heroes). Each transform is stronger than the last!',
     ai:e => ({wolf:{atk:'back', dmg:4, hits:3, name:'Flanking Pounce'}, bear:{atk:'front', dmg:12, block:14, name:'Maul'},
               serpent:{atk:'splash', dmg:5, poison:3, weak:1, name:'Venom Fang'}, hawk:{atk:'normal', dmg:6, hits:2, brittle:1, name:'Diving Talons'}})[e.form || 'wolf']},
   /* Nacht: der Hohle König mit 3 Phasen */
@@ -5912,12 +6006,28 @@ const ATK_SVG = {                                                      // rote S
 const atkOf = it => it.atk || (it.dmg ? 'aoe' : null);              // alte Absichten ohne Art = alle Helden
 
 /* ---------- Ziele (über die Formation: vorne -> hinten) ---------- */
+/* Taunt wirkt nur an erster Stelle (Helden: vorderster Platz der Formation, Gegner: vorderster lebender Gegner).
+   Wer nicht (mehr) vorne steht, verliert den Taunt sofort – Angriffe zielen dann wieder normal. */
+function tauntHero(){
+  const L = formationLiving();
+  for(const h of L.slice(1)) if(h.status.taunt){ delete h.status.taunt; floatText(h, 'Taunt broken', 'status-f'); updateUnit(h); }
+  return L[0] && L[0].status.taunt ? L[0] : null;
+}
+function tauntEnemy(){
+  const A = alive();
+  for(const e of A.slice(1)) if(e.status.etaunt){ delete e.status.etaunt; floatText(e, 'Taunt broken', 'status-f'); updateUnit(e); }
+  return A[0] && A[0].status.etaunt && !A[0].status.intangible ? A[0] : null;
+}
+const TAUNT_KEEPS = new Set(['aoe', 'splash']);                       // Flächen-/Splash-Angriffe bleiben bei Taunt unverändert
 function atkPool(){ const L = formationLiving(), vis = L.filter(h => !h.status.invis); return vis.length ? vis : L; }
 function atkTargets(e, it){                                          // -> [[Held, Faktor], …]
   const L = formationLiving(); if(!L.length) return [];
-  const taunter = L.find(h => h.status.taunt);
-  if(taunter) return [[taunter, 1]];                                 // Taunt: alles wird zum Normalangriff auf den Provokateur
   const type = atkOf(it) || 'normal';
+  const taunter = tauntHero();
+  if(taunter && !TAUNT_KEEPS.has(type)){                             // Taunt: Einzelziel-Angriffe treffen den Provokateur
+    if(type === 'pierce'){ const j = L.indexOf(taunter); return [[taunter, 1], ...(L[j + 1] ? [[L[j + 1], 0.5]] : [])]; }
+    return [[taunter, 1]];
+  }
   const pool = atkPool();
   let t = it.tgt && S.heroes[it.tgt]; if(!t || t.dead) t = pool[0];
   const i = L.indexOf(t);
@@ -5972,7 +6082,7 @@ function moveOK(e, m){
   if(m.if === 'hurt') return A.some(o => o.hp < o.maxHp * 0.75);
   if(m.if === 'debuffed') return A.some(o => ENEMY_DEBUFFS.some(k => o.status[k]));
   if(m.if === 'canSummon') return A.length < 5 && A.filter(o => o.minion).length < 2;
-  if(m.if === 'noTaunt') return !A.some(o => o.status.etaunt);
+  if(m.if === 'noTaunt') return A[0] === e && !A.some(o => o.status.etaunt);   // Taunt nur, wenn er vorne steht (sonst würde er scheitern)
   return true;
 }
 function moveAI(e){
@@ -6062,12 +6172,12 @@ function chooseBiome(){
   S.phase = 'biome';
   updateBiomeLabel();
 }
-function updateBiomeLabel(){
+function updateBiomeLabel(){ if(PREVIEW) return;
   const el = $('#biomeLbl'); if(!el) return;
   const B = S.biome && BIOMES[S.biome], A = S.affix && AFFIXES[S.affix];
   if(!B){ el.innerHTML = ''; delete el.dataset.tip; return; }
   el.innerHTML = `<span class="bl-name" style="font-family:${B.font};color:${B.color};text-shadow:0 0 8px ${B.glow}">${B.name}</span>${A ? `<span class="bl-affix" data-tip="Affix – ${A.name}: ${A.desc}">${SVG[A.icon] || ''}</span>` : ''}`;
-  el.dataset.tip = A ? `${B.name} · Affix – ${A.name}: ${A.desc}` : B.name;
+  delete el.dataset.tip;                                             // Affix nur über dem Affix-Symbol, nicht über dem Namen
 }
 function biomeIntroHTML(k){
   const B = BIOMES[k], A = AFFIXES[S.affix];
@@ -6078,6 +6188,7 @@ function biomeIntroHTML(k){
       <button class="bi-go" id="biomeGo">Continue</button>
       <div class="bi-affix"><span class="bi-ai">${SVG[A.icon] || ''}</span><div><b>Affix: ${A.name}${S.biomeIdx ? ` · Level ${S.biomeIdx + 1}` : ''}</b><span>${A.desc}${S.biomeIdx ? ' Affixes grow stronger in every new biome.' : ''}</span></div></div></div>`;
 }
+const playerSlots = () => [...new Set((S.party || []).map(id => S.roles[id]))];   // ein Eintrag pro Spieler
 function showBiomeIntro(){
   if(S.biome) AUDIO.music(S.biome);
   let el = $('#biomeIntro');
@@ -6085,18 +6196,21 @@ function showBiomeIntro(){
   if(el.dataset.k !== S.biome + S.biomeIdx){ el.dataset.k = S.biome + S.biomeIdx; el.innerHTML = biomeIntroHTML(S.biome); }
   el.classList.add('show');
   const me = (S.party || []).find(mine);
-  $('#biomeGo').onclick = () => { if(!busy() && me) dispatch({t:'biomego', h:me}); };
+  const done = me && (S.biomeOk || {})[S.roles[me]], slots = playerSlots(), n = slots.filter(sl => (S.biomeOk || {})[sl]).length;
+  const go = $('#biomeGo');
+  if(go){ go.disabled = !!done; if(slots.length > 1) go.textContent = done ? `Waiting… (${n}/${slots.length})` : n ? `Continue (${n}/${slots.length})` : 'Continue'; }
+  go.onclick = () => { if(!busy() && me && !done) dispatch({t:'biomego', h:me}); };
 }
 function hideBiomeIntro(){ const el = $('#biomeIntro'); if(el) el.classList.remove('show'); }
 
 /* ---------- Affixe ---------- */
 /* Ziel-Pfeile beim Hover über die Absicht */
-function showAtkArrows(e){
+function showAtkArrows(e){ if(PREVIEW) return;
   hideAtkArrows();
   if(e.dead || !e.intent || !inCombat()) return;
   const it = e.intent;
   let list = it.dmg ? atkTargets(e, it) : (it.atk ? atkTargets(e, it) : []);
-  const tx = tauntExtra(e); if(tx){ const tn = living().find(x => x.status.taunt); if(tn && !list.some(x => x[0] === tn)) list = [...list, [tn, 1]]; }
+  const tx = tauntExtra(e); if(tx){ const tn = tauntHero(); if(tn && !list.some(x => x[0] === tn)) list = [...list, [tn, 1]]; }
   if(!list.length) return;
   const st = $('#stage'), sr = st.getBoundingClientRect(), k = stageScale();
   const ctr = (el, dy) => { const r = (el.querySelector('.sprite') || el).getBoundingClientRect(); return [(r.left + r.width / 2 - sr.left) / k, (r.top + r.height * dy - sr.top) / k]; };
@@ -6111,8 +6225,8 @@ function showAtkArrows(e){
   });
   svg.innerHTML = html; st.appendChild(svg);
 }
-function hideAtkArrows(){ const a = document.getElementById('atkArrows'); if(a) a.remove(); }
-function rageFx(){                                                   // Wut-Symbole über den Gegnern (Taunt)
+function hideAtkArrows(){ if(PREVIEW) return; const a = document.getElementById('atkArrows'); if(a) a.remove(); }
+function rageFx(){ if(PREVIEW) return;                                                   // Wut-Symbole über den Gegnern (Taunt)
   for(const e of alive()){
     if(!e.el) continue;
     const r = document.createElement('div'); r.className = 'ragefx';
@@ -6154,8 +6268,8 @@ function affixDmg(t, amount){                                        // Treffer 
 }
 
 
-function shiftForm(e, form){                                         // Gestaltwandler: neue Tierform
-  const opts = Object.keys(SHIFT_FORMS).filter(f => f !== e.form);
+function shiftForm(e, form){ if(PREVIEW) return;                                         // Gestaltwandler: neue Tierform
+  const opts = ['bear', 'hawk', 'serpent'].filter(f => f !== e.form);   // Wolf ist nur die Startform
   e.form = form || opts[Math.floor(rng() * opts.length)];
   const F = SHIFT_FORMS[e.form];
   e.passive.armor = F.armor || 0;
@@ -6220,6 +6334,7 @@ boss:`<svg width="230" height="252" viewBox="0 0 230 252">
 </svg>`,
 burnIcon:`<svg width="16" height="18" viewBox="0 0 50 54"><path d="M25 2 Q42 20 38 36 Q35 50 25 50 Q14 50 12 38 Q10 26 20 16 Q20 28 26 30 Q30 18 25 2Z" fill="#ff6a1a" stroke="#5a1a04" stroke-width="3"/><path d="M25 26 Q32 34 30 40 Q28 46 25 46 Q20 46 19 40 Q18 34 25 26Z" fill="#ffd27a"/></svg>`,
 iceIcon:`<svg width="18" height="18" viewBox="0 0 54 54"><g stroke="#bff2ff" stroke-width="5" stroke-linecap="round"><path d="M27 5 V49 M8 16 L46 38 M8 38 L46 16"/></g><circle cx="27" cy="27" r="6" fill="#4ab8e0"/></svg>`,
+ccImmuneIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><path d="M20 3 L35 9 Q35 28 20 37 Q5 28 5 9Z" fill="#3a2a10" stroke="#ffcf4a" stroke-width="3"/><path d="M14 13 L26 25 M26 13 L14 25" stroke="#8fe8ff" stroke-width="3.4" stroke-linecap="round"/><circle cx="20" cy="19" r="10" fill="none" stroke="#ffcf4a" stroke-width="2" opacity=".7"/></svg>`,
 frozenIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><rect x="5" y="5" width="30" height="30" rx="6" fill="#8fe8ff" stroke="#e8fbff" stroke-width="2.5"/><path d="M11 12 L18 10 M12 18 L16 16" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>`,
 });
 
@@ -6267,7 +6382,7 @@ const heroPos = h => formationOrder().indexOf(h.id);                        // 0
 const formationLiving = () => formationOrder().map(id => S.heroes[id]).filter(h => h && !h.dead);
 const frontHero = () => formationLiving()[0] || null;                       // vorderster lebender Held
 const backHero = () => { const l = formationLiving(); return l[l.length - 1] || null; };
-function arrangePlayerSide(){                                               // Aufstellung im Kampf = Formation
+function arrangePlayerSide(){ if(PREVIEW) return;                                               // Aufstellung im Kampf = Formation
   const ps = document.getElementById('playerSide'); if(!ps) return;
   const order = formationOrder();
   order.slice().reverse().forEach(id => { const h = S.heroes[id]; if(h && h.el){ ps.appendChild(h.el); h.el.classList.toggle('back', id !== order[0]); } });
@@ -6287,7 +6402,7 @@ function viewHero(){
 }
 
 /* ---------- Zeit (Geschwindigkeit, Pause, Abbruch bei Neustart) ---------- */
-const sleep = ms => new Promise(res => {
+const sleep = ms => PREVIEW ? Promise.resolve() : new Promise(res => {
   const run = S.runId;
   const tick = () => { if(S.runId !== run) return; if(S.paused) return setTimeout(tick, 100); res(); };
   setTimeout(tick, ms / OPT.speed);
@@ -6310,13 +6425,15 @@ function enqueue(a){
 }
 async function runQueue(){
   qRunning = true; const run = S.runId; refreshUI();
+  let reflow = false;                                                 // Belohnung/Lager/Shop: Aktionen anderer Spieler werfen niemanden aus seinem Bildschirm
   while(Q.length && S.runId === run){
-    const a = Q.shift();
+    const a = Q.shift(); const ph0 = S.phase;
     try { await execute(a); } catch(err){ console.error('action failed', a, err); }
+    if(!(ph0 === 'post' && S.phase === 'post' && a.h && S.heroes[a.h] && !mine(a.h))) reflow = true;
     S.waiting = false;
     refreshUI();
   }
-  if(S.runId === run){ qRunning = false; refreshUI(); postFlow(); }
+  if(S.runId === run){ qRunning = false; refreshUI(); if(reflow) postFlow(); }
 }
 const busy = () => qRunning || S.waiting;
 function dispatch(a){
@@ -6337,23 +6454,28 @@ async function execute(a){
       const c = h.hand[i], s = stats(c);
       if(CARDS[c.key].unplayable || s.cost > h.energy || s.depthCost > (h.status.depth || 0) || lacksSanity(h, s)) return;
       let target = a.target ? (S.enemies.find(e => e.id === a.target) || S.heroes[a.target]) : null;
-      if(target && !target.hero && !target.status.etaunt && s.dmg){ const tt = alive().find(o => o.status.etaunt && !o.status.intangible); if(tt){ target = tt; floatText(tt, 'Taunted!', 'dmg'); } }   // Gegner-Taunt
+      const tt0 = tauntEnemy();
+      if(target && !target.hero && s.dmg && tt0 && tt0 !== target){ const tt = tt0; { target = tt; floatText(tt, 'Taunted!', 'dmg'); } }   // Gegner-Taunt
       S.playOpt = a.opt || null;                                      // Drunk Master: gewählte Option
       S.playPick = a.pick || null;                                    // Soulbinder: gewählte Karten
       S.playReplace = a.replace || null;                              // Tidecaller: ersetzter Diener
       return playCard(h, i, target);
     }
     case 'end':     if(S.phase === 'hero' && h && !h.turnDone) return endHeroTurn(h); return;
+    case 'resume':                                                     // Zug wieder aufnehmen, solange noch nicht alle fertig sind
+      if(S.phase === 'hero' && !S.teamEnding && h && h.turnDone && !h.forcedEnd && !h.dead && !heroList().every(x => x.turnDone)){ h.turnDone = false; refreshUI(); }
+      return;
     case 'pick': {
       const p = S.post[a.h]; if(!p || p.picked) return;
       p.picked = true;
+      if(p.fell) return;                                              // gefallen: nichts zu wählen, kein Reroll-Token
       if(a.key && p.cards.includes(a.key)){ const nc = newCard(a.key); if(p.foils && p.foils[p.cards.indexOf(a.key)]) nc.foil = true; h.deck.push(nc); toast(`${h.name} added ${nc.foil ? 'FOIL ' : ''}${CARDS[a.key].name}`); }
       else { h.rerolls++; toast(`${h.name} skipped and got a Reroll Token`); }   // Überspringen = Reroll-Token
       return;
     }
     case 'reroll': {
       const p = S.post[a.h]; if(!p || p.picked || h.rerolls < 1) return;
-      h.rerolls--; p.cards = rewardChoices(h.id); p.foils = p.cards.map(() => rollFoil());
+      h.rerolls--; p.cards = rewardChoices(h.id, 3, p.cardMin || null, p.cardKind || 'card'); p.foils = p.cards.map(() => rollFoil());   // Neu würfeln: gleiche Drop-Art
       return;
     }
     case 'fuse': {                                     // 3 Edelsteine gleicher Seltenheit -> 1 zufälliger der nächsten
@@ -6421,8 +6543,11 @@ async function execute(a){
       updateCounters(); if(GOLDUI.open) renderGoldSend();
       return;
     }
-    case 'biomego': {                                   // Biom-Intro bestätigt
+    case 'biomego': {                                   // Biom-Intro bestätigt – jeder Spieler muss bestätigen
       if(S.phase !== 'biome') return;
+      if(a.h && S.roles[a.h]){ S.biomeOk = S.biomeOk || {}; S.biomeOk[S.roles[a.h]] = true; }
+      if(!playerSlots().every(sl => (S.biomeOk || {})[sl])) return;
+      S.biomeOk = {};
       S.biomeFor = S.room; hideBiomeIntro(); setBiomeBg(S.biome); updateBiomeLabel();
       if(S.room === 0){ S.room = 1; return startFight('normal'); }
       return enterMap();
@@ -6512,6 +6637,7 @@ function makeCard(c){
     el.classList.add('foil');
     el.insertAdjacentHTML('beforeend', `<div class="foilfx"><i class="sheen"></i>${[[18,22,0],[78,40,.7],[30,70,1.4],[84,82,2.1],[50,12,1.1],[14,52,2.6]].map(([x, y, b]) => `<i class="spark" style="left:${x}%;top:${y}%;animation-delay:${b}s"></i>`).join('')}</div><div class="foiltag" data-tip="Foil card: shiny, and +50% to its base values.">FOIL</div>`);
   }
+  el._card = c;                                                      // für Rechtsklick-Details und Hover-Erklärungen überall
   return el;
 }
 const sortCards = list => list.slice().sort((a,b) =>
@@ -6519,7 +6645,7 @@ const sortCards = list => list.slice().sort((a,b) =>
   CARDS[a.key].type.localeCompare(CARDS[b.key].type) || CARDS[a.key].name.localeCompare(CARDS[b.key].name) || b.gems.length - a.gems.length);
 const sortGems = list => list.slice().sort((a,b) => b.tier - a.tier || GEM_ORDER.indexOf(a.type) - GEM_ORDER.indexOf(b.type));
 
-function buildUnit(u, isHero){
+function buildUnit(u, isHero){ if(PREVIEW) return document.createElement('div');
   const el = document.createElement('div');
   el.className = 'unit ' + (isHero ? 'player hero-' + u.id : 'enemy') + (u.flyer ? ' flyer' : '') + (u.elite ? ' elite' : '') + (u.boss ? ' boss' : '') + (u.minion ? ' minion' : '') + (u.cls ? ' ' + u.cls : '');
   el.innerHTML = `
@@ -6543,6 +6669,7 @@ function statusHTML(u){
   const all = {...(u.passive || {}), ...u.status};
   if(u.frozen) all.frozen = 1;
   if(u.mindStun) all.corruptedMind = 1;
+  if(!u.hero && u.ccImmune && !u.dead) all.ccImmune = 1;
   if(u.hero && u.corruption) all.corruption = u.corruption;
   if(u.hero && u.spec === 'knockout' && inCombat() && !all.fury && (u.vanished || []).some(c => CARDS[c.key].punchCard)) all.fury = '0';   // Fury ab gespieltem Knockout Punch zeigen
   return Object.keys(STATUS).filter(k => all[k]).map(k => {
@@ -6556,12 +6683,13 @@ function intentHTML(e){
   if(e.frozen) return {html:`<span class="ip frz">${SVG.frozenIcon}Frozen</span>`, tip:'Frozen: skips its next turn.',
     tipHtml:`<b>Frozen</b>${line(SVG.frozenIcon, 'Skips its next turn')}`};
   const it = e.intent, parts = [], L = [];
-  const tauntH = living().find(x => x.status.taunt);
+  const tauntH0 = tauntHero();
   if(it.dmg){
-    const v = attackValue(e, it.dmg), type = tauntH ? 'normal' : atkOf(it), T = ATK_TYPES[type];
+    const tauntH = tauntH0 && !TAUNT_KEEPS.has(atkOf(it)) ? tauntH0 : null;   // AoE/Splash bleiben unverändert
+    const type = tauntH && atkOf(it) !== 'pierce' ? 'normal' : atkOf(it), v = attackValue(e, it.dmg), T = ATK_TYPES[type];
     const tg = atkTargets(e, it).map(([h, m]) => m === 1 ? h.name : `${h.name} (half)`).join(', ');
     parts.push(`<span class="ip atk at-${type}${e.status.weak ? ' weakened' : ''}">${ATK_SVG[type](.95)}${v}${it.hits > 1 ? `<small>×${it.hits}</small>` : ''}</span>`);
-    L.push([ATK_SVG[type](.5), tauntH ? `Taunted: <b>Attack</b> on <b>${tauntH.name}</b>: <b>${v}</b>${it.hits > 1 ? ` × ${it.hits}` : ''} damage` : `<b>${T.name}</b> – ${T.desc}: <b>${v}</b>${it.hits > 1 ? ` × ${it.hits}` : ''} damage`]);
+    L.push([ATK_SVG[type](.5), tauntH ? `Taunted: <b>${T.name}</b> on <b>${tauntH.name}</b>: <b>${v}</b>${it.hits > 1 ? ` × ${it.hits}` : ''} damage` : `<b>${T.name}</b> – ${T.desc}: <b>${v}</b>${it.hits > 1 ? ` × ${it.hits}` : ''} damage`]);
     if(tg) L.push([SVG.debuffIcon && '', `Target${tg.includes(',') ? 's' : ''}: <b>${tg}</b>`]);
     if(it.leech) L.push([SVG.drainIcon, 'Heals for the damage it deals']);
   }
@@ -6574,7 +6702,7 @@ function intentHTML(e){
   if(it.thornsUp){ parts.push(`<span class="ip buf">${SVG.thornsIcon}</span>`); L.push([SVG.thornsIcon, `Thorns +${it.thornsUp} (permanent)`]); }
   const tx = tauntExtra(e);
   if(tx){
-    const tn = living().find(x => x.status.taunt);
+    const tn = tauntHero();
     parts.push(`<span class="ip atk taunted">${SVG.sword(.62)}${tx}</span>`);
     L.push([SVG.sword(.5), `Taunted: also attacks <b>${tn.name}</b> for <b>${tx}</b> damage`]);
   }
@@ -6661,7 +6789,7 @@ function furyTipHTML(h){
 /* Schadensvorschau: wie viel Schaden ein Held diese Runde durch die Gegner nimmt (Block NICHT abgezogen) */
 function incomingFor(h){
   if(h.dead || S.phase !== 'hero' || !alive().length) return 0;
-  const L = living(), taunter = L.find(x => x.status.taunt);
+  const L = living(), taunter = tauntHero();
   const evades = h.status.invis && L.some(o => o !== h);
   const hitFor = v => evades ? 0 : h.status.invis ? Math.floor(v * 0.5) : v;
   const list = [];                                                            // einzelne Treffer in Reihenfolge
@@ -6683,10 +6811,11 @@ function incomingFor(h){
 const INC_ICON = {
   safe:`<svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 2 L20 5 V11 Q20 18 12 22 Q4 18 4 11 V5Z" fill="#2a6ab0" stroke="#9fd2ff" stroke-width="1.6"/><path d="M15.5 5.5 L9 12 M8 11 L11 14 M9.5 12.5 L7 15" stroke="#eef7ff" stroke-width="1.8" stroke-linecap="round"/></svg>`,
   broken:`<svg width="18" height="18" viewBox="0 0 24 24"><path d="M11 2.4 L4 5 V11 Q4 18 10.5 21.5 L12 15 L9.5 11 L12.5 7Z" fill="#2a6ab0" stroke="#9fd2ff" stroke-width="1.4"/><path d="M13 2.4 L20 5 V11 Q20 18 13.5 21.5 L15 15 L12.5 11 L15.5 7Z" fill="#2a6ab0" stroke="#9fd2ff" stroke-width="1.4"/></svg>`,
-  hit:`<svg width="18" height="18" viewBox="0 0 24 24"><path d="M19 3 L21 5 L10 16 L8 14Z" fill="#ff5a5a" stroke="#5a0a0a" stroke-width="1"/><path d="M6 13 L11 18 M7.5 16.5 L4 20" stroke="#ff5a5a" stroke-width="2.4" stroke-linecap="round"/></svg>`};
+  hit:`<svg width="18" height="18" viewBox="0 0 24 24"><path d="M19 3 L21 5 L10 16 L8 14Z" fill="#ff5a5a" stroke="#5a0a0a" stroke-width="1"/><path d="M6 13 L11 18 M7.5 16.5 L4 20" stroke="#ff5a5a" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+  skull:`<svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 2.5 Q20 2.5 20 10.5 Q20 14 17.5 15.5 V19 Q17.5 20.5 16 20.5 H8 Q6.5 20.5 6.5 19 V15.5 Q4 14 4 10.5 Q4 2.5 12 2.5Z" fill="#ffd34a" stroke="#6a4a0a" stroke-width="1.2"/><circle cx="8.8" cy="11" r="2.3" fill="#2a1a04"/><circle cx="15.2" cy="11" r="2.3" fill="#2a1a04"/><path d="M12 13.5 L10.8 16 H13.2Z" fill="#2a1a04"/><path d="M9.5 18 V20.5 M12 18 V20.5 M14.5 18 V20.5" stroke="#6a4a0a" stroke-width="1"/></svg>`};
 let incQueued = false;
 function queueIncoming(){ if(incQueued) return; incQueued = true; setTimeout(() => { incQueued = false; updateIncoming(); }, 0); }
-function updateIncoming(){
+function updateIncoming(){ if(PREVIEW) return;
   for(const h of heroList()){
     const box = h.el && h.el.querySelector('.incoming'); if(!box) continue;
     const n = incomingFor(h);
@@ -6695,24 +6824,26 @@ function updateIncoming(){
     const kind = blk <= 0 ? 'hit' : through > 0 ? 'broken' : 'safe';
     box.className = 'incoming ' + kind;
     box.innerHTML = kind === 'broken'                                          // Schild bricht: abgefangen (blau) | auf die Leben (rot)
-      ? `<span class="ib">${INC_ICON.broken}<b>${blk}</b></span><span class="ir">${INC_ICON.hit}<b>${through}</b></span>`
-      : INC_ICON[kind] + `<b>${n}</b>`;
+      ? `<span class="ib">${INC_ICON.broken}<b>${blk}</b></span><span class="ir">${INC_ICON.hit}<b>${through}</b>${through >= h.hp ? `<i class="dpk">${INC_ICON.skull}</i>` : ''}</span>`
+      : INC_ICON[kind] + `<b>${n}</b>` + (kind === 'hit' && n >= h.hp ? `<i class="dpk">${INC_ICON.skull}</i>` : '');   // würde sterben: Totenkopf
     box.dataset.tip = kind === 'safe' ? `Incoming this round: ${n} damage – fully blocked by your ${blk} Block.`
       : kind === 'broken' ? `Incoming this round: ${n} damage – your Block absorbs ${blk}, ${through} damage hits your HP.`
       : `Incoming this round: ${n} damage – you have no Block.`;
+    if(through >= h.hp) box.dataset.tip += ' This would kill the hero!';
   }
 }
-function syncRage(u){                                               // Wut-Symbol, solange ein Held provoziert
-  if(!u || u.hero || !u.el) return;
+function syncRage(u){ if(PREVIEW) return;                                               // Wut-Symbol, solange ein Held provoziert
+  if(!u || !u.el) return;                                            // Gegner: wenn ein Held provoziert · Helden: wenn ein Gegner provoziert
   const sp = u.el.querySelector('.sprite') || u.el;
   let r = sp.querySelector('.ragefx.loop');
-  const on = !u.dead && inCombat() && living().some(h => h.status.taunt);
+  const A = alive(), et = A[0] && A[0].status.etaunt && !A[0].status.intangible;
+  const on = !u.dead && inCombat() && (u.hero ? !!et : !!tauntHero());
   if(on && !r){ r = document.createElement('div'); r.className = 'ragefx loop'; r.innerHTML = RAGE_SVG; r.style.animationDelay = `-${(parseInt(String(u.id).slice(1)) % 5) * 0.31}s`; sp.appendChild(r); }
   else if(!on && r) r.remove();
 }
 const RAGE_SVG = `<svg width="46" height="46" viewBox="0 0 34 34"><g stroke="#ff2a2a" stroke-width="4" stroke-linecap="round" fill="none"><path d="M6 13 Q13 13 13 6"/><path d="M21 6 Q21 13 28 13"/><path d="M28 21 Q21 21 21 28"/><path d="M13 28 Q13 21 6 21"/></g></svg>`;
-function updateUnit(u){
-  if(u && !u.hero) setTimeout(() => syncRage(u), 0);
+function updateUnit(u){ if(PREVIEW) return;
+  if(u) setTimeout(() => syncRage(u), 0);
   const el = u.el; if(!el) return;
   queueIncoming();
   const pct = Math.max(0, u.hp/u.maxHp*100) + '%';
@@ -6721,6 +6852,7 @@ function updateUnit(u){
   el.querySelector('.hptext').textContent = `${u.hp}/${u.maxHp}`;
   el.querySelector('.blockb span').textContent = u.block;
   el.classList.toggle('blocked', u.block > 0);
+  el.classList.toggle('stealthed', !!(u.hero && u.status.invis));      // Unsichtbar: dauerhaft durchsichtig (wie in der Vanish-Animation)
   el.querySelector('.statuses').innerHTML = statusHTML(u);
   if(u.hero && u.spec === 'knockout'){                                       // Fury: Tooltip mit der Knockout-Punch-Karte und dem nächsten Schlag
     const fe = el.querySelector('.statuses .s-fury');
@@ -6728,8 +6860,8 @@ function updateUnit(u){
   }
   el.querySelector('.regrowTag').textContent = u.regrowIn ? `Regrows in ${u.regrowIn}` : '';
   const sc = el.querySelector('.shiftctr');
-  if(sc){ const n = S.shiftCount || 0; sc.innerHTML = `${SVG.interruptIcon}<b>${n}/${SHIFT_LIMIT}</b>`; sc.classList.toggle('hot', n >= SHIFT_LIMIT - 2);
-    sc.dataset.tip = `Cards played: ${n}/${SHIFT_LIMIT}. At ${SHIFT_LIMIT} he interrupts your turn, acts immediately and changes form.`; }
+  if(sc){ const n = S.shiftCount || 0, L = shiftLimit(); sc.innerHTML = `${SVG.interruptIcon}<b>${n}/${L}</b>`; sc.classList.toggle('hot', n >= L - 2);
+    sc.dataset.tip = `Cards played: ${n}/${L}. At ${L} he interrupts: your turn ends and he transforms (Bear: Block + heal · Hawk: Strength · Serpent: Poison on all). Each transform is stronger.`; }
   if(u.hero){
     const box = el.querySelector('.energy');
     let h = '';
@@ -6782,40 +6914,42 @@ function updateUnit(u){
     } else it.className = 'intent hidden';
   }
 }
-function retrigger(el, cls){ el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
-function floatText(u, text, cls){
+function retrigger(el, cls){ if(PREVIEW) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+function floatText(u, text, cls){ if(PREVIEW) return;
   if(!u.el) return;
   const f = document.createElement('div');
   f.className = 'float ' + cls; f.textContent = text;
   u.el.appendChild(f); setTimeout(() => f.remove(), 1000);
 }
-function slashFx(u){ const s = document.createElement('div'); s.className = 'slash'; u.el.appendChild(s); setTimeout(() => s.remove(), 300); }
-async function banner(text, sub = '', ms = 850){
+function slashFx(u){ if(PREVIEW) return; const s = document.createElement('div'); s.className = 'slash'; u.el.appendChild(s); setTimeout(() => s.remove(), 300); }
+async function banner(text, sub = '', ms = 850){ if(PREVIEW) return;
   const b = $('#banner');
   b.innerHTML = `<div>${text}${sub ? `<small>${sub}</small>` : ''}</div>`;
   b.style.setProperty('--bt', (ms + 150) / OPT.speed + 'ms');
   retrigger(b, 'show');
   await sleep(ms);
 }
-function toast(text){
+function toast(text){ if(PREVIEW) return;
   const t = document.createElement('div'); t.className = 'toast'; t.textContent = text;
   $('#toasts').appendChild(t); setTimeout(() => t.remove(), 3200);
 }
 
 /* ---------- Hand, Knöpfe, HUD ---------- */
-function refreshUI(){
+function refreshUI(){ if(PREVIEW) return;
   renderHand();
   heroList().forEach(updateUnit);
   const btn = $('#endTurn');
   const myOpen = S.phase === 'hero' ? heroList().filter(x => mine(x.id) && !x.dead && !x.turnDone) : [];
-  btn.disabled = !(myOpen.length && !busy());
+  const myResume = S.phase === 'hero' && !S.teamEnding && !myOpen.length ? heroList().filter(x => mine(x.id) && !x.dead && x.turnDone && !x.forcedEnd) : [];
+  btn.disabled = !((myOpen.length || myResume.length) && !busy());
   btn.innerHTML = S.phase !== 'hero' ? `End Turn<small>Space</small>`
     : myOpen.length ? `End Turn<small>${myOpen.length > 1 ? 'all your heroes · ' : ''}Space</small>`
+    : myResume.length ? `Resume Turn<small>waiting for the others · play more cards</small>`
     : `Waiting…<small>for the other players</small>`;
   renderHeroSwitch();
   updateCounters();
 }
-function updateCounters(){
+function updateCounters(){ if(PREVIEW) return;
   $('#hud').classList.toggle('idle', !S.runActive);
   const v = viewHero(); if(!v) return;
   $('#goldNo').textContent = v.gold;
@@ -6835,8 +6969,10 @@ function peekHand(id){
   if((S.peek || null) === id) return;
   S.peek = id; renderHand();
 }
-function renderHand(newIds = []){
-  const hand = $('#hand'); hand.innerHTML = ''; hideLinkGhost(); hideKeywords();
+const LASTPTR = {x:-1, y:-1}; addEventListener('pointermove', ev => { LASTPTR.x = ev.clientX; LASTPTR.y = ev.clientY; }, true);
+let handHover = null;                                                // Karten-ID unter der Maus (bleibt beim Neuzeichnen angehoben)
+function renderHand(newIds = []){ if(PREVIEW) return;
+  const hand = $('#hand');
   heroList().forEach(x => x.el && soulHud(x, x.el));
   if(S.peek && !peekOk(S.peek)) S.peek = null;
   if(S.peekPin && !peekOk(S.peekPin)) S.peekPin = null;
@@ -6847,18 +6983,19 @@ function renderHand(newIds = []){
   $('#drawCount').textContent = h ? h.draw.length : 0;
   $('#discardCount').textContent = h ? h.discard.length : 0;
   $('#vanishCount').textContent = h ? (h.vanished || []).length : 0;
-  $('#handOwner').textContent = !h ? '' : peek ? `${h.name}'s hand (${SLOT_NAME[S.roles[h.id]] || 'other player'}) – view only` + (h.turnDone ? ' · turn ended' : '') + (S.peekPin === h.id && !S.peek ? ' · click your hero to go back' : '')
-    : `${h.name}'s hand` + (h.turnDone ? ' – turn ended' : '');
+  $('#handOwner').textContent = !h ? '' : peek ? `${h.name}'s hand (${SLOT_NAME[S.roles[h.id]] || 'other player'}) – view only` + (S.peekPin === h.id && !S.peek ? ' · click your hero to go back' : '')
+    : '';                                                          // eigene Hand: kein Text (nur beim Zuschauen)
   $('#arena').classList.toggle('targeting', S.selKind === 'enemy');
   $('#arena').classList.toggle('heroTargeting', S.selKind === 'hero');
-  if(!h) return;
+  if(!h){ if(hand.children.length){ hand.innerHTML = ''; hand._sig = null; hideLinkGhost(); hideKeywords(); } return; }
   const n = h.hand.length;
   const margin = Math.min(-7, (790 - n*140) / (2*Math.max(n,1)));
   const control = mine(h.id) && !peek;
+  const els = [];
   h.hand.forEach((c, i) => {
     const el = makeCard(c);
     const off = i - (n-1)/2;
-    if(CARDS[c.key].unplayable || stats(c).cost > h.energy || stats(c).depthCost > (h.status.depth || 0) || lacksSanity(h, stats(c))) el.classList.add('unplayable');
+    if(h.turnDone || CARDS[c.key].unplayable || stats(c).cost > h.energy || stats(c).depthCost > (h.status.depth || 0) || lacksSanity(h, stats(c))) el.classList.add('unplayable');
     if(!control) el.classList.add('spectate');
     if(S.selected === i) el.classList.add('selected');
     el.style.margin = `0 ${margin}px`;
@@ -6869,11 +7006,22 @@ function renderHand(newIds = []){
     el.addEventListener('click', ev => { ev.stopPropagation(); onCardClick(i); });
     el.addEventListener('pointerdown', ev => dragDown(ev, i));
     if(DRAG.active && DRAG.i === i) el.classList.add('dragging');
-    el.addEventListener('contextmenu', ev => { ev.preventDefault(); deselect(); });
-    el.addEventListener('mouseenter', () => { if(c.link) showLinkGhost(el, c); showKeywords(el, c); });
-    el.addEventListener('mouseleave', () => { hideLinkGhost(); hideKeywords(); });
-    hand.appendChild(el);
+    el._kwOwn = true;
+    el.addEventListener('mouseenter', () => { handHover = c.id; if(c.link) showLinkGhost(el, c); showKeywords(el, c); });
+    el.addEventListener('mouseleave', () => { if(handHover === c.id) handHover = null; el.classList.remove('keephov'); hideLinkGhost(); hideKeywords(); });
+    el._card = c;
+    els.push(el);
   });
+  // Unveränderte Hand nicht neu aufbauen (sonst wackeln/verschwinden Karten, wenn ein Mitspieler etwas tut)
+  const sig = els.map(e => e.outerHTML);
+  const old = hand._sig, oldEls = [...hand.children];
+  if(!newIds.length && old && old.length === sig.length && sig.every((x, k) => x === old[k] && oldEls[k] && oldEls[k]._card === els[k]._card)) return;
+  hand.innerHTML = ''; hideLinkGhost();
+  els.forEach(el => { hand.appendChild(el); if(handHover && el._card.id === handHover && !DRAG.active){ el.classList.add('keephov'); showKeywords(el, el._card); if(el._card.link) showLinkGhost(el, el._card); } });
+  const kh = els.find(el => el.classList.contains('keephov'));
+  if(!kh) hideKeywords();
+  else requestAnimationFrame(() => requestAnimationFrame(() => { const at = document.elementFromPoint(LASTPTR.x, LASTPTR.y); if(kh.isConnected && !(at && at.closest('.card') === kh)){ kh.classList.remove('keephov'); if(handHover === kh._card.id) handHover = null; hideKeywords(); hideLinkGhost(); } }));
+  hand._sig = sig;
 }
 /* Chainweaver: Partnerkarte beim Drüberfahren transparent darüber zeigen, mit lila Kette verbunden */
 /* Mechaniken einer Handkarte mit Glossar-Symbol neben der Karte erklären */
@@ -6910,19 +7058,34 @@ function cardKeywords(c){
   if(s.depthGain || s.summon || s.gemSummon || s.sacrifice || s.feed || s.fuse || d.perDepth) add('Depth (Tidecaller)');
   return N.map(n => GLOSS_STATUS.find(x => x[1] === n)).filter(Boolean);
 }
-function hideKeywords(){ const k = document.getElementById('kwPanel'); if(k) k.remove(); }
+function hideKeywords(){ if(PREVIEW) return; kwFor = null; const k = document.getElementById('kwPanel'); if(k) k.remove(); const p = document.getElementById('kwPrev'); if(p) p.remove(); }
 function showKeywords(el, c){
   hideKeywords();
-  const list = cardKeywords(c); if(!list.length) return;
+  const list = cardKeywords(c);
+  let s = null; try { s = stats(c); } catch(e){}
+  const mk = s && s.craft && s.craft.kind !== 'gift' ? s.craft.kind : s && s.createCard ? s.createCard.key : null;   // erschaffene Karte als Vorschau
+  const made = mk && CARDS[mk] && mk !== c.key ? mk : null;
+  if(!list.length && !made) return;
   const st = $('#stage'), sr = st.getBoundingClientRect(), k = stageScale(), r = el.getBoundingClientRect();
   const box = document.createElement('div'); box.id = 'kwPanel';
   box.innerHTML = list.map(([icon, name, desc]) => `<div class="kw"><span class="kwi">${SVG[icon] || ''}</span><div><b>${name}</b><span>${desc}</span></div></div>`).join('');
   st.appendChild(box);
   const w = 250, right = (r.right - sr.left) / k + 20, left = (r.left - sr.left) / k - w - 20;
-  box.style.left = (right + w < 1270 ? right : Math.max(6, left)) + 'px';
+  const toRight = right + w < 1270;
+  box.style.left = (toRight ? right : Math.max(6, left)) + 'px';
   box.style.top = Math.max(50, (r.top - sr.top) / k - 30 - Math.max(0, box.offsetHeight - 240)) + 'px';
+  if(!list.length) box.style.display = 'none';
+  if(made){                                                           // erschaffene Karte (z.B. Soul Avatar) als eigene Vorschau
+    const pv = document.createElement('div'); pv.id = 'kwPrev';
+    pv.innerHTML = `<div class="kwpt">Creates: ${CARDS[made].name}</div>`; pv.appendChild(makeCard({key:made, gems:[]}));
+    st.appendChild(pv);
+    const bx = list.length ? parseFloat(box.style.left) : (toRight ? right : Math.max(6, left));
+    const px = list.length ? (toRight ? bx + w + 10 : bx - 160) : bx;
+    pv.style.left = Math.max(6, Math.min(1120, px)) + 'px';
+    pv.style.top = Math.max(50, Math.min(720 - 250, (r.top - sr.top) / k - 30)) + 'px';
+  }
 }
-function hideLinkGhost(){ const g = document.getElementById('linkGhost'); if(g) g.remove(); }
+function hideLinkGhost(){ if(PREVIEW) return; const g = document.getElementById('linkGhost'); if(g) g.remove(); }
 function showLinkGhost(el, c){
   hideLinkGhost();
   const p = linkPartner(c); if(!p) return;
@@ -6960,7 +7123,9 @@ function dragStart(){
   const g = makeCard(c); g.classList.add('dragGhost');
   g.style.transform = `translate(-50%,-50%) scale(${stageScale() * 1.05}) rotate(-3deg)`;
   document.body.appendChild(g); DRAG.ghost = g;
+  dmgPreviewStart(h, c);                                             // Schadensvorschau über den Gegnern (auch indirekt: Nightmare, Detonate …)
 }
+function d0Damaging(c){ const s = stats(c); return !!(s.dmg || s.dmgMax || s.detonate || s.detonateAll || s.poisonPop || s.poisonTrigger || s.poisonDouble || s.collapse || s.eatAll || s.mindStun || CARDS[c.key].punchCard || s.fury || s.riftFinish || s.runeFx); }
 function dragUnitAt(x, y){
   const el = document.elementFromPoint(x, y);
   const uEl = el && el.closest('.unit'); if(!uEl) return null;
@@ -6985,10 +7150,86 @@ addEventListener('pointermove', ev => {
   dragHighlight(u);
   DRAG.ghost.classList.toggle('ready', !!u || (aboveHand(ev.clientY) && (DRAG.kind === 'none' || (DRAG.kind === 'enemy' && alive().length === 1))));
 });
+/* ---------- Schadensvorschau beim Ziehen einer Karte ----------
+   Spielt die Karte auf einer Kopie des Spielzustands durch (alle Debuffs, Marks, Crits, Detonate, Trigger …)
+   und zeigt über jedem Gegner, wie viel Schaden er nehmen würde. Anzeige-Funktionen sind dabei stumm. */
+// Diese Funktionen kehren bei PREVIEW sofort zurück (Wächter am Funktionsanfang, nicht über window – funktioniert auch eingebettet)
+const PREVIEW_STUBS = ['floatText','retrigger','updateUnit','renderHand','refreshUI','toast','updateCounters','nightmareSkull','updateIncoming',
+  'showAtkArrows','hideAtkArrows','renderHeroSwitch','servantHud','soulHud','soulBeam','slashFx','rageFx','syncRage','anomalyFx','updateBiomeLabel',
+  'arrangePlayerSide','victory','defeat','checkTeamDone','enemyTurn','enemyAct','checkBossPhase','shiftForm','banner','checkMindBreak','hideKeywords','hideLinkGhost'];
+function pvClone(v, memo){
+  if(v === null || typeof v !== 'object') return v;
+  if(memo.has(v)) return memo.get(v);
+  if(typeof Node !== 'undefined' && v instanceof Node){ const d = document.createElement('div'); memo.set(v, d); return d; }   // DOM nur als Attrappe
+  if(Array.isArray(v)){ const a = []; memo.set(v, a); for(let i = 0; i < v.length; i++) a[i] = pvClone(v[i], memo); return a; }
+  if(v instanceof Map){ const m = new Map(); memo.set(v, m); v.forEach((x, k) => m.set(pvClone(k, memo), pvClone(x, memo))); return m; }
+  if(v instanceof Set){ const s = new Set(); memo.set(v, s); v.forEach(x => s.add(pvClone(x, memo))); return s; }
+  const pr = Object.getPrototypeOf(v); if(pr !== Object.prototype && pr !== null) return v;
+  const o = {}; memo.set(v, o); for(const k of Object.keys(v)) o[k] = pvClone(v[k], memo); return o;
+}
+async function simulatePlay(heroId, cardId, targetId, seed){
+  const real = {...S}, savedSeed = _seed, stubs = {}, sfx = AUDIO.sfx, out = {};
+  const snap = pvClone(real, new Map());
+  PREVIEW = true; AUDIO.sfx = () => {};
+  try {
+    for(const k of Object.keys(S)) delete S[k];
+    Object.assign(S, snap);
+    if(seed != null) _seed = seed;
+    const h = S.heroes[heroId]; const i = h ? h.hand.findIndex(c => c.id === cardId) : -1;
+    if(i < 0) return out;
+    let target = targetId ? S.enemies.find(e => e.id === targetId) || null : null;
+    const s = stats(h.hand[i]);
+    const tt = tauntEnemy(); if(target && s.dmg && tt && tt !== target) target = tt;   // Gegner-Taunt wie beim echten Ausspielen
+    S.playOpt = null; S.playPick = null; S.playReplace = null;
+    const before = new Map(S.enemies.map(e => [e.id, {hp:e.hp, block:e.block || 0}]));
+    await playCard(h, i, target);
+    for(const e of S.enemies){ const b = before.get(e.id); if(!b) continue;
+      out[e.id] = {hp:Math.max(0, b.hp - Math.max(0, e.hp)), block:e._pvBlk || 0, dead:!!e.dead || e.hp <= 0, redirect:target && targetId && target.id !== targetId}; }
+  } catch(err){ console.warn('preview', err); }
+  finally {
+    for(const k of Object.keys(S)) delete S[k];
+    Object.assign(S, real);
+    _seed = savedSeed; AUDIO.sfx = sfx;
+    PREVIEW = false;
+  }
+  return out;
+}
+let pvToken = 0;
+function dmgPreviewClear(){ pvToken++; document.querySelectorAll('.dmgprev').forEach(x => x.remove()); }
+async function dmgPreviewStart(h, c){
+  dmgPreviewClear(); const tok = pvToken;
+  const s = stats(c), d = CARDS[c.key];
+  if(!alive().length || S.phase !== 'hero') return;
+  const targeted = needsTarget(s);
+  const rnd = !!(s.dmgMax || s.hitsMax || s.random || s.bonusRange || h.spec === 'drunkmaster' || S.affix === 'sandstorm');
+  const seeds = rnd ? Array.from({length:12}, (_, k) => (_seed + 7919 * (k + 1)) | 0) : [null];
+  const res = {};                                                    // Gegner-ID -> {min, max, blk, dead}
+  const add = (id, r) => { const x = res[id] || (res[id] = {min:Infinity, max:0, blk:0, dead:0, n:0});
+    x.min = Math.min(x.min, r.hp); x.max = Math.max(x.max, r.hp); x.blk = Math.max(x.blk, r.block); x.dead += r.dead ? 1 : 0; x.n++; };
+  for(const sd of seeds){
+    if(targeted){ for(const e of alive()){ const r = await simulatePlay(h.id, c.id, e.id, sd); if(r[e.id]) add(e.id, r[e.id]); } }
+    else { const r = await simulatePlay(h.id, c.id, null, sd); for(const id in r) add(id, r[id]); }
+    if(tok !== pvToken) return;
+  }
+  if(tok !== pvToken || !DRAG.active) return;
+  for(const e of alive()){
+    const x = res[e.id]; if(!x || !e.el || (x.max === 0 && x.blk === 0)) continue;
+    const el = document.createElement('div');
+    const rng = (a, b) => a === b ? `${b}` : `${a}&nbsp;–&nbsp;${b}`;            // Zufall: "0 – 6"
+    const kind = x.blk > 0 && x.max > 0 ? 'broken' : x.blk > 0 ? 'safe' : 'hit';
+    el.className = 'incoming dmgprev ' + kind + (x.dead === x.n ? ' lethal' : '');   // gleiche Optik wie die Schadensanzeige über den Helden
+    const skull = x.dead === x.n ? `<i class="dpk">${INC_ICON.skull}</i>` : x.dead ? `<i class="dpk">${INC_ICON.skull}?</i>` : '';
+    el.innerHTML = kind === 'broken'
+      ? `<span class="ib">${INC_ICON.broken}<b>${x.blk}</b></span><span class="ir">${INC_ICON.hit}<b>${rng(x.min, x.max)}</b>${skull}</span>`
+      : kind === 'safe' ? INC_ICON.safe + `<b>${x.blk}</b>` : INC_ICON.hit + `<b>${rng(x.min, x.max)}</b>${skull}`;
+    e.el.appendChild(el);
+  }
+}
 function dragEnd(ev, cancel){
   if(!DRAG.down) return;
   const was = DRAG.active; DRAG.down = false; DRAG.active = false;
   if(!was) return;                                          // war nur ein Klick
+  dmgPreviewClear();
   DRAG.swallow = true; setTimeout(() => DRAG.swallow = false, 0);
   const u = cancel ? null : dragUnitAt(ev.clientX, ev.clientY);
   dragHighlight(null);
@@ -7077,14 +7318,16 @@ function playDispatch(a){
 function localEndTurn(){                                            // beendet den Zug aller eigenen Helden
   if(S.phase !== 'hero' || busy()) return;
   deselect();
-  heroList().filter(x => mine(x.id) && !x.dead && !x.turnDone).forEach(x => dispatch({t:'end', h:x.id}));
+  const open = heroList().filter(x => mine(x.id) && !x.dead && !x.turnDone);
+  if(open.length) open.forEach(x => dispatch({t:'end', h:x.id}));
+  else heroList().filter(x => mine(x.id) && !x.dead && x.turnDone && !x.forcedEnd).forEach(x => dispatch({t:'resume', h:x.id}));   // Zug wieder aufnehmen
 }
-function renderHeroSwitch(){                                         // Knöpfe unter dem Draw Pile (nur bei mehreren eigenen Helden)
+function renderHeroSwitch(){ if(PREVIEW) return;                                         // Knöpfe unter dem Draw Pile (nur bei mehreren eigenen Helden)
   const box = $('#heroSwitch'); if(!box) return;
   const list = S.phase === 'hero' ? heroList().filter(x => mine(x.id) && !x.dead) : [];
   if(list.length < 2){ box.innerHTML = ''; return; }
-  box.innerHTML = list.map((x, k) => `<button class="hsw ${S.active === x.id ? 'on' : ''} ${x.turnDone ? 'done' : ''}" data-id="${x.id}" title="Show ${x.name}'s hand (key ${k + 1})">
-    ${(x.spec && SPEC_ART[x.spec] ? SPEC_ART[x.spec] : SVG[x.id]).replace(/width="\d+" height="\d+"/, `width="18" height="22"`)}<span>${x.name}</span><b>${x.energy}</b></button>`).join('');
+  box.innerHTML = list.map((x, k) => `<button class="hsw ${S.active === x.id ? 'on' : ''} ${x.turnDone ? 'done' : ''}" data-id="${x.id}" title="Show ${heroLabel(x.id)}'s hand (key ${k + 1})">
+    ${(x.spec && SPEC_ART[x.spec] ? SPEC_ART[x.spec] : SVG[x.id]).replace(/width="\d+" height="\d+"/, `width="18" height="22"`)}<span>${heroLabel(x.id)}</span><b>${x.energy}</b></button>`).join('');
   box.querySelectorAll('.hsw').forEach(b => b.onclick = ev => { ev.stopPropagation(); switchHero(b.dataset.id); });
 }
 
@@ -7109,15 +7352,52 @@ function dealDamage(t, amount){
   }
   const blocked = Math.min(t.block, amount);
   if(S.actor && !!t.hero !== !!S.actor.hero){ statAdd(S.actor, 'dmg', blocked, 'shield'); statAdd(S.actor, 'dmg', Math.min(amount - blocked, t.hp), 'hp'); }   // Stats: gegen Block / gegen Leben
-  t.block -= blocked;
+  t.block -= blocked; if(PREVIEW) t._pvBlk = (t._pvBlk || 0) + blocked;   // Vorschau: abgefangener Schaden
   const dmg = amount - blocked;
+  histAdd(t, 'hp', Math.min(dmg, t.hp)); histAdd(t, 'absorbed', blocked);
   t.hp = Math.max(0, t.hp - dmg);
   retrigger(t.el, 'hit'); slashFx(t); AUDIO.sfx('hit', {hero: !!t.hero, blocked: dmg <= 0});
   floatText(t, dmg > 0 ? '-' + dmg : 'Blocked', dmg > 0 ? 'dmg' : 'blk');
   if(!t.hero && dmg > 0 && t.hp > 0 && t.passive && t.passive.rage) t.status.strength = (t.status.strength || 0) + t.passive.rage;   // Wut
   updateUnit(t);
-  if(S.affix === 'bloodMoon' && dmg > 0 && S.actor && !S.actor.dead && !!S.actor.hero !== !!t.hero){ const v = Math.floor(dmg * AFX().blood / 100); if(v) heal(S.actor, v); }   // Blood Moon
+  if(S.affix === 'bloodMoon' && dmg > 0 && S.actor && !S.actor.dead && !S.actor.hero && t.hero){ const v = Math.floor(dmg * AFX().blood / 100); if(v) heal(S.actor, v); }   // Blood Moon
   return dmg;
+}
+/* ---------- Kampfhistorie: wer hat in welcher Runde was getan (Statistik → History) ---------- */
+const histName = u => u ? (u.hero ? heroLabel(u.id) : u.name) : '?';
+function histBegin(actor, what, quiet){
+  if(PREVIEW || !S.history) return null;
+  const e = {round:S.round || 1, hero:!!actor.hero, who:histName(actor), what, fx:[], quiet};
+  S.history.push(e); if(S.history.length > 400) S.history.shift();
+  (S.histStack = S.histStack || []).push(e); return e;
+}
+function histEnd(e){ if(!e || !S.histStack) return; const k = S.histStack.lastIndexOf(e); if(k >= 0) S.histStack.splice(k, 1);
+  if(e.quiet && !e.fx.length && S.history){ const j = S.history.lastIndexOf(e); if(j >= 0) S.history.splice(j, 1); } }
+function histAdd(u, kind, n){
+  if(PREVIEW || !n || n <= 0 || !S.histStack || !S.histStack.length) return;
+  const e = S.histStack[S.histStack.length - 1], who = histName(u);
+  let f = e.fx.find(x => x.who === who && x.kind === kind); if(!f){ f = {who, kind, n:0, hero:!!u.hero}; e.fx.push(f); } f.n += n;
+}
+function histTick(u, n, cls){                                         // Schaden außerhalb einer Aktion (Gift, Brand …) oder innerhalb
+  if(PREVIEW || !n || n <= 0 || !S.history) return;
+  if(S.histStack && S.histStack.length) return histAdd(u, 'hp', n);
+  const src = /poison/.test(cls || '') ? 'Poison' : /burn/.test(cls || '') ? 'Burn' : /crit/.test(cls || '') ? 'Nightmare' : 'Damage';
+  S.history.push({round:S.round || 1, hero:!u.hero, who:src, what:'', fx:[{who:histName(u), kind:'hp', n, hero:!!u.hero}]});
+}
+function histFxText(f){
+  const st = f.kind.startsWith('st:') ? f.kind.slice(3) : null;
+  if(f.kind === 'hp') return `<b class="hdmg">${f.n} damage</b> to ${f.who}`;
+  if(f.kind === 'absorbed') return `<span class="hblk">${f.n} blocked</span> by ${f.who}`;
+  if(f.kind === 'block') return `<span class="hblk">+${f.n} Block</span> ${f.who}`;
+  if(f.kind === 'heal') return `<span class="hheal">+${f.n} HP</span> ${f.who}`;
+  return `<span class="hst">${STATUS_LABEL[st] || (STATUS[st] ? st[0].toUpperCase() + st.slice(1) : st)} ${f.n}</span> → ${f.who}`;
+}
+function showHistory(){
+  const g = $('#vGrid'); const H = S.history || [];
+  if(!H.length){ g.innerHTML = '<div class="vempty">Nothing happened yet in this fight.</div>'; return; }
+  const rounds = [...new Set(H.map(e => e.round))].sort((a, b) => b - a);   // neueste Runde oben
+  g.innerHTML = `<div class="hist">${rounds.map(r => `<div class="hround"><h4>Turn ${r}</h4>${H.filter(e => e.round === r).map(e =>
+    `<div class="hrow ${e.hero ? 'hh' : 'he'}"><b>${e.who}</b>${e.what ? ` – ${e.what}` : ''}: ${e.fx.length ? e.fx.map(histFxText).join(', ') : '<i>no effect</i>'}</div>`).join('')}</div>`).join('')}</div>`;
 }
 /* ---------- Kampfstatistik (pro Kampf und pro Run) ---------- */
 const STAT_KEYS = ['dmg','heal','block','debuff','buff'];
@@ -7130,8 +7410,9 @@ function statAdd(h, key, n, sub){
 function loseHP(t, amount, cls){
   if(!t.hero && t.status && t.status.vulnerable) amount = Math.floor(amount * VULN_MULT);   // Vulnerable gilt auch für Gift, Burn usw.
   if(S.actor && !!t.hero !== !!S.actor.hero) statAdd(S.actor, 'dmg', Math.min(amount, t.hp), 'hp');
+  histTick(t, Math.min(amount, t.hp), cls);
   t.hp = Math.max(0, t.hp - amount); retrigger(t.el, 'hit'); floatText(t, '-' + amount, cls); updateUnit(t); }
-function heal(t, amount){ if(amount <= 0 || t.dead) return; if(S.affix === 'verdantBloom') amount = Math.round(amount * (1 + AFX().heal / 100)); if(S.actor && !!t.hero === !!S.actor.hero) statAdd(S.actor, 'heal', Math.min(amount, t.maxHp - t.hp)); t.hp = Math.min(t.maxHp, t.hp + amount); floatText(t, '+' + amount, 'heal-f'); updateUnit(t); }
+function heal(t, amount){ if(amount <= 0 || t.dead) return; if(S.affix === 'verdantBloom') amount = Math.round(amount * (1 + AFX().heal / 100)); if(S.actor && !!t.hero === !!S.actor.hero) statAdd(S.actor, 'heal', Math.min(amount, t.maxHp - t.hp), t === S.actor ? 'self' : 'others'); /* Stats: Selbst-/Teamheilung */ histAdd(t, 'heal', Math.min(amount, t.maxHp - t.hp)); t.hp = Math.min(t.maxHp, t.hp + amount); floatText(t, '+' + amount, 'heal-f'); updateUnit(t); }
 function gainBlock(u, amount, fromCard = false){
   if(fromCard && u.status.brittle) amount = Math.max(0, amount - u.status.brittle);
   if(amount <= 0){ floatText(u, 'Brittle!', 'status-f'); return; }
@@ -7139,7 +7420,7 @@ function gainBlock(u, amount, fromCard = false){
   if(u.status && u.status.overgrown) amount = Math.round(amount * (1 + AFX().overgrown / 100));
   if(u.hero && u.spec === 'knockout'){ amount = Math.floor(amount * KO_BLOCK); if(amount <= 0) return; }   // Knockout Champion: nur 50 % Block
   if(S.actor && !!u.hero === !!S.actor.hero) statAdd(S.actor, 'block', amount, u === S.actor ? 'self' : 'others');   // Stats: auf sich selbst / auf andere
-  u.block += amount; retrigger(u.el, 'shield'); floatText(u, '+' + amount + ' Block', 'blk'); updateUnit(u);
+  u.block += amount; histAdd(u, 'block', amount); retrigger(u.el, 'shield'); floatText(u, '+' + amount + ' Block', 'blk'); updateUnit(u);
 }
 const VULN_MULT = 1.5, ICE_NORMAL = 10, ICE_BOSS = 20;
 const STATUS_LABEL = {roleGuard:'Protector', roleTactic:'Tactician', roleHeal:'Healer', roleBuff:'Buffer', taunt:'Taunt', guard:'Guard', power:'Power', combo:'Combo', reach:'Reach', fury:'Fury', owed:'Deserves a Beating', payback:'Payback', paybackNext:'Payback (next)', toughen:'Rope-a-Dope', training:'Training', armor:'Armored', rage:'Rage', split:'Split', phase:'Phasing', intangible:'Intangible', drained:'Drained', aegis:'Aegis', bond:'Bond', interrupt:'Restless', mark:'Mark', momentum:'Momentum', plan:'Master Plan', might:'Might', fortify:'Iron Will', critBuff:'Killer Instinct', maxRange:'Overload', insight:'Insight', venomEdge:'Venomous Edge', invis:'Invisible', thorns:'Thorns', flameArmor:'Flame Armor', frostArmor:'Ice Armor', staticArmor:'Static Armor', blizzard:'Blizzard', vulnerable:'Vulnerable', poison:'Poison', weak:'Weak', brittle:'Brittle', strength:'Strength', burn:'Burn', ice:'Ice'};
@@ -7152,7 +7433,7 @@ function applyStatus(u, key, n){
     if(!u.hero){ statAdd(S.actor, 'debuff', n, key); if(key === 'poison' || key === 'burn'){ u.dotBy = u.dotBy || {}; u.dotBy[key] = S.actor.id; } }
     else if(!['weak','poison','burn','brittle','drained'].includes(key)) statAdd(S.actor, 'buff', n, key);
   }
-  u.status[key] = (u.status[key] || 0) + n;
+  u.status[key] = (u.status[key] || 0) + n; histAdd(u, 'st:' + key, n);
   floatText(u, (key === 'strength' ? `+${n} ` : '') + STATUS_LABEL[key], STATUS_CLS[key] || 'status-f');
   if(key === 'ice') checkFreeze(u);
   updateUnit(u);
@@ -7161,24 +7442,25 @@ function applyStatus(u, key, n){
 // Eis: bei 5 (Boss 10) Stapeln eingefroren, nie zwei Runden hintereinander
 function checkFreeze(e){
   const th = e.boss ? ICE_BOSS : ICE_NORMAL;
-  if(!e.frozen && !e.freezeCD && (e.status.ice || 0) >= th){
+  if(!e.frozen && !e.freezeCD && !e.ccImmune && !e.mindStun && (e.status.ice || 0) >= th){
     e.status.ice -= th; e.frozen = true;
     floatText(e, 'Frozen!', 'ice-f'); retrigger(e.el, 'shield');
   }
   updateUnit(e);
 }
+const ENEMY_HEAL_MULT = 2;                                           // Balancing: Gegner-Heilungen verdoppelt
 function rollIntent(e){
   e.turn = (e.turn || 0) + 1;
   const it = {...roleIntent(e, e.ai(e))};
   if(!it.dmg) delete it.dmg;
   if(it.protect) it.protect = Math.max(1, Math.round(it.protect * e.mult));
   if(it.blockAllies) it.blockAllies = Math.max(1, Math.round(it.blockAllies * e.mult));
-  if(it.healLow) it.healLow = Math.max(1, Math.round(it.healLow * e.mult));
+  if(it.healLow) it.healLow = Math.max(1, Math.round(it.healLow * e.mult * ENEMY_HEAL_MULT));
   if(it.dmg) it.dmg = Math.max(1, Math.round(it.dmg * e.mult));
   if(it.block) it.block = Math.max(1, Math.round(it.block * e.mult));
   if(it.aegis) it.aegis = Math.max(1, Math.round(it.aegis * e.mult * ENEMY_HP_MULT * partyHpMult()));
-  if(it.healAllies) it.healAllies = Math.round(it.healAllies * e.mult);
-  if(it.healSelf) it.healSelf = Math.max(1, Math.round(it.healSelf * e.mult));
+  if(it.healAllies) it.healAllies = Math.round(it.healAllies * e.mult * ENEMY_HEAL_MULT);
+  if(it.healSelf) it.healSelf = Math.max(1, Math.round(it.healSelf * e.mult * ENEMY_HEAL_MULT));
   if(it.dmg && atkOf(it) !== 'aoe') it.dmg = Math.max(1, Math.round(it.dmg * (PARTY_DMG[(S.party || []).length] || 1)));   // Einzelziele: mit mehr Helden härter
   rollTarget(it);
   e.intent = it; e.intentDone = false;
@@ -7199,18 +7481,22 @@ function withNeighbors(primary, n){
   return [primary, ...others.slice(0, n)];
 }
 function checkHeroDeaths(){
-  heroList().forEach(h => { if(!h.dead && h.hp <= 0 && S.affix === 'restlessDead' && S.restless && !S.restless.hero && alive().length){ S.restless.hero = true; h.hp = Math.max(1, Math.round(h.maxHp * AFX().rise / 100)); floatText(h, 'Rises again!', 'heal-f'); updateUnit(h); } });
+  // Restless Dead wirkt nur noch auf Gegner (Helden stehen nicht wieder auf)
   heroList().forEach(h => { if(!h.dead && h.hp <= 0){ h.dead = true; h.block = 0; h.status = {}; floatText(h, 'Fallen!', 'dmg'); updateUnit(h); } });
 }
 const allHeroesDead = () => !living().length;
 
-async function playCard(h, i, target){
+async function playCard(h, i, target){                               // Kampfhistorie um das Ausspielen herum
+  const c0 = h.hand[i]; const hi = c0 ? histBegin(h, cardName(c0)) : null;
+  try { return await playCardInner(h, i, target); } finally { histEnd(hi); }
+}
+async function playCardInner(h, i, target){
   S.actor = h;
   const c = h.hand[i], d = CARDS[c.key], s = stats(c);
   const wasResonant = !!(c.resonant && c.link);
   S.selected = null; S.selKind = null;
   const shownHand = S.phase === 'hero' ? (peekHero() || activeHero()) : null;   // nur animieren, wenn genau diese Hand zu sehen ist
-  const cardEl = shownHand === h ? $('#hand').children[i] : null;
+  const cardEl = !PREVIEW && shownHand === h ? $('#hand').children[i] : null;
   if(cardEl){ cardEl.classList.remove('selected'); cardEl.classList.add('playing'); }
   AUDIO.sfx('card', d.type);
   h.energy -= s.cost;
@@ -7391,7 +7677,10 @@ async function playCard(h, i, target){
       await sleep(250);
     }
     // ---- Brawler: Taunt, Guard, Power, Combo, Reach, Fury ----
-    if(s.taunt){ applyStatus(h, 'taunt', 1); floatText(h, 'Come at me!', 'dmg'); }
+    if(s.taunt){
+      if(formationLiving()[0] === h){ applyStatus(h, 'taunt', 1); floatText(h, 'Come at me!', 'dmg'); }
+      else floatText(h, 'Taunt fails – not in front', 'status-f');   // Taunt nur an erster Stelle
+    }
     if(s.guard) applyStatus(h, 'guard', s.guard);
     if(s.power) applyStatus(h, 'power', s.power);
     if(s.combo) applyStatus(h, 'combo', s.combo);
@@ -7463,8 +7752,12 @@ async function playCard(h, i, target){
   }
   if(s.exhaust){ h.discard = h.discard.filter(x => x !== c); (h.vanished = h.vanished || []).push(c); if(!c.tmp) floatText(h, 'Once per fight', 'status-f'); }
   h.turnPlayed = h.turnPlayed || {}; h.turnPlayed[c.id] = (h.turnPlayed[c.id] || 0) + 1; c.replayTax = 0;   // dieselbe Karte erneut gezogen = teurer
-  if(!h.dead){ await soulEffects(h, c, s, target); await soulLinkTrigger(h, c, wasResonant); kinship(c); }   // Soulbinder
-  if(!h.dead) await eldritchEffects(h, c, s, target);                                           // Eldritch Horror
+  for(let r = 0; r < s.repeats && !h.dead; r++){                       // Echo/Mehrfach: auch Soulbinder- und Eldritch-Effekte wiederholen
+    if(r > 0) await sleep(220);
+    await soulEffects(h, c, s, target);
+    if(!h.dead) await eldritchEffects(h, c, s, target);
+  }
+  if(!h.dead){ await soulLinkTrigger(h, c, wasResonant); kinship(c); }   // Soulbinder
   if(s.runeFx === 'echo' && !c.tmp && !h.dead) addTempCard(h, c.key, 1);                  // Rune of Echo
   if(s.runeFx === 'growth' && d.dmg && !c.tmp) c.bonusDmg = (c.bonusDmg || 0) + 2;          // Rune of Growth
   if(h.id === 'ranger' && !h.dead){                                                         // Flow: Kartentyp wechseln = +1 Momentum
@@ -7484,14 +7777,14 @@ async function playCard(h, i, target){
   const shifter = alive().find(e => e.passive.interrupt);
   if(shifter){                                                       // Gestaltwandler: zählt jede gespielte Karte
     S.shiftCount = (S.shiftCount || 0) + 1; updateUnit(shifter);
-    if(S.shiftCount >= SHIFT_LIMIT){
+    if(S.shiftCount >= shiftLimit()){                                  // Unterbrechung: Zug der Helden endet, er verwandelt sich (mit Formeffekt) und die Gegner sind dran
       S.shiftCount = 0;
-      await banner(`${shifter.name} interrupts!`, 'He acts immediately and changes form.', 1300);
-      if(!shifter.frozen){ await enemyAct(shifter); }
-      checkHeroDeaths();
+      await banner(`${shifter.name} interrupts!`, 'Your turn ends – he transforms.', 1300);
+      shiftForm(shifter); await shiftEffect(shifter); rollIntent(shifter);
+      checkHeroDeaths(); refreshUI();
       if(allHeroesDead()){ await sleep(400); return defeat(); }
-      if(!shifter.dead){ shiftForm(shifter); rollIntent(shifter); }
-      refreshUI();
+      for(const x of heroList()) if(!x.dead){ x.turnDone = true; x.forcedEnd = true; }
+      return checkTeamDone();
     }
   }
   if(h.dead){ h.turnDone = true; return checkTeamDone(); }
@@ -7503,6 +7796,7 @@ function killEnemy(e){
   }
   for(const x of living()) if(x.spec === 'tidecaller' && !e.dead) gainDepth(x, 1);          // Pressure of the Deep
   const poisonLeft = e.status.poison || 0;
+  if(e.status.etaunt && !PREVIEW) setTimeout(() => living().forEach(syncRage), 0);   // Taunter tot: Wut-Symbol der Helden weg
   e.dead = true; e.intentDone = true; e.status = {}; e.frozen = false;
   if(e.passive && e.passive.split){                                   // Slime King: teilt sich
     let at = S.enemies.indexOf(e), after = e.el;
@@ -7541,7 +7835,7 @@ function killEnemy(e){
 }
 
 /* ---------- Boss-Phasen ---------- */
-async function checkBossPhase(e){
+async function checkBossPhase(e){ if(PREVIEW) return;
   const PH = BOSS_PHASES[e.key === 'b_khepri' ? 'khepri' : e.key]; if(!PH) return;
   const pct = e.hp / e.maxHp;
   const want = pct <= 1/3 ? 3 : pct <= 2/3 ? 2 : 1;
@@ -7551,7 +7845,7 @@ async function checkBossPhase(e){
     e.el.classList.remove('phase2', 'phase3'); e.el.classList.add('phase' + e.phase);
     await banner(`Phase ${e.phase}: ${ph.name}`, ph.desc, 1900);
     ['poison','burn','ice','weak','vulnerable'].forEach(k => delete e.status[k]);
-    e.frozen = false; e.freezeCD = false;
+    e.frozen = false; e.freezeCD = false; e.ccImmune = false;
     floatText(e, 'Cleansed!', 'heal-f'); updateUnit(e);
     await sleep(300);
     await ph.enter(e);
@@ -7580,7 +7874,7 @@ async function startTeamTurn(){
   S.phase = 'hero'; S.uiHero = null; S.viewOverride = null;
   for(const h of heroList()){
     h.turnDone = !!h.dead;
-    h.killBonus = false; h.lastType = null; h.turnPlays = 0; h.kinshipGot = 0; h.mindStun = false;
+    h.killBonus = false; h.lastType = null; h.turnPlays = 0; h.kinshipGot = 0; h.mindStun = false; h.forcedEnd = false;
     h.turnPlayed = {}; for(const c of [...h.hand, ...h.draw, ...h.discard]) c.replayTax = 0;
     ['thorns','flameArmor','frostArmor','staticArmor','invis','taunt'].forEach(k => delete h.status[k]);   // halten nur bis zum eigenen Zug
     alive().forEach(updateUnit);
@@ -7628,12 +7922,18 @@ function switchHero(id){
   const h = S.heroes[id]; if(!h || !mine(id) || h.dead || S.phase !== 'hero') return;
   S.active = id; S.selected = null; S.selKind = null; refreshUI();
 }
-async function endHeroTurn(h){
+/* Zug beenden: nur markieren. Solange nicht alle fertig sind, kann man den Zug wieder aufnehmen ('resume').
+   forced = erzwungen (z. B. Corrupted Mind) – dann ist kein Wiederaufnehmen möglich.
+   Die eigentlichen Zugende-Effekte (Diener, Weak, Hex, Hand ablegen) laufen erst, wenn alle fertig sind. */
+async function endHeroTurn(h, forced = false){
   if(h.turnDone) return;
-  h.turnDone = true;
+  h.turnDone = true; if(forced) h.forcedEnd = true;
+  return checkTeamDone();
+}
+async function finishHeroTurn(h){                                    // Zugende-Effekte eines Helden
   if((h.servants || []).length && !h.dead){                         // Tidecaller: Diener handeln
     S.actor = h; await servantsAct(h); S.actor = null;
-    if(!alive().length){ h.discard.push(...h.hand); h.hand = []; renderHand(); S.phase = 'won'; await sleep(500); return victory(); }
+    if(!alive().length){ h.discard.push(...h.hand); h.hand = []; renderHand(); return 'won'; }
   }
   if(h.status.weak){ h.status.weak--; updateUnit(h); }               // Weak auf Helden: hält einen eigenen Zug
   const hexes = h.hand.filter(c => c.key === 'hex').length;
@@ -7641,14 +7941,25 @@ async function endHeroTurn(h){
   if(hexes && !h.dead){
     for(let k = 0; k < hexes; k++){ dealDamage(h, 3); await sleep(250); }
     checkHeroDeaths();
-    if(allHeroesDead()){ await sleep(400); return defeat(); }
+    if(allHeroesDead()) return 'lost';
   }
-  return checkTeamDone();
+  return null;
 }
-async function checkTeamDone(){
+async function checkTeamDone(){ if(PREVIEW) return;
   for(const x of heroList()) if(x.dead) x.turnDone = true;
   pickLocalHero(); refreshUI();
-  if(S.phase === 'hero' && heroList().every(x => x.turnDone)) return enemyTurn();
+  if(S.phase !== 'hero' || !heroList().every(x => x.turnDone)) return;
+  if(S.teamEnding) return; S.teamEnding = true;                      // ab hier kein Wiederaufnehmen mehr
+  for(const x of heroList()){
+    if(x.dead) continue;
+    const r = await finishHeroTurn(x);
+    if(r === 'won'){ S.teamEnding = false; S.phase = 'won'; await sleep(500); return victory(); }
+    if(r === 'lost'){ S.teamEnding = false; await sleep(400); return defeat(); }
+  }
+  for(const x of heroList()) if(x.hand.length){ x.discard.push(...x.hand); x.hand = []; }   // später noch gezogene Karten (z. B. durch Verbündete) auch abwerfen
+  renderHand();
+  S.teamEnding = false;
+  return enemyTurn();
 }
 /* Taunt: schwächster normaler Angriff dieses Gegners (mit seiner Skalierung). Probiert seine KI für
    verschiedene Runden durch, ohne den Zufall des Spiels zu verbrauchen (Seed wird wiederhergestellt). */
@@ -7667,9 +7978,9 @@ function weakestAttack(e){
   e._weak = {k:key, v};
   return v;
 }
-const tauntExtra = e => !e.dead && e.intent && !e.intent.dmg && living().some(x => x.status.taunt) ? weakestAttack(e) : 0;
+const tauntExtra = e => !e.dead && e.intent && !e.intent.dmg && tauntHero() ? (weakestAttack(e) || Math.max(2, Math.round(3 * (e.mult || 1)))) : 0;   // greift er nicht an: zusätzlicher Grundschlag
 async function tauntStrike(e, amount){                                 // zusätzlicher Angriff auf den Provokateur
-  const h = living().find(x => x.status.taunt); if(!h || e.dead) return;
+  const h = tauntHero(); if(!h || e.dead) return;
   retrigger(e.el, 'lunge'); floatText(e, 'Taunted!', 'dmg'); await sleep(130);
   if(h.status.invis && living().some(o => o !== h)){ floatText(h, 'Evaded', 'blk'); return; }
   const dealt = dealDamage(h, h.status.invis ? Math.floor(amount * 0.5) : amount);
@@ -7686,13 +7997,15 @@ async function tauntStrike(e, amount){                                 // zusät
   checkHeroDeaths();
   await sleep(200);
 }
-async function enemyAct(e){
+async function enemyAct(e){ if(PREVIEW) return;
   const extra = tauntExtra(e);                                        // vor der Aktion festlegen
-  await enemyAction(e);
-  if(extra && !e.dead && !allHeroesDead()) await tauntStrike(e, extra);
+  const hi = histBegin(e, (e.intent && e.intent.name) || 'acts');
+  try { await enemyAction(e);
+  if(extra && !e.dead && !allHeroesDead()) await tauntStrike(e, extra); } finally { histEnd(hi); }
 }
 async function enemyAction(e){
   const it = e.intent;
+  if(e.status.etaunt) setTimeout(() => living().forEach(syncRage), 0);
   delete e.status.etaunt; delete e.status.bulwark;                   // halten bis zur eigenen nächsten Aktion
   if(e.burrowed){ delete e.status.intangible; e.burrowed = false; updateUnit(e); }
   if(it.needsAegis && !e.status.aegis){                              // Schild gebrochen: Strahl fällt aus
@@ -7711,7 +8024,7 @@ async function enemyAction(e){
   if(it.protect){ const allies = alive().filter(o => o !== e); const w = (allies.length ? allies : [e]).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0]; gainBlock(w, it.protect); await sleep(200); }
   if(it.blockAllies){ alive().forEach(o => gainBlock(o, it.blockAllies)); await sleep(200); }
   if(it.block) gainBlock(e, it.block);
-  if(it.taunt && !it.dmg){ e.status.etaunt = 1; floatText(e, 'Taunt!', 'dmg'); retrigger(e.el, 'shield'); updateUnit(e); }
+  if(it.taunt && !it.dmg){ if(alive()[0] === e){ e.status.etaunt = 1; floatText(e, 'Taunt!', 'dmg'); retrigger(e.el, 'shield'); updateUnit(e); living().forEach(updateUnit); } else floatText(e, 'Taunt fails', 'status-f'); }
   if(it.bulwark){ e.status.bulwark = it.bulwark; floatText(e, `Bulwark ${it.bulwark}%`, 'blk'); updateUnit(e); }
   if(it.armorUp){ e.passive.armor = (e.passive.armor || 0) + it.armorUp; floatText(e, 'Harden!', 'blk'); updateUnit(e); }
   if(it.thornsUp){ e.passive.thorns = (e.passive.thorns || 0) + it.thornsUp; floatText(e, '+Thorns', 'status-f'); updateUnit(e); }
@@ -7746,7 +8059,7 @@ async function enemyAction(e){
       if(it.hits > 1) await sleep(220);
     }
     if(it.strength){ await sleep(150); applyStatus(e, 'strength', it.strength); }
-    if(it.taunt){ e.status.etaunt = 1; floatText(e, 'Taunt!', 'dmg'); updateUnit(e); }
+    if(it.taunt){ if(alive()[0] === e){ e.status.etaunt = 1; floatText(e, 'Taunt!', 'dmg'); retrigger(e.el, 'shield'); updateUnit(e); living().forEach(updateUnit); } else floatText(e, 'Taunt fails', 'status-f'); }
   } else if(it.poison || it.burn || it.brittle || it.weak || it.drain){
     atkTargets(e, it).forEach(([h]) => hitSet.add(h));                // Fluch ohne Schaden: trifft die Ziele der Angriffsart
   }
@@ -7769,7 +8082,7 @@ async function summonMinion(leader, kind){
   rollIntent(g); g.intentDone = true; updateUnit(g);
   await sleep(300);
 }
-async function enemyTurn(){
+async function enemyTurn(){ if(PREVIEW) return;
   S.phase = 'enemy'; S.active = null; S.actor = null; refreshUI();
   await banner('Enemy Turn');
   for(const h of heroList()){                                     // Blizzard des Eismagiers
@@ -7793,10 +8106,10 @@ async function enemyTurn(){
       if(e.boss) await checkBossPhase(e);
     }
     if(e.mindStun){
-      floatText(e, 'Corrupted Mind', 'status-f'); e.mindStun = false; e.mindCD = true; e.intentDone = true; updateUnit(e);
+      floatText(e, 'Corrupted Mind', 'status-f'); e.mindStun = false; e.mindCD = true; e.ccImmune = true; e.frozen = false; e.intentDone = true; updateUnit(e);
       await sleep(400);
     } else if(e.frozen){
-      floatText(e, 'Frozen', 'ice-f'); e.frozen = false; e.freezeCD = true; e.intentDone = true; updateUnit(e);
+      floatText(e, 'Frozen', 'ice-f'); e.frozen = false; e.freezeCD = true; e.ccImmune = true; e.intentDone = true; updateUnit(e);
       await sleep(400);
     } else {
       if(!e.intentDone){ S.actor = e; await enemyAct(e); S.actor = null; }
@@ -7804,9 +8117,9 @@ async function enemyTurn(){
       e.intentDone = true;
       if(e.status.weak) e.status.weak--;
       if(e.status.vulnerable) e.status.vulnerable--;
-      if(e.passive.interrupt && !e.dead) shiftForm(e);                 // Gestaltwandler: neue Tierform
-      if(e.freezeCD){ e.freezeCD = false; checkFreeze(e); }
-      e.mindCD = false;
+      const wasImmune = e.ccImmune; e.ccImmune = false; e.mindCD = false;     // hat wieder gehandelt: CC-Immunität vorbei
+      if(e.freezeCD || wasImmune){ e.freezeCD = false; checkFreeze(e); }
+      updateUnit(e);
       updateUnit(e);
       await sleep(330);
     }
@@ -7827,11 +8140,11 @@ async function enemyTurn(){
     }
     updateUnit(e);
   }
-  // Gift auf Helden: am Ende der Runde – Block fängt es ab
+  // Gift auf Helden: am Ende der Runde – ignoriert Block (DoTs sind der Konter gegen Block)
   let poisoned = false;
   for(const h of living()) if(h.status.poison){
     poisoned = true;
-    dealDamage(h, h.status.poison);
+    loseHP(h, h.status.poison, 'poison-f');
     h.status.poison--; updateUnit(h);
   }
   if(poisoned){ await sleep(450); checkHeroDeaths(); if(allHeroesDead()){ await sleep(400); return defeat(); } }
@@ -7947,16 +8260,37 @@ function spawnEnemies(kind){
   const [el] = pickElites(1);
   return {list:eliteUnits(el, mult), special:el};
 }
+/* Gegner mit Taunt im Repertoire stehen vorne (Boss > Elite > normal); die übrigen behalten ihre Reihenfolge */
+function hasTauntKit(e){
+  if(e._tk !== undefined) return e._tk;
+  let yes = (e.moves || []).some(m => m.taunt);
+  if(!yes && !e.moves && e.ai && e.ai !== basicAI){                 // eigene KI (z. B. Bosse): Züge durchprobieren
+    const saved = _seed, keep = {turn:e.turn, lastMove:e.lastMove, lastName:e.lastName, phase:e.phase, cds:e.cds ? {...e.cds} : e.cds};
+    for(let t = 1; t <= 12 && !yes; t++) for(let k = 0; k < 4 && !yes; k++){
+      seedRng(t * 7919 + k * 104729 + 7); e.turn = t; e.lastMove = k % 2 ? 'block' : null; e.lastName = null;
+      let it = null; try { it = e.ai(e); } catch(x){}
+      if(it && it.taunt) yes = true;
+    }
+    _seed = saved; Object.assign(e, keep);
+  }
+  return (e._tk = yes);
+}
+function tauntersFirst(list){
+  const rank = e => e.boss ? 3 : e.elite ? 2 : 1;
+  const t = list.filter(hasTauntKit).sort((a, b) => rank(b) - rank(a));
+  return [...t, ...list.filter(e => !t.includes(e))];
+}
 async function startFight(kind){
   S.post = {}; S.uiHero = null; S.phase = 'fight';
   hideAllScreens(); hideEventScreens();
-  S.fight++; S.round = 0; S.fightKind = kind; S.shiftCount = 0;
+  S.fight++; S.round = 0; S.history = []; S.histStack = []; S.fightKind = kind; S.shiftCount = 0; S.teamEnding = false;
   updateRoomLabel();
   S.links = {}; S.linkSeq = 0; S.actor = null;
   if(S.stats) S.stats.fight = {};
   heroList().forEach(h => { clearSoulState(h); h.servants = []; h.mindStun = false; if(h.id === 'eldritch') h.sanity = SANITY_MAX; h.draw = shuffle(h.deck.slice()); h.hand = []; h.discard = []; h.vanished = []; h.block = 0; h.status = {}; h.energy = 0; h.blizzardFx = null; updateUnit(h); });
   heroList().forEach(h => { if(h.spec === 'tidecaller'){ h.status.depth = 3; updateUnit(h); } });   // Pressure of the Deep
-  const {list, special} = spawnEnemies(kind);
+  const spawned = spawnEnemies(kind), special = spawned.special;
+  const list = special && special.parts && !special.double ? spawned.list : tauntersFirst(spawned.list);   // zusammengesetzte Bosse nicht umsortieren
   S.enemies = list; S.special = special;
   const side = $('#enemySide'); side.innerHTML = '';
   side.classList.toggle('crowd', list.length >= 4);
@@ -7991,7 +8325,7 @@ function enterMap(){
   if(next % BOSS_EVERY === 0) S.mapOpts = ['boss'];
   else if(S.sinceElite >= 3) S.mapOpts = ['elite'];                  // spätestens jeder 4. Raum ist ein Eliteraum
   else {
-    const weights = {normal:30, elite:14, camp:16, shop:16, event:eventsLeft().length ? 24 : 0};   // jedes Event nur 1× pro Run
+    const weights = {normal:30, elite:14, camp:S.lastRoom === 'camp' ? 0 : 16, shop:next <= 5 ? 0 : 16, event:eventsLeft().length ? 24 : 0};   // jedes Event nur 1× pro Run · nie 2 Lagerfeuer hintereinander · kein Shop in den ersten 5 Räumen
     const n = rand(1, 3), opts = [];
     while(opts.length < n){
       const pool = Object.keys(weights).filter(k => !opts.includes(k));
@@ -8004,7 +8338,7 @@ function enterMap(){
   refreshUI();
 }
 async function enterRoom(type){
-  S.room++; S.sinceElite = type === 'elite' || type === 'boss' ? 0 : S.sinceElite + 1;
+  S.room++; S.sinceElite = type === 'elite' || type === 'boss' ? 0 : S.sinceElite + 1; S.lastRoom = type;
   updateRoomLabel();
   if(type === 'normal' || type === 'elite' || type === 'boss') return startFight(type);
   S.enemies = []; $('#enemySide').innerHTML = '';
@@ -8045,10 +8379,15 @@ function makeShop(h){
   const nc = rand(2, 4), ng = rand(2, 4);
   let guard = 0;
   while(cards.length < nc && guard++ < 200){
-    const r = rollRarity(); const opts = pool.filter(k => CARDS[k].rarity === r && !cards.some(c => c.key === k));
+    const r = dropRarity('card'); const opts = pool.filter(k => CARDS[k].rarity === r && !cards.some(c => c.key === k));
     if(opts.length){ const key = pick(opts); cards.push({key, price:price(r), sold:false, foil:rollFoil()}); }
   }
-  for(let k = 0; k < ng; k++){ const g = rollGem(); gems.push({gem:g, price:price(gemRarity(g)), sold:false}); }
+  for(let k = 0; k < ng; k++){ const g = rollGem('gem'); gems.push({gem:g, price:price(gemRarity(g)), sold:false}); }
+  const offers = [...cards, ...gems];                                 // Angebote: eines −50 %, eines −30 %
+  for(const pct of [50, 30]){
+    const free = offers.filter(o => !o.disc); if(!free.length) break;
+    const o = pick(free); o.disc = pct; o.full = o.price; o.price = Math.max(1, Math.round(o.price * (100 - pct) / 100));
+  }
   return {cards, gems};
 }
 
@@ -8060,7 +8399,7 @@ function startRun(a){
   S.roles = a.roles;
   seedRng(a.seed); uid = 1;
   S.biome = null; S.affix = null; S.biomesSeen = []; S.biomeIdx = 0; S.biomeFor = null; setBiomeBg('night'); updateBiomeLabel();
-  S.fight = 0; S.room = 0; S.sinceElite = 0; S.eventsSeen = []; S.bossesSeen = []; S.eliteBag = []; S.eliteSeen = []; S.elitesBeaten = 0; S.arena = null; S.event = null; S.mapOpts = [];
+  S.fight = 0; S.room = 0; S.lastRoom = null; S.biomeOk = {}; S.sinceElite = 0; S.eventsSeen = []; S.bossesSeen = []; S.eliteBag = []; S.eliteSeen = []; S.elitesBeaten = 0; S.arena = null; S.event = null; S.mapOpts = [];
   S.heroes = {}; S.stats = {fight:{}, run:{}}; S.actor = null;
   const ps = $('#playerSide'); ps.innerHTML = '';
   ps.classList.toggle('crowd', (a.party || []).length >= 4);         // 4 Helden: enger zusammen
@@ -8085,6 +8424,22 @@ function startRun(a){
    ===================================================================== */
 // Elite-Belohnungen: 10 Prozentpunkte von Common auf die höheren Stufen verschoben
 const ELITE_CHANCE = {common:40, uncommon:27, rare:16, epic:11, legendary:6};
+/* Drop-Seltenheiten nach Biom (nicht nach Raum/Ebene): [common, uncommon, rare, epic, legendary] je Biom 1–4.
+   Events nutzen weiter rollRarity(). Mehr als 4 Biome: die letzte Zeile gilt weiter. */
+const DROP = {
+  card:      [[60,30,10, 0, 0], [40,32,18, 8, 2], [30,32,22,12, 4], [22,30,26,16, 6]],
+  gem:       [[70,30, 0, 0, 0], [40,32,18, 8, 2], [30,32,22,12, 4], [22,30,26,16, 6]],
+  eliteCard: [[ 0,65,28, 7, 0], [ 0,45,32,18, 5], [ 0,35,33,23, 9], [ 0,28,32,28,12]],   // Elite: Karten mind. Uncommon
+  eliteGem:  [[ 0,85,15, 0, 0], [ 0,50,30,15, 5], [ 0,40,32,20, 8], [ 0,32,32,25,11]],   // Elite: Edelstein mind. Uncommon
+  bossCard:  [[ 0, 0, 0,80,20], [ 0, 0, 0,78,22], [ 0, 0, 0,75,25], [ 0, 0, 0,72,28]],   // Boss: nur Epic/Legendary (+1 Legendary sicher)
+  bossGem:   [[ 0, 0,70,25, 5], [ 0, 0,55,32,13], [ 0, 0,45,37,18], [ 0, 0,38,40,22]],   // Boss: Edelstein mind. Rare
+};
+function dropRarity(kind){
+  const rows = DROP[kind], w = rows[Math.min(rows.length - 1, S.biomeIdx || 0)];
+  let x = rng() * w.reduce((a, b) => a + b, 0);
+  for(let i = 0; i < w.length; i++){ x -= w[i]; if(x < 0) return RARITY_ORDER[i]; }
+  return RARITY_ORDER[w.findIndex(v => v > 0)];
+}
 function rollRarity(elite = false){
   const ch = r => elite ? ELITE_CHANCE[r] : RARITY[r].chance;
   const total = RARITY_ORDER.reduce((s,r) => s + ch(r), 0);
@@ -8096,26 +8451,28 @@ CARDS.__buddy = {name:'Buddy', rarity:'common', cost:1, custom:true, type:'skill
 function cardPool(heroId, spec){
   return Object.keys(CARDS).filter(k => CARDS[k].char === heroId && !CARDS[k].basic && !CARDS[k].custom && (!CARDS[k].spec || CARDS[k].spec === spec));
 }
-function rewardChoices(heroId, n = 3, minRarity = null, elite = false){
+function rewardChoices(heroId, n = 3, minRarity = null, kind = 'card'){   // kind: card | eliteCard | bossCard | 'arena' (Event: alte Chancen)
   const minIdx = minRarity ? RARITY_ORDER.indexOf(minRarity) : 0;
   const pool0 = cardPool(heroId, S.heroes[heroId].spec).filter(k => RARITY_ORDER.indexOf(CARDS[k].rarity) >= minIdx);
   const picks = []; let guard = 0;
+  if(kind === 'bossCard'){ const leg = pool0.filter(k => CARDS[k].rarity === 'legendary'); if(leg.length) picks.push(pick(leg)); }   // Boss: immer mind. eine Legendary
   while(picks.length < n && guard++ < 300){
-    let r = rollRarity(elite); if(RARITY_ORDER.indexOf(r) < minIdx) r = RARITY_ORDER[minIdx + Math.floor(rng() * (RARITY_ORDER.length - minIdx))];
+    let r = kind === 'arena' ? rollRarity(true) : dropRarity(kind);
+    if(RARITY_ORDER.indexOf(r) < minIdx) r = RARITY_ORDER[minIdx + Math.floor(rng() * (RARITY_ORDER.length - minIdx))];
     const pool = pool0.filter(k => CARDS[k].rarity === r && !picks.includes(k));
     if(pool.length) picks.push(pick(pool));
   }
   return picks;
 }
 const SPEC_GEM_CHANCE = 0.2;                                       // Anteil der Spezialisierungs-Edelsteine (ab Uncommon)
-function rollGem(elite = false, h = null){
-  const tier = RARITY_ORDER.indexOf(rollRarity(elite)) + 1;
+function rollGem(kind = 'gem', h = null){                           // kind: gem | eliteGem | bossGem | 'arena'
+  const tier = RARITY_ORDER.indexOf(kind === 'arena' ? rollRarity(true) : dropRarity(kind)) + 1;
   if(h && h.spec && SPEC_GEM[h.spec] && tier >= 2 && rng() < SPEC_GEM_CHANCE) return {id:uid++, type:SPEC_GEM[h.spec], tier, fleeting:rng() < FLEET_CHANCE};
   const types = GEM_ORDER.filter(t => gemFits(t, tier));
   const type = pick(types);
   return {id:uid++, type, tier, fleeting:!GEM_TYPES[type].noFleet && rng() < FLEET_CHANCE};
 }
-async function victory(){
+async function victory(){ if(PREVIEW) return;
   S.phase = 'post'; S.active = null;
   heroList().forEach(clearSoulState); lastingEtch(); S.links = {};
   const wasBoss = !!(S.special && S.special.boss);
@@ -8124,14 +8481,19 @@ async function victory(){
   const wasElite = wasBoss || S.enemies.some(e => e.elite);
   const arena = S.arena; S.arena = null;
   for(const h of heroList()){
+    const fell = h.dead;                                            // im Kampf gefallen: wird wiederbelebt, bekommt aber keine Belohnung
     if(h.dead){ h.dead = false; h.hp = Math.max(1, Math.round(h.maxHp * REVIVE_HP)); floatText(h, 'Revived', 'heal-f'); }
     h.block = 0; h.status = {};
     heal(h, wasBoss ? h.maxHp : HEAL_AFTER_FIGHT);
+    if(fell){ S.post[h.id] = {kind:'reward', fell:true, gold:0, cards:[], foils:[], gem:null, glory:null, bonus:[], arena, picked:false, removed:false, ready:false}; updateUnit(h); continue; }
     const gold = wasBoss ? rand(60, 80) : wasElite ? rand(20, 30) : rand(10, 20);
     h.gold += gold;
-    const cards = rewardChoices(h.id, 3, wasBoss ? 'epic' : arena === 'hard' ? 'rare' : null, wasElite);
+    const dropKind = arena ? 'arena' : wasBoss ? 'boss' : wasElite ? 'elite' : '';
+    const cardKind = dropKind === 'arena' ? 'arena' : dropKind ? dropKind + 'Card' : 'card';
+    const cardMin = arena === 'hard' ? 'rare' : null;
+    const cards = rewardChoices(h.id, 3, cardMin, cardKind);
     const foils = cards.map(() => rollFoil());
-    const gem = rollGem(wasElite, h); h.gems.push(gem);
+    const gem = rollGem(dropKind === 'arena' ? 'arena' : dropKind ? dropKind + 'Gem' : 'gem', h); h.gems.push(gem);
     const bonus = [];                                               // Arena-Belohnungen
     if(arena === 'medium'){ const g = {id:uid++, type:pick(GEM_ORDER.filter(t => gemFits(t, 3))), tier:3}; h.gems.push(g); bonus.push(gemTitle(g)); }
     if(arena === 'hard'){ const g = {id:uid++, type:pick(GEM_ORDER.filter(t => gemFits(t, 5))), tier:5}; h.gems.push(g); bonus.push(gemTitle(g)); }
@@ -8145,7 +8507,7 @@ async function victory(){
       if(c2) c2.bonusBlock = (c2.bonusBlock || 0) + 1;
       glory = {dmg: c1 && c1.id, block: c2 && c2.id};
     }
-    S.post[h.id] = {kind:'reward', gold, cards, foils, gem, glory, bonus, arena, picked:false, removed:false, ready:false};
+    S.post[h.id] = {kind:'reward', gold, cards, foils, gem, glory, bonus, arena, cardKind, cardMin, picked:false, removed:false, ready:false};
     updateUnit(h);
   }
   refreshUI();
@@ -8180,6 +8542,10 @@ function showMap(){
 }
 
 /* ---------- Shop ---------- */
+function shopPriceHTML(it){                                           // Preis, bei Rabatt mit altem Preis und Prozent
+  if(it.sold) return '<div class="price">SOLD</div>';
+  return it.disc ? `<div class="price disc"><s>${it.full}</s> ${coinIcon}${it.price}<em>−${it.disc}%</em></div>` : `<div class="price">${coinIcon}${it.price}</div>`;
+}
 function showShop(h, p){
   hideOverlay();
   roomScreen.className = 'show shop';
@@ -8201,13 +8567,13 @@ function showShop(h, p){
   sh.cards.forEach((it, i) => {
     const w = document.createElement('div'); w.className = 'shop-item' + (it.sold ? ' sold' : h.gold < it.price ? ' poor' : '');
     w.appendChild(makeCard({key:it.key, gems:[], foil:!!it.foil}));
-    w.insertAdjacentHTML('beforeend', `<div class="price">${it.sold ? 'SOLD' : coinIcon + it.price}</div>`);
+    w.insertAdjacentHTML('beforeend', shopPriceHTML(it));
     if(!it.sold) w.querySelector('.card').onclick = () => { if(h.gold >= it.price && !busy()) dispatch({t:'buy', h:h.id, kind:'card', idx:i}); };
     cr.appendChild(w);
   });
   sh.gems.forEach((it, i) => {
     const w = document.createElement('div'); w.className = 'shop-item gemitem' + (it.sold ? ' sold' : h.gold < it.price ? ' poor' : '');
-    w.innerHTML = gemTileHTML(it.gem) + `<div class="price">${it.sold ? 'SOLD' : coinIcon + it.price}</div>`;
+    w.innerHTML = gemTileHTML(it.gem) + shopPriceHTML(it);
     if(!it.sold) w.querySelector('.gemtile').onclick = () => { if(h.gold >= it.price && !busy()) dispatch({t:'buy', h:h.id, kind:'gem', idx:i}); };
     gr.appendChild(w);
   });
@@ -8244,10 +8610,12 @@ function showEvent(){
       : heroList().filter(x => mine(x.id)).map(x => `${x.name}: <b>${anomTries(ev, x.id)}</b> tries · next costs <b class="goldtxt">${coinIcon}${anomTries(ev, x.id) * 10}</b>`).join(' &nbsp;·&nbsp; ');
     body = `<p class="ev-info">${info}</p><div class="ev-decks" id="evDecks"></div>`;
   }
+  const slotsL = playerSlots(), leftN = slotsL.filter(sl => (ev.leaveOk || {})[sl]).length, leftMe = !!(ev.leaveOk || {})[myRole()];
+  const leaveLbl = slotsL.length > 1 ? (leftMe ? `Waiting… (${leftN}/${slotsL.length})` : leftN ? `Leave (${leftN}/${slotsL.length})` : 'Leave') : 'Leave';
   roomScreen.innerHTML = `<div class="rs-head"><div><div class="herohead">Event</div><h1>${E.name}</h1></div>
-    <button class="mbtn" id="evLeave" ${dec ? '' : 'disabled'}>${ev.type === 'arena' ? 'Leave' : 'Leave'}</button></div>
+    <button class="mbtn" id="evLeave" ${leftMe ? 'disabled' : ''}>${leaveLbl}</button></div>
     <p class="ev-desc">${E.desc}</p>${dec || ev.type === 'anomaly' ? '' : '<p class="keys">The host decides here.</p>'}${body}`;
-  $('#evLeave').onclick = () => { if(dec && !busy()) dispatch({t:'ev', op:'leave'}); };
+  $('#evLeave').onclick = () => { const me = (S.party || []).find(mine); if(me && !leftMe && !busy()) dispatch({t:'ev', op:'leave', h:me}); };
   roomScreen.querySelectorAll('.door[data-op]').forEach(b => b.onclick = () => { if(dec && !busy()) dispatch({t:'ev', op:'arena', tier:b.dataset.op}); });
   if(ev.type === 'buddy') bindBuddy(ev, dec);
   const box = $('#evDecks'); if(!box) return;
@@ -8321,7 +8689,7 @@ function rollBuddyOptions(ev){                                       // zwei ver
 }
 const BUDDY_KIND = {damage:'Damage', debuff:'Debuff', buff:'Buff for you', draw:'Card draw', energy:'Energy', class:'Class'};
 function buddyDef(ev){
-  const d = {name:'Buddy', rarity:ev.rarity, cost:1, custom:true, art:()=>SVG.laurel};
+  const d = {name:'Buddy', rarity:ev.rarity, cost:1, custom:true, buddy:true, art:()=>SVG.laurel};
   for(const m of ev.mods){
     if(m.field) d[m.field] = (d[m.field] || 0) + m.v;
     for(const k in (m.add || {})) d[k] = (d[k] || 0) + m.add[k];
@@ -8408,7 +8776,12 @@ function bindBuddy(ev, dec){
 
 async function eventAction(a){
   const ev = S.event; if(S.phase !== 'event' || !ev) return;
-  if(a.op === 'leave') return enterMap();
+  if(a.op === 'leave'){                                               // jeder Spieler muss „Leave“ drücken
+    if(a.h && S.roles[a.h]){ ev.leaveOk = ev.leaveOk || {}; ev.leaveOk[S.roles[a.h]] = true; }
+    else ev.leaveOk = Object.fromEntries(playerSlots().map(sl => [sl, true]));
+    if(!playerSlots().every(sl => ev.leaveOk[sl])) return;
+    return enterMap();
+  }
   if(a.op === 'arena' && ev.type === 'arena'){
     S.arena = a.tier;
     return startFight(a.tier === 'easy' ? 'normal' : a.tier === 'medium' ? 'elite' : 'double');
@@ -8442,7 +8815,7 @@ async function eventAction(a){
   }
 }
 /* Anomalie: die alte Karte verwandelt sich – Leuchten läuft durch die Seltenheiten, dann erscheint die neue Karte */
-function anomalyFx(oldC, newC){
+function anomalyFx(oldC, newC){ if(PREVIEW) return;
   let ov = document.getElementById('anomFx');
   if(!ov){ ov = document.createElement('div'); ov.id = 'anomFx'; document.getElementById('stage').appendChild(ov); }
   const target = CARDS[newC.key].rarity, steps = [];
@@ -8623,9 +8996,9 @@ const GLOSS_STATUS = [
   ['mindIcon','Corrupted Mind','Loses its next turn. For the Acolyte it happens when his Sanity hits 0 – then Sanity refills.'],
   ['dreamIcon','Dream (Dreamweaver)','4+: deals 25% less damage · 7+: takes 25% more damage · 10: Nightmare – Dream consumed, loses 20% of its max HP (bosses 10%), ignoring Block. Reality Distortion cards trigger it already at 9.'],
   ['depthIcon','Depth (Tidecaller)','Resource for summoning Servants of the Deep. Builds up during the fight.'],
-  ['linkIcon','Soulbind (Soulbinder)','Links two cards, ideally of different heroes (same color + chain number on both). Playing one makes the other Resonate. Playing a Resonating card: +50% values and the other card\'s owner draws 1. Links last the whole fight.'],
+  ['linkIcon','Soulbind (Soulbinder)','Links two cards, ideally of different heroes (same color + chain number on both). Playing one makes the other Resonate. Playing a Resonating card: ALL its values +50% (damage, Block, cards drawn, Energy, buffs, debuffs) and the other card\'s owner draws 1. Links last the whole fight.'],
   ['etchIcon','Imprint (Soulbinder)','A colored mark on a card: Edge (+damage), Ward (+Block), Haste (−cost), Mend (heal) or Echo (plays twice). Same kinds stack. Lasts until the end of the fight (★ = permanent).'],
-  ['anvilIcon','Soulcraft (Soulbinder)','Created cards cost 0 and vanish after use. Tailored Gifts fit the class that gets them: Steel (Knight), Venom (Assassin), Embers (Mage), the Hunt (Ranger), Fury (Brawler), Souls (Soulbinder), Void / Dreams / Tide (Eldritch Acolyte / Dreamweaver / Tidecaller).'],
+  ['anvilIcon','Soulcraft (Soulbinder)','Created cards cost 0 and vanish after use. Tailored Gifts fit the specialization that gets them – every spec has its own Gift with its own mechanics. All forged cards are listed under Unique Cards in the Soulforger glossary.'],
   ['blockBadgeIcon','Block','Absorbs incoming attack damage. Heroes lose their Block at the start of each round, enemies at the start of their turn.'],
   ['strengthIcon','Might (Buff)','Buff cards are played once per fight and last until it ends. Might: attacks deal extra damage per hit.'],
   ['drainIcon','Played again','A card that was already played this turn and is drawn again costs +1 Energy per earlier play – only for this turn. Stops endless loops with tiny decks.'],
@@ -8636,7 +9009,7 @@ const GLOSS_STATUS = [
   ['momentumIcon','Momentum (Ranger)','Max 10, lasts the whole fight. +1 whenever the Ranger plays a card of a different type than his previous one (Attack → Skill → Block …), more from cards. Finishers and “Spend Momentum” effects use it.'],
   ['runeIcon','Runes (Rift Architect)','Every card of the Rift Architect has a Rune slot. Runes are made with the card Rune Forge and socketed like gems; they change how the card works.'],
   ['planIcon','Master Plan (Buff)','Whenever you gain Momentum, gain 1 more until the end of the fight.'],
-  ['tauntIcon','Taunt (Brawler)','Until his next turn, all enemies attack only the taunting hero – area attacks and debuffs too. An enemy that would not attack this round attacks him anyway, in addition to its action, with its weakest normal attack.'],
+  ['tauntIcon','Taunt (Brawler)','Only works in the front slot. Until his next turn, single-target enemy attacks hit only the taunting hero; area and splash attacks stay as they are. An enemy that would not attack this round attacks him anyway, in addition to its action, with its weakest attack (or a weak basic hit). If he is moved out of the front slot, the Taunt breaks. Enemies taunt the same way: only the front enemy can taunt.'],
   ['guardIcon','Guard (Brawler)','Each stack: 10% less damage taken (max. 50%). Every hit taken removes 1 stack.'],
   ['powerIcon','Power','+4 damage per stack on the next hit, then it is used up.'],
   ['furyIcon','Fury (Knockout Champion)','+1 per enemy hit taken. At 5 the Knockout Punch hits the enemy with the most HP (start of turn, or right away through Fury cards).'],
@@ -8649,10 +9022,11 @@ const GLOSS_STATUS = [
   ['invisIcon','Invisible','No damage from enemy attacks until the hero\'s next turn – but if all teammates are dead, the enemies find you and you take 50% of the damage. The next attack card deals double damage and uses Invisible up.'],
   ['weakIcon','Weak','Deals 50% less attack damage. Wears off by 1 each turn.'],
   ['vulnIcon','Vulnerable','Takes 50% more damage from every source – attacks, Poison, Burn and more. Wears off by 1 each turn.'],
-  ['poisonIcon','Poison','Enemies lose HP equal to their Poison at the END of their turn (ignores Block). Heroes take the damage at the END of the round – their Block absorbs it. Then it goes down by 1.'],
+  ['poisonIcon','Poison','Enemies lose HP equal to their Poison at the END of their turn, heroes at the END of the round. Poison ignores Block. Then it goes down by 1.'],
   ['burnIcon','Burn','Enemies lose HP equal to their Burn at the START of their turn, heroes at the start of their turn. Ignores Block, then goes down by 1.'],
   ['iceIcon','Ice','At 10 stacks (bosses: 20) the enemy is Frozen. An enemy can never be frozen two turns in a row.'],
   ['frozenIcon','Frozen','Skips its next turn.'],
+  ['ccImmuneIcon','CC Immunity','An enemy can lose a turn (Frozen, Corrupted Mind, stuns) only every other round. Right after losing a turn it is immune until it has acted again.'],
   ['brittleIcon','Brittle','Block gained from cards is reduced by this amount. Lasts for the whole fight.'],
   ['strengthIcon','Strength','Attacks deal this much extra damage.'],
   ['thornsIcon','Thorns','Enemies: you take damage every time you hit them. Heroes: attackers take damage for every hit, until the hero\'s next turn.'],
@@ -8672,6 +9046,23 @@ function fitAvatar(svg){                                            // viewBox a
   try{ const b = svg.getBBox(); if(!b.width || !b.height) return;
     const side = Math.max(b.width, b.height / 1.2) * 1.04, cx = b.x + b.width / 2, cy = b.y + b.height / 2;
     svg.setAttribute('viewBox', `${cx - side / 2} ${cy - side * 0.6} ${side} ${side * 1.2}`); svg.setAttribute('overflow', 'hidden'); }catch(e){}
+}
+function glossUniqueCards(g, head){
+  head('Unique Cards <small>(forged by the Soulforger – cost 0, vanish after use)</small>');
+  const specs = CLASS_ORDER.flatMap(hid => SPECS[hid].map(sp => [hid, sp]));
+  const forWhom = k => { const L = specs.filter(([, sp]) => GIFT_BY_SPEC[sp.id] === k).map(([, sp]) => sp.name);
+    if(!L.length) L.push(...Object.keys(GIFT_BY_CLASS).filter(c => GIFT_BY_CLASS[c] === k && !SPECS[c].some(sp => GIFT_BY_SPEC[sp.id])).map(c => HEROES[c].name));
+    return L.length ? 'Tailored Gift · ' + L.join(', ') : ''; };
+  const order = Object.keys(CARDS).filter(k => CARDS[k].crafted);
+  const gifts = new Set(Object.values(GIFT_BY_SPEC).concat(Object.values(GIFT_BY_CLASS)));
+  const base = order.filter(k => !gifts.has(k)), gl = order.filter(k => gifts.has(k));
+  gl.sort((a, b) => { const i = x => specs.findIndex(([, sp]) => GIFT_BY_SPEC[sp.id] === x); return i(a) - i(b); });
+  for(const k of base.concat(gl)){
+    const w = document.createElement('div'); w.className = 'guniq';
+    w.appendChild(detailCard({key:k, gems:[]}));
+    const cap = gifts.has(k) ? forWhom(k) : 'Soulcraft'; w.insertAdjacentHTML('beforeend', `<div class="guniq-cap">${cap}</div>`);
+    g.appendChild(w);
+  }
 }
 function showGlossary(tab = 'cards', sub = null){
   deselect();
@@ -8697,7 +9088,7 @@ function showGlossary(tab = 'cards', sub = null){
     g.appendChild(detailCard({key:'hex', gems:[]}));
   } else if(tab === 'cards'){                                        // Alle Karten einer Spezialisierung
     const [hid, spid] = sub.split(':'); const sp = specOf(hid, spid);
-    const back = document.createElement('button'); back.className = 'gtab gback'; back.textContent = '← All specializations';
+    const back = document.createElement('button'); back.className = 'gtab gback'; back.textContent = '← View all subclasses';
     back.onclick = ev => { ev.stopPropagation(); showGlossary('cards'); };
     g.appendChild(back);
     head(`<span style="color:${sp.color}">${sp.name}</span> – ${HEROES[hid].name} · ${sp.tag}`);
@@ -8708,6 +9099,7 @@ function showGlossary(tab = 'cards', sub = null){
       head(`<span style="color:${RARITY[r].color}">${RARITY[r].name}</span> <small>(${ks.filter(k => CARDS[k].spec).length} ${sp.name} only · ${ks.filter(k => !CARDS[k].spec).length} for every ${HEROES[hid].name})</small>`);
       ks.forEach(k => { const el = detailCard({key:k, gems:[]}); if(CARDS[k].spec) el.classList.add('gonly'); g.appendChild(el); });
     }
+    if(spid === 'soulforger') glossUniqueCards(g, head);                // alle erschaffbaren Karten (neue Gifts kommen automatisch dazu)
   } else if(tab === 'gems'){
     head('After elite fights, better cards and gems are more likely (Common 40 · Uncommon 27 · Rare 16 · Epic 11 · Legendary 6 %). Gems change what a card does. Common cards have 1 slot, each higher rarity 1 more. Fuse 3 gems of one rarity into 1 of the next. Every gem also exists as a FLEETING gem: double effect, but the card can then only be played once per fight.');
     for(const t of GEM_ORDER.slice().sort((a, b) => GEM_TYPES[a].name.localeCompare(GEM_TYPES[b].name))){
@@ -8729,14 +9121,18 @@ function showGlossary(tab = 'cards', sub = null){
   }
   $('#viewer').classList.add('show');
 }
-$('#glossBtn').addEventListener('click', ev => { ev.stopPropagation(); showGlossary('cards'); });
+$('#glossBtn').addEventListener('click', ev => { ev.stopPropagation();          // im Run: direkt die Karten der eigenen Spezialisierung
+  let h = null; try { h = (S.heroes && heroList().length) ? (activeHero() || heroList().find(x => mine(x.id))) : null; } catch(e){}
+  if(h && h.spec && !mine(h.id)) h = heroList().find(x => mine(x.id) && x.spec) || h;
+  showGlossary('cards', h && h.spec && specOf(h.id, h.spec) ? h.id + ':' + h.spec : null); });
 $('#statsBtn').addEventListener('click', ev => { ev.stopPropagation(); showStats('fight'); });
 function showStats(scope = 'fight'){
   deselect();
   $('#vTitle').textContent = 'Stats';
-  $('#vNote').innerHTML = ['fight','run'].map(t => `<button class="gtab ${t === scope ? 'on' : ''}" data-t="${t}">${t === 'fight' ? 'Current fight' : 'Whole run'}</button>`).join('');
+  $('#vNote').innerHTML = ['fight','run','history'].map(t => `<button class="gtab ${t === scope ? 'on' : ''}" data-t="${t}">${t === 'fight' ? 'Current fight' : t === 'run' ? 'Whole run' : 'History'}</button>`).join('');
   $('#vNote').querySelectorAll('.gtab').forEach(b => b.onclick = ev => { ev.stopPropagation(); showStats(b.dataset.t); });
   const g = $('#vGrid'); g.innerHTML = '';
+  if(scope === 'history'){ showHistory(); $('#viewer').classList.add('show'); return; }   // Kampfhistorie des aktuellen Kampfes
   const data = (S.stats || {})[scope] || {};
   const heroes = heroList();
   const mini = (svg, w) => (svg || '').replace(/width="\d+" height="\d+"/, `width="${w}" height="${Math.round(w * 1.2)}"`);
@@ -8754,8 +9150,8 @@ function showStats(scope = 'fight'){
       es.map(e => { const o = data[e.id] || {};
         return `<div class="strow ${e.dead ? 'stdead' : ''}"><span class="stname"><span class="stport">${mini(SVG[e.key], 34)}</span><b>${e.name}</b><i>${e.dead ? 'defeated' : e.hp + '/' + e.maxHp + ' HP'}</i></span>${cols.map(([k, , col]) => { const v = o[k] || 0;
           return `<span class="stcell" data-u="${e.id}" data-k="${k}"><b>${v}</b><i class="stbar"><i style="width:${v / emax[k] * 100}%;background:${col}"></i></i></span>`; }).join('')}</div>`; }).join(''); })() : ''}
-    </div><div class="stnote">Hover Damage, Block, Debuffs or Buffs for details. Damage includes damage against Block and shields and Poison/Burn ticks (credited to whoever applied them last). Servants count for the Tidecaller.</div>`;
-  g.querySelectorAll('.stcell[data-k="debuff"],.stcell[data-k="buff"],.stcell[data-k="block"],.stcell[data-k="dmg"]').forEach(cell => {
+    </div><div class="stnote">Hover Damage, Healing, Block, Debuffs or Buffs for details. Damage includes damage against Block and shields and Poison/Burn ticks (credited to whoever applied them last). Servants count for the Tidecaller.</div>`;
+  g.querySelectorAll('.stcell[data-k="debuff"],.stcell[data-k="buff"],.stcell[data-k="block"],.stcell[data-k="dmg"],.stcell[data-k="heal"]').forEach(cell => {
     cell.classList.add('sthov');
     cell.addEventListener('mouseenter', () => showStatDetail(cell, data[cell.dataset.u], cell.dataset.k));
     cell.addEventListener('mouseleave', hideKeywords);
@@ -8770,6 +9166,11 @@ function showStatDetail(cell, o, k){
     box.innerHTML = `<div class="kw"><div><b>Damage dealt <span class="stx">${(o && o.dmg) || 0}</span></b></div></div>
       <div class="kw"><span class="kwi">${SVG.shield(.5)}</span><div><b>Against Block & shields <span class="stx">${(det && det.shield) || 0}</span></b></div></div>
       <div class="kw"><span class="kwi">${INC_ICON.hit}</span><div><b>Against HP <span class="stx">${(det && det.hp) || 0}</span></b></div></div>`;
+  } else if(k === 'heal'){                                                    // Heilung: sich selbst / Team
+    const isHero = !!(S.heroes && S.heroes[cell.dataset.u]);
+    box.innerHTML = `<div class="kw"><div><b>Healing done</b></div></div>
+      <div class="kw"><span class="kwi">${SVG.roleHealIcon}</span><div><b>Self-heal <span class="stx">${(det && det.self) || 0}</span></b></div></div>
+      <div class="kw"><span class="kwi">${SVG.roleHealIcon}</span><div><b>${isHero ? 'Team heal (other heroes)' : 'Healing its allies'} <span class="stx">${(det && det.others) || 0}</span></b></div></div>`;
   } else if(k === 'block'){                                                   // Block: auf sich selbst / auf andere
     const isHero = !!(S.heroes && S.heroes[cell.dataset.u]);
     box.innerHTML = `<div class="kw"><div><b>Block given</b></div></div>
@@ -8819,6 +9220,13 @@ function postFlow(){
 }
 function showReward(h, p){
   $('#gemScreen').classList.remove('show');
+  if(p.fell){                                                         // im Kampf gefallen: keine Belohnung
+    showOverlay(`<div class="herohead">${h.name}</div><h1>Fallen in Battle</h1>
+      <p>${h.name} fell during this fight and gets <b>no rewards</b> – no Gold, no card, no gem.</p>
+      <p>${h.name} is revived for the next fight.</p>
+      <div class="mrow"><button class="mbtn" id="ovBtn">Continue</button></div>`, () => { hideOverlay(); dispatch({t:'pick', h:h.id, key:null}); }, true);
+    return;
+  }
   showOverlay(`<div class="herohead">${h.name}</div><h1>Victory!</h1>
     <p>${h.name} loots <b class="goldtxt">${coinIcon}${p.gold} Gold</b>.${p.bonus && p.bonus.length ? ` Bonus: <b style="color:#ffcf6a">${p.bonus.join(', ')}</b>` : ''}</p>
     ${p.glory ? `<p class="glory">Warrior's Glory: ${[p.glory.dmg && cardName(h.deck.find(c => c.id === p.glory.dmg)) + ' +1 damage', p.glory.block && cardName(h.deck.find(c => c.id === p.glory.block)) + ' +1 Block'].filter(Boolean).join(' · ')}</p>` : ''}
@@ -9031,7 +9439,7 @@ function showCampUpgrade(h, p){
 }
 
 /* ---------- Ende ---------- */
-function defeat(){
+function defeat(){ if(PREVIEW) return;
   S.phase = 'lost'; S.active = null; refreshUI();
   const won = S.fight - 1;
   const canRestart = S.mode !== 'guest';
@@ -9093,11 +9501,29 @@ function showDeckViewer(h){                                   // eigenes Deck, d
 }
 const hideViewer = () => { $('#viewer').classList.remove('show'); hideKeywords(); GOLDUI.open = false; };
 /* Karte anklicken: Standard | Upgrade, darunter Foil | Foil + */
+/* CARD_GLOBAL – Regel: Rechtsklick auf JEDE Karte (egal welcher Bildschirm) zeigt Upgrade-/Foil-Versionen,
+   Drübermausen erklärt immer die Begriffe. Funktioniert für alles, was mit makeCard gebaut wird. */
+var kwFor = null;
+document.addEventListener('contextmenu', ev => {
+  const el = ev.target.closest && ev.target.closest('.card'); if(!el || !el._card || el.classList.contains('dragGhost')) return;
+  ev.preventDefault(); ev.stopPropagation();
+  if(el.closest('#cardDetail')) return;
+  if(DRAG.down || DRAG.active) return;
+  hideKeywords(); hideLinkGhost(); if(el.closest('#hand')) deselect();
+  showCardDetail(el._card);
+}, true);
+document.addEventListener('mouseover', ev => {
+  const el = ev.target.closest && ev.target.closest('.card');
+  if(!el || !el._card || el._kwOwn || DRAG.active || el.classList.contains('dragGhost') || kwFor === el) return;
+  showKeywords(el, el._card); kwFor = el;
+});
+document.addEventListener('mouseout', ev => {
+  const el = ev.target.closest && ev.target.closest('.card');
+  if(!el || el._kwOwn || kwFor !== el || (ev.relatedTarget && el.contains(ev.relatedTarget))) return;
+  kwFor = null; hideKeywords();
+});
 function detailCard(c){
-  const el = makeCard(c); el.classList.add('detailable');
-  el.addEventListener('click', ev => { ev.stopPropagation(); hideKeywords(); showCardDetail(c); });
-  el.addEventListener('mouseenter', () => showKeywords(el, c));
-  el.addEventListener('mouseleave', hideKeywords);
+  const el = makeCard(c); el.classList.add('detailable');   // Details per Rechtsklick, Erklärungen per Hover (global, siehe CARD_GLOBAL)
   return el;
 }
 function showCardDetail(c){
@@ -9106,7 +9532,7 @@ function showCardDetail(c){
   const up = canUpgrade({...base, upgraded:false});
   const variants = [['Standard', {...base}], ['Upgraded', {...base, upgraded:true}], ['Foil', {...base, foil:true}], ['Foil +', {...base, foil:true, upgraded:true}]];
   const box = document.createElement('div'); box.id = 'cardDetail';
-  box.innerHTML = `<div class="cd-inner"><h3>${CARDS[c.key].name}</h3><div class="cd-grid"></div><div class="cd-note">Foil cards spawn with a 3% chance: they glitter and get +50% base values. Click anywhere to close.</div></div>`;
+  box.innerHTML = `<div class="cd-inner"><h3>${CARDS[c.key].name}</h3><div class="cd-grid"></div><div class="cd-note">Foil cards spawn with a 3% chance: they glitter and get +50% base values. Click anywhere to close. Right-click any card to open this view.</div></div>`;
   const grid = box.querySelector('.cd-grid');
   variants.forEach(([label, v], i) => {
     const cell = document.createElement('div'); cell.className = 'cd-cell';
@@ -9125,14 +9551,18 @@ $('#drawPile').addEventListener('click', ev => { ev.stopPropagation(); const h =
 $('#vanishPile').addEventListener('click', ev => { ev.stopPropagation(); const h = activeHero(); if(h) showViewer(`${h.name} – Vanished`, (h.vanished || []).slice().reverse(), 'Cards played once this fight. They come back next fight (free follow-up cards are gone for good).'); });
 $('#discardPile').addEventListener('click', ev => { ev.stopPropagation(); const h = activeHero(); if(h) showViewer(`${h.name} – Discard Pile`, h.discard.slice().reverse(), 'Most recent first.'); });
 $('#deckBtn').addEventListener('click', ev => { ev.stopPropagation(); const h = viewHero(); if(h) showDeckViewer(h); });
-$('#gemBtn').addEventListener('click', ev => {
-  ev.stopPropagation(); const h = viewHero(); if(!h) return;
-  deselect();
-  $('#vTitle').textContent = `${h.name} – Gems (${h.gems.length})`;
-  $('#vNote').textContent = 'Unused gems. You can socket them into cards after a victory.';
-  $('#vGrid').innerHTML = h.gems.length ? sortGems(h.gems).map(g => gemTileHTML(g)).join('') : '<div class="vempty">No unused gems.</div>';
+$('#gemBtn').addEventListener('click', ev => { ev.stopPropagation(); showBag(); });
+function showBag(){                                                    // Bag: Gold (+ verschicken) und unbenutzte Gems
+  const h = viewHero(); if(!h) return;
+  deselect(); GOLDUI.open = false;
+  $('#vTitle').textContent = `${h.name} – Bag`;
+  $('#vNote').textContent = 'Your Gold and unused gems. Gems can be socketed into cards after a victory.';
+  const canSend = mine(h.id) && S.runActive && heroList().some(o => o !== h);
+  $('#vGrid').innerHTML = `<div class="bag-gold"><span class="goldtxt">${coinIcon}${h.gold} Gold</span>${canSend ? '<button class="mbtn" id="bagSend">Send Gold</button>' : ''}</div>
+    <div class="ghead">Gems (${h.gems.length})</div>` + (h.gems.length ? sortGems(h.gems).map(g => gemTileHTML(g)).join('') : '<div class="vempty">No unused gems.</div>');
+  const b = $('#bagSend'); if(b) b.onclick = e => { e.stopPropagation(); GOLDUI.open = true; GOLDUI.amt = {}; renderGoldSend(); };
   $('#viewer').classList.add('show');
-});
+}
 /* Gold verschicken: Klick auf das eigene Gold */
 const GOLD_TAX = 0.25, GOLDUI = {open:false, amt:{}};
 function renderGoldSend(){
@@ -10269,7 +10699,7 @@ function showTutorial(){
     <ul>
       <li><b>Specializations:</b> every class has 3 – each with its own passive, starting deck and Legendary cards.</li>
       <li><b>After a fight:</b> pick a card (or skip for a Reroll Token) and get a <b>gem</b>. Socket gems into cards – Common cards have 1 slot, each higher rarity 1 more. Specialization gems only fit your own spec.</li>
-      <li><b>Foil cards</b> (3%) glitter and have +50% base values. Click any card in the Glossary or your deck to see its upgrade and Foil version.</li>
+      <li><b>Foil cards</b> (3%) glitter and have +50% base values. Right-click any card (anywhere) to see its upgrade and Foil version.</li>
       <li><b>Path:</b> after every room choose where to go – fights, elites, campfires (heal, upgrade or unsocket), shops or events.</li>
       <li><b>Stats</b> (top bar) show damage, healing, Block and buffs per hero – for this fight or the whole run.</li>
       <li><b>Co-op:</b> host a game and share the code – everyone plays their own hero at the same time.</li>
