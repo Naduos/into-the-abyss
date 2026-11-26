@@ -55,6 +55,8 @@ html,body{margin:0;height:100%;background:#07060a;overflow:hidden;font-family:In
 .hp{position:absolute;inset:0;background:#1a0d10;border:2px solid #000;border-radius:10px;overflow:hidden;box-shadow:0 2px 4px rgba(0,0,0,.6)}
 .hpfill,.hpghost{position:absolute;left:0;top:0;bottom:0;transition:width .25s}
 .hpghost{background:#f6d6a0;transition:width .7s .25s}
+.hcard{text-decoration:underline dotted;text-underline-offset:3px;cursor:help}
+.htipcard{padding:4px}.htipcard .card{position:relative;transform:none!important;margin:0}
 /* Thief: Gold-Aura (alle 100 Gold eine Stufe: Münzen kreisen, ab 300 ein Goldsack) */
 .sprite{isolation:isolate}
 .goldfx{position:absolute;inset:0;pointer-events:none}
@@ -1597,14 +1599,14 @@ invisIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><path d="M2 20 Q20 2 
 });
 
 const ASSASSIN_CARDS = {
-  evade:       {name:'Evade',       rarity:'common',   cost:1, type:'block', block:4, up:{block:3}, upText:'7 Block'},
+  evade:       {name:'Evade',       rarity:'common',   cost:1, type:'block', block:5, up:{block:3}, upText:'8 Block'},
   stab:        {name:'Stab',        rarity:'common',   cost:2, type:'attack', dmg:10, up:{dmg:3}, upText:'13 damage'},
   precision:   {name:'Precision',   rarity:'common',   cost:2, type:'attack', dmg:6, crit:true, up:{dmg:3}, upText:'9 damage'},
   vanish:      {name:'Vanish',      rarity:'common',   cost:1, type:'skill', invis:true, selfOnly:true, up:{draw:1}, upText:'Draw 1 card'},
   cheapshot:   {name:'Cheap Shot',  rarity:'uncommon', cost:0, type:'attack', dmg:3, draw:1, up:{dmg:2}, upText:'5 damage'},
   dirtytrick:  {name:'Dirty Trick', rarity:'uncommon', cost:0, type:'skill', weak:1, draw:1, up:{weak:1}, upText:'2 Weak'},
   prepare:     {name:'Prepare',     rarity:'rare',     cost:0, type:'skill', draw:2, ax:{noDraw:1}, selfOnly:true, up:{draw:1}, upText:'Draw 3 cards'},
-  smokebomb:   {name:'Smoke Bomb',  rarity:'epic',     cost:1, type:'skill', weakAll:1, invis:true, draw:1, selfOnly:true, up:{weakAll:1}, upText:'2 Weak'},
+  smokebomb:   {name:'Smoke Bomb',  rarity:'epic',     cost:2, type:'skill', weakAll:1, invis:true, draw:1, selfOnly:true, up:{weakAll:1}, upText:'2 Weak'},
 };
 for(const k in ASSASSIN_CARDS){ const d = ASSASSIN_CARDS[k]; d.char = 'assassin'; d.costConverted = true; CARDS[k] = d; }   // Kosten schon im 5-Energie-System
 
@@ -2014,7 +2016,7 @@ SPECS.assassin = [
     starter:['stab','stab','evade','evade','nightblade','nightblade','quickexec','throatslit','shadowstep','fade']},
   {id:'deathbringer', name:'Deathbringer', color:'#7cd42a', icon:'skullflask', tag:'Poison',
     desc:'Drowns enemies in Poison – and poisons himself for power. Poison keeps spreading.',
-    passiveName:'Contagion', passive:'When a poisoned enemy dies, its Poison spreads to the nearest enemy.',
+    passiveName:'Contagion', passive:'When a poisoned enemy dies, its Poison spreads to the nearest enemy. Poison on the Deathbringer deals only 50% damage.',
     starter:['stab','stab','evade','evade','taintneedle','taintneedle','venomfang','toxiccut','toxicmist','antidote']},
 ];
 /* =====================================================================
@@ -2153,8 +2155,8 @@ function gainMomentum(h, n){
   if(h.status.momentum > before) floatText(h, `+${h.status.momentum - before} Momentum`, 'blk');
   updateUnit(h);
 }
-function addTempCard(h, key, n = 1, follow = false, bonus = null, up = false){   // up: Follow-up einer upgegradeten Karte ist selbst upgegradet    // Folgekarten: kosten 0, verschwinden nach dem Ausspielen (follow: behalten Kosten, Keyword Vanish)
-  for(let k = 0; k < n; k++) h.hand.push({...newCard(key), tmp:true, ...(follow ? {follow:true} : {}), ...(bonus ? {bonus:{...bonus}} : {}), ...(up && upgradeKind(CARDS[key]) ? {upgraded:true} : {})});
+function addTempCard(h, key, n = 1, follow = false, bonus = null, up = false, foil = false){   // foil: Follow-up einer Foil-Karte ist selbst Foil   // up: Follow-up einer upgegradeten Karte ist selbst upgegradet    // Folgekarten: kosten 0, verschwinden nach dem Ausspielen (follow: behalten Kosten, Keyword Vanish)
+  for(let k = 0; k < n; k++) h.hand.push({...newCard(key), tmp:true, ...(follow ? {follow:true} : {}), ...(bonus ? {bonus:{...bonus}} : {}), ...(up && upgradeKind(CARDS[key]) ? {upgraded:true} : {}), ...(foil ? {foil:true} : {})});
   floatText(h, `+${n} ${CARDS[key].name}${n > 1 ? 's' : ''}`, 'status-f');
 }
 
@@ -2518,7 +2520,7 @@ Object.assign(SPEC_ART, {
 SVG.brawler = SPEC_ART.knockout;
 
 const HERO_ORDER = CLASS_ORDER;
-const HAND_SIZE = 4, MAX_ENERGY = 5, HEAL_AFTER_FIGHT = 10, WEAK_MULT = 2/3;   // Weak: −33 % Angriffsschaden (gerundet)
+const HAND_SIZE = 5, MAX_ENERGY = 5, HEAL_AFTER_FIGHT = 10, WEAK_MULT = 2/3;   // Weak: −33 % Angriffsschaden (gerundet)
 
 /* ================== Edelsteine ================== */
 // tier: 1 = Common … 5 = Legendary. minTier: ab welcher Seltenheit der Edelstein droppt.
@@ -2812,6 +2814,7 @@ function applyFoil(s, d){
   if(s.sacAll){ s.sacAll = {...s.sacAll}; for(const k in s.sacAll) if(s.sacAll[k] > 0) s.sacAll[k] = f(s.sacAll[k]); any = true; }
   if(!any || s.draw) s.draw = s.draw ? Math.ceil(s.draw * 1.5) : s.draw;
   if(!any && s.energy) s.energy = Math.ceil(s.energy * 1.5);
+  if(!any && !s.draw && !s.energy && s.cost > 0){ s.cost -= 1; s.foilCost = true; }   // Foil ohne Wertsteigerung: 1 Energie billiger
 }
 function upgradeHint(c){
   const k = upgradeKind(CARDS[c.key]);
@@ -3294,6 +3297,8 @@ Object.assign(SVG, {
   toxmutIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#2a4a0a" stroke="#111" stroke-width="2.5"/><path d="M14 32 Q11 22 16 17 Q13 11 18 8 Q24 6 27 10 Q30 15 26 19 Q31 24 27 32Z" fill="#7cd42a" stroke="#1a3a0a" stroke-width="1.6"/><circle cx="20" cy="17" r="3" fill="#1a3a0a"/></svg>`,
   toxmightIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#2a4a0a" stroke="#111" stroke-width="2.5"/><path d="M20 8 L23 17 H31 L25 22 L27 31 L20 26 L13 31 L15 22 L9 17 H17Z" fill="#b4f04a" stroke="#1a3a0a" stroke-width="1.6"/></svg>`,
   mutdoubleIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#5a0a2a" stroke="#111" stroke-width="2.5"/><text x="20" y="27" font-size="17" text-anchor="middle" font-weight="900" fill="#b4f04a">×2</text></svg>`,
+  venomTolIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#1a3a12" stroke="#111" stroke-width="2.5"/><path d="M20 8 Q28 18 28 24 A8 8 0 0 1 12 24 Q12 18 20 8Z" fill="#7ad84a" stroke="#1a3a12" stroke-width="1.5"/><path d="M20 19 V29 M15 24 H25" stroke="#fff" stroke-width="3"/></svg>`,
+  hourAwakeIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#1a1030" stroke="#111" stroke-width="2.5"/><circle cx="20" cy="20" r="13" fill="none" stroke="#c8b4ff" stroke-width="2"/><path d="M20 20 V10 M20 20 L27 24" stroke="#ffe07a" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="20" r="2.4" fill="#ffe07a"/></svg>`,
   plagueEngIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#3a4a2a" stroke="#111" stroke-width="2.5"/><circle cx="20" cy="20" r="8" fill="#7cd42a" stroke="#1a2a0a" stroke-width="2"/><rect x="18" y="6" width="4" height="6" fill="#7cd42a" stroke="#1a2a0a" stroke-width="1" transform="rotate(0 20 20)"/><rect x="18" y="6" width="4" height="6" fill="#7cd42a" stroke="#1a2a0a" stroke-width="1" transform="rotate(60 20 20)"/><rect x="18" y="6" width="4" height="6" fill="#7cd42a" stroke="#1a2a0a" stroke-width="1" transform="rotate(120 20 20)"/><rect x="18" y="6" width="4" height="6" fill="#7cd42a" stroke="#1a2a0a" stroke-width="1" transform="rotate(180 20 20)"/><rect x="18" y="6" width="4" height="6" fill="#7cd42a" stroke="#1a2a0a" stroke-width="1" transform="rotate(240 20 20)"/><rect x="18" y="6" width="4" height="6" fill="#7cd42a" stroke="#1a2a0a" stroke-width="1" transform="rotate(300 20 20)"/></svg>`,
   heartVenomIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#1a3a0a" stroke="#111" stroke-width="2.5"/><path d="M20 31 Q8 23 8 15 Q8 9 14 9 Q18 9 20 13 Q22 9 26 9 Q32 9 32 15 Q32 23 20 31Z" fill="#7cd42a" stroke="#0a1a04" stroke-width="1.8"/></svg>`,
   treasureIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#5a3a1a" stroke="#111" stroke-width="2.5"/><rect x="9" y="18" width="22" height="12" fill="#a06a32" stroke="#2a1a0a" stroke-width="1.6"/><path d="M9 18 Q20 8 31 18" fill="#c88a42" stroke="#2a1a0a" stroke-width="1.6"/><path d="M17 22 L20 19 L23 22 L20 25Z" fill="#4ae0ff"/></svg>`,
@@ -3327,7 +3332,7 @@ const STATUS = {
   rage:      {icon:'rageIcon',       flag:true, tip:() => `Rage: gains 1 Strength every time it is hit.`},
   split:     {icon:'splitIcon',      flag:true, tip:() => `Split: turns into two Slimelings when it dies.`},
   phase:     {icon:'intangibleIcon', flag:true, tip:() => `Phasing: becomes Intangible every other turn.`},
-  intangible:{icon:'intangibleIcon', flag:true, tip:() => `Intangible: every hit against it deals at most 1 damage this turn. Poison and Burn still work fully.`},
+  intangible:{icon:'intangibleIcon', flag:true, tip:() => `Intangible: all damage against it is reduced to 1 – hits, Poison, Burn and Nightmares.`},
   drained:   {icon:'drainIcon',      tip:n => `Drained: gets ${n} less Energy at the start of the next round.`},
   aegis:     {icon:'aegisIcon',      tip:n => `Aegis: a ${n}-point shield that absorbs damage before Block and HP. Break it before the Annihilation Beam fires!`},
   bond:      {icon:'bondIcon',       flag:true, tip:() => `Twin Bond: when the other twin dies, this one gains 5 Strength and heals.`},
@@ -3899,7 +3904,7 @@ const ELDRITCH_CARDS = {
   madwhisper:  {name:'Whisper of Madness', rarity:'common', spec:'acolyte', cost:1, sanityCost:5, type:'skill', weak:1, draw:1, corrupt:1, up:{draw:1},
     tiers:[[100, {vuln:1}, '+1 Vulnerable']]},
   clarity:     {name:'Moment of Clarity', rarity:'common', spec:'acolyte', cost:1, type:'skill', block:4, sanity:4, selfOnly:true, up:{sanity:1}},
-  trance:      {name:'Restful Trance',  rarity:'common', spec:'acolyte', cost:1, type:'skill', heal:2, sanity:3, selfOnly:true, up:{sanity:1}},
+  trance:      {name:'Restful Trance',  rarity:'common', spec:'acolyte', cost:1, type:'skill', heal:3, sanity:5, draw:1, selfOnly:true, up:{sanity:1}},
   lucidterror: {name:'Lucid Terror',    rarity:'common', spec:'acolyte', cost:1, sanityCost:10, type:'attack', dmg:10, hits:2, corrupt:1, up:{dmg:3},
     tiers:[[10, {dmg:-2}, '−2 damage'], [25, {dmg:-2}, '−2 damage'], [50, {dmg:-2}, '−2 damage'], [100, {hits:-1}, '−1 hit']]},
   deepmark:    {name:'Mark of the Deep', rarity:'common', spec:'acolyte', cost:1, type:'buff', buff:{key:'deepmark', n:1}, buffText:'Whenever you gain Corruption, gain 1 Block.', up:{buffN:1}, upText:'+1 Block'},
@@ -3915,8 +3920,8 @@ const ELDRITCH_CARDS = {
     up:{dmg:2}, upText:'+2 damage', tiers:[[100, {dmg:5}, '+5 damage']]},
   thousandeyes:{name:'Thousand Eyes',   rarity:'uncommon', spec:'acolyte', cost:2, sanityCost:7, type:'skill', weak:1, vuln:1, corrupt:2, up:{sanityCost:-2}, upText:'−2 Sanity cost',
     tiers:[[50, {debuffSplash:true}, 'also hits the neighbors'], [100, {debuffSplash:false, weak:-1, vuln:-1, weakAll:1, vulnAll:1}, 'hits ALL enemies']]},
-  isolation:   {name:'Isolation from Thoughts', rarity:'uncommon', spec:'acolyte', cost:3, type:'block', block:10, corrupt:-5, selfOnly:true, up:{block:2, corrupt:-1}, upText:'+2 Block, −1 more Corruption'},
-  evilthoughts:{name:'Evil Thoughts',   rarity:'uncommon', spec:'acolyte', cost:1, type:'skill', corrupt:1, followUp:{key:'evilthoughts', n:1, chance:0.5}, up:{followChance:0.2}, upText:'Follow up 70%',
+  isolation:   {name:'Isolation from Thoughts', rarity:'uncommon', spec:'acolyte', cost:3, type:'block', block:14, corrupt:-5, selfOnly:true, up:{block:2, corrupt:-1}, upText:'+2 Block, −1 more Corruption'},
+  evilthoughts:{name:'Evil Thoughts',   rarity:'uncommon', spec:'acolyte', cost:1, type:'skill', corrupt:1, draw:1, followUp:{key:'evilthoughts', n:1, chance:0.5}, up:{followChance:0.2}, upText:'Follow up 70%',
     tiers:[[100, {corrupt:-1, draw:2}, 'Corruption becomes draw 2']]},
 
   madoffering: {name:'Mad Offering',    rarity:'rare', spec:'acolyte', cost:1, sanityCost:5, type:'skill', energy:2, corrupt:1, up:{cost:-1},
@@ -3925,7 +3930,7 @@ const ELDRITCH_CARDS = {
     tiers:[[10, {dmg:2}, '+2 damage'], [25, {dmg:2}, '+2 damage'], [50, {dmg:2}, '+2 damage'], [100, {dmg:4}, '+4 damage']]},
   fleshforgotten:{name:'Flesh of the Forgotten', rarity:'rare', spec:'acolyte', cost:0, sanityCost:5, type:'skill', selfDmg:5, corrupt:-5, draw:1, up:{corrupt:-2}, upText:'−2 more Corruption',
     tiers:[[50, {selfDmg:5, corrupt:-5}, 'lose 5 more HP, −5 more Corruption']]},
-  steadfast:   {name:'Steadfast',       rarity:'rare', spec:'acolyte', cost:2, type:'skill', sanity:7, draw:1, selfOnly:true, up:{sanity:3}},
+  steadfast:   {name:'Steadfast',       rarity:'rare', spec:'acolyte', cost:1, type:'skill', sanity:7, draw:1, selfOnly:true, up:{sanity:3}},
   piercingtentacle:{name:'Piercing Tentacle', rarity:'rare', spec:'acolyte', cost:3, type:'attack', atk:'pierce', dmg:15, corrupt:1, up:{dmg:5},
     tiers:[[10, {dmg:5}, '+5 damage'], [25, {dmg:5}, '+5 damage'], [50, {dmg:5}, '+5 damage'], [100, {dmg:5}, '+5 damage']]},
   abyssalbinding:{name:'Abyssal Binding', rarity:'rare', spec:'acolyte', cost:2, sanityCost:5, type:'buff', buff:{key:'binding', n:5}, buffText:'Whenever your Sanity hits 0, gain 5 Block.', up:{initiate:true}, upText:'gains Initiate',
@@ -3933,7 +3938,7 @@ const ELDRITCH_CARDS = {
   unbrokenfaith:{name:'Unbroken Faith', rarity:'rare', spec:'acolyte', cost:0, sanityCost:10, type:'attack', atk:'front', dmg:15, corrupt:1, up:{dmg:5},
     tiers:[[10, {dmg:-1}, '−1 damage'], [25, {dmg:-1}, '−1 damage'], [50, {dmg:-1}, '−1 damage'], [100, {dmg:-3}, '−3 damage']]},
 
-  sanityhold:  {name:'Sanity Hold',     rarity:'epic', spec:'acolyte', cost:2, type:'skill', sanity:6, heal:6, corrupt:-6, selfOnly:true, up:{sanity:2, heal:2, corrupt:-2}, upText:'+2 to all values (−8 Corruption)'},
+  sanityhold:  {name:'Sanity Hold',     rarity:'epic', spec:'acolyte', cost:1, type:'skill', sanity:6, heal:6, corrupt:-6, selfOnly:true, up:{sanity:2, heal:2, corrupt:-2}, upText:'+2 to all values (−8 Corruption)'},
   gazeabyss:   {name:'Gaze into the Abyss', rarity:'epic', spec:'acolyte', cost:1, type:'skill', gaze:true, selfOnly:true, up:{cost:-1},
     tiers:[[100, {name:'Gaze into the Past'}, null]]},
   whisperingvoid:{name:'Whispering Void', rarity:'epic', spec:'acolyte', cost:2, sanityCost:5, type:'skill', energy:2, draw:2, up:{energy:1, draw:1}},
@@ -3968,7 +3973,7 @@ const ELDRITCH_CARDS = {
   dreamshard:  {name:'Dream Shard',       rarity:'uncommon', spec:'dreamweaver', cost:1, type:'attack', atk:'pierce', dmg:4, dream:3, up:{dmg:1, dream:1}, upText:'+1 damage, +1 Dream'},
   fadeout:     {name:'Fade Out',          rarity:'uncommon', spec:'dreamweaver', cost:2, type:'skill', collapse:{per:3, weakPer:2}, up:{cost:-1}, upText:'−1 cost'},
   luciddream:  {name:'Lucid Dream',       rarity:'uncommon', spec:'dreamweaver', cost:1, type:'skill', allyTarget:true, heal:4, allyDraw:2, up:{heal:1}, upText:'+1 Heal'},
-  restfulsleep:{name:'Restful Sleep',     rarity:'uncommon', spec:'dreamweaver', cost:2, type:'skill', allyTarget:true, heal:6, allyDraw:1, up:{heal:2}, upText:'+2 Heal'},
+  restfulsleep:{name:'Restful Sleep',     rarity:'uncommon', spec:'dreamweaver', cost:1, type:'skill', allyTarget:true, heal:6, allyDraw:1, up:{heal:2}, upText:'+2 Heal'},
   echostrike:  {name:'Echo Strike',       rarity:'uncommon', spec:'dreamweaver', cost:1, type:'attack', dmg:6, followUp:'sleeplessecho', up:{dmg:2}, upText:'+2 damage, Sleepless Echo upgraded'},
   sleeplessecho:{name:'Sleepless Echo',   rarity:'uncommon', spec:'dreamweaver', basic:true, token:true, cost:0, type:'attack', dmg:4, d4Weak:1, up:{dmg:2}, upText:'+2 damage'},
   premonition: {name:'Premonition',       rarity:'uncommon', spec:'dreamweaver', cost:1, type:'skill', delayed:true, delayDream:4, delayVuln:2, up:{delayDream:1}, upText:'+1 Dream'},
@@ -3983,7 +3988,7 @@ const ELDRITCH_CARDS = {
 
   unconscious: {name:'Collective Unconscious', rarity:'epic', spec:'dreamweaver', cost:3, type:'skill', allyTarget:true, heal:6, allyDraw:3, up:{heal:2}, upText:'+2 Heal'},
   devourdreams:{name:'Devour Dreams',     rarity:'epic', spec:'dreamweaver', cost:2, type:'skill', eatAll:{per:2, heal:1}, draw:1, up:{draw:1}, upText:'+1 card'},
-  dreameater:  {name:'Dream Eater',       rarity:'epic', spec:'dreamweaver', cost:2, type:'buff', buff:{key:'dreameater', n:1}, buffText:'Dream stacks up to 20 (Nightmare at 20). Nightmares deal double damage.', buffTextUp:'Dream stacks up to 20 (Nightmare at 20). Nightmares deal double damage and draw you 1 card.', up:{buffN:1}, upText:'also draw 1 card per Nightmare'},
+  dreameater:  {name:'Dream Eater',       rarity:'epic', spec:'dreamweaver', cost:2, type:'buff', buff:{key:'dreameater', n:1}, buffText:'Dream stacks up to 20 (Nightmare at 20). Nightmares deal double damage. Reality Distortion steps become 6+, 12+ and 18+.', buffTextUp:'Dream stacks up to 20 (Nightmare at 20). Nightmares deal double damage and draw you 1 card. Reality Distortion steps become 6+, 12+ and 18+.', up:{buffN:1}, upText:'also draw 1 card per Nightmare'},
   endlessdream:{name:'Endless Dream',     rarity:'epic', spec:'dreamweaver', cost:3, type:'skill', dreamAll:4, draw:1, up:{dreamAll:1}, upText:'+1 Dream'},
   nighthag:    {name:'Night Hag',         rarity:'epic', spec:'dreamweaver', cost:3, type:'attack', dmg:12, bleed:true, dream:2, up:{dmg:3, dream:1}, upText:'+3 damage, +1 Dream'},
   thousandecho:{name:'Thousandfold Echo', rarity:'epic', spec:'dreamweaver', cost:2, type:'attack', dmg:8, hits:2, followUp:'echoingassault', followIf7:{dmg:2}, up:{followN:1}, upText:'Echoing Assault twice'},
@@ -3996,7 +4001,7 @@ const ELDRITCH_CARDS = {
   dreamermustdie:{name:'The Dreamer Must Die',rarity:'legendary', spec:'dreamweaver', cost:3, type:'attack', atk:'pierce', dmg:30, d7Pct:0.5, nmBonus:{draw:2, energy:2}, up:{dmg:6}, upText:'+6 damage'},
   sleepingeyes:{name:'A Thousand Sleeping Eyes',rarity:'legendary', spec:'dreamweaver', cost:3, type:'buff', buff:{key:'sleepingeyes', n:1}, buffText:'Your attacks give enemies with Dream 1 more Dream. Every Nightmare draws you 1 card.', buffTextUp:'Your attacks give enemies with Dream 1 more Dream. Every Nightmare draws you 1 card and gives 1 Energy.', up:{buffN:1}, upText:'+1 Energy per Nightmare'},
   lucidgift:   {name:"Lucidity's Last Gift",rarity:'legendary', spec:'dreamweaver', cost:0, type:'skill', energy:2, draw:3, clearDreamAll:true, nmBlock:4, exhaust:true, up:{nmHeal:2}, upText:'+2 Heal per Nightmare'},
-  hourawakening:{name:'The Hour of Awakening',rarity:'legendary', spec:'dreamweaver', cost:3, type:'skill', delayed:true, delayAoe:18, up:{delayAoe:6}, upText:'+6 damage'},
+  hourawakening:{name:'The Hour of Awakening',rarity:'legendary', spec:'dreamweaver', cost:3, type:'buff', delayed:true, buff:{key:'hourAwake', n:18}, buffText:'from next round on, at the start of each of your turns, deal 18 damage to ALL enemies (each hit triggers Lingering Dreams).', up:{buffN:6}, upText:'24 damage'},
 
   // ---- Tidecaller: Depth & Servants ----
 };
@@ -4024,7 +4029,7 @@ Object.assign(STATUS, {
   corruption:   {icon:'corruptIcon', tip:n => `Corruption ${n}/100 (permanent): bonuses at 10 / 25 / 50 / 100. Sanity drains by ${Math.floor(n / 10)} per turn.`},
   corruptedMind:{icon:'mindIcon', flag:true, tip:(n, u) => u.hero ? 'Corrupted Mind: loses this turn and all Energy. Sanity is restored.' : 'Corrupted Mind: loses its next turn.'},
   dream:        {icon:'dreamIcon', tip:n => `Dream ${n}/${dreamCap()}: ${n >= 7 ? 'takes 25% more damage and deals 25% less' : n >= 4 ? 'deals 25% less damage' : 'harmless for now'}. At 10: Nightmare – loses 20% of its max HP (bosses 10%).`},
-  depth:        {icon:'depthIcon', tip:n => `Depth ${n}: summons Servants of the Deep (Spawn 2 · Healer 3 · Guardian, Assassin, Exploder 4 · Leviathan 8 · Sleeping One 10).`},
+  depth:        {icon:'depthIcon', tip:n => `Depth ${n}: used as a resource to summon creatures from the deep.`},
   instinct:     {icon:'instinctIcon', tip:n => `Abyssal Instincts (buff): every Servant he summons gains +${n} attack.`},
   commander:    {icon:'commanderIcon', tip:n => `Abyssal Commander (buff): every Servant he summons gains +${n} attack.`},
   mutation:     {icon:'mutationIcon', tip:n => `Abyssal Mutation (buff): whenever a Servant attacks, it gains +${n} attack. Servants with 20+ attack attack twice at the end of his turn.`},
@@ -4035,7 +4040,7 @@ Object.assign(STATUS, {
   restraint:    {icon:'restraintIcon', tip:n => `Eldritch Restraint (buff): whenever his Sanity hits 0, he gains ${n} Power.`},
   regain:       {icon:'regainIcon', tip:n => `Regain Control (buff): at the start of his turn he gains ${n} Sanity and loses ${n} Corruption.`},
   forbidden:    {icon:'forbiddenIcon', flag:true, tip:() => `The Forbidden One (buff): all his cards have Vanish and deal +0.5% damage per Corruption (now +${Math.round(corruptionOf() * 0.5)}%).`},
-  dreameater:   {icon:'dreameaterIcon', tip:n => `Dream Eater (buff): Dream on enemies stacks up to 20 – Nightmare at 20, and Nightmares deal double damage.${n >= 2 ? ' Draws 1 card whenever a Nightmare triggers.' : ''}`},
+  dreameater:   {icon:'dreameaterIcon', tip:n => `Dream Eater (buff): Dream on enemies stacks up to 20 – Nightmare at 20, and Nightmares deal double damage. Reality Distortion steps are 6+, 12+ and 18+.${n >= 2 ? ' Draws 1 card whenever a Nightmare triggers.' : ''}`},
   sleepingeyes: {icon:'sleepingeyesIcon', tip:n => `A Thousand Sleeping Eyes (buff): his attacks give enemies with Dream 1 more Dream. Whenever a Nightmare triggers, he draws 1 card${n >= 2 ? ' and gains 1 Energy' : ''}.`},
   voidembrace:  {icon:'voidembraceIcon', tip:n => `Embrace the Void (buff): whenever he loses Sanity, ALL enemies take ${n} damage.`},
 });
@@ -4161,7 +4166,9 @@ function nightmare(e){
   e.nmCount = (e.nmCount || 0) + 1; S.nmCount = (S.nmCount || 0) + 1;   // für Sleep Paralysis, The Dreamer Must Die, Lucidity's Last Gift
   nightmareSkull(e);
   floatText(e, 'NIGHTMARE!', 'crit-f'); retrigger(e.el, 'hit');
+  const nmPrev = S.actor, dw = heroList().find(x => x.spec === 'dreamweaver'); if(dw) S.actor = dw;   // Stats: Nightmare-Schaden zählt für den Dreamweaver
   loseHP(e, Math.round(e.maxHp * (e.boss ? NIGHTMARE_BOSS_PCT : NIGHTMARE_PCT) * (dreamEaterOn() ? 2 : 1) * (e.nmBoost || 1)), 'crit-f');
+  S.actor = nmPrev;
   delete e.nmBoost;   // % der max. HP, ignoriert Block
   if(e.hp <= 0) killEnemy(e);
   for(const x of living()){                                           // Buffs, die auf Nightmares reagieren
@@ -5415,18 +5422,18 @@ livingstorm:`<path d="M10 30 Q6 16 18 12 Q24 4 34 8 Q46 8 46 20 Q50 30 40 34 Q38
 addExpansion({
   cointoss:     {name:'Coin Toss',          rarity:'common',    spec:'thief', cost:0, type:'skill', draw:1, ax:{gold:3}, selfOnly:true, up:{ax:{gold:2}}, upText:'Gain 5 Gold'},
   pickpocket:   {name:'Pickpocket',         rarity:'common',    spec:'thief', cost:1, type:'attack', dmg:3, ax:{gold:4}, up:{dmg:2, ax:{gold:1}}, upText:'5 damage, steal 5 Gold'},
-  lightfingers: {name:'Light Fingers',      rarity:'common',    spec:'thief', cost:1, type:'skill', ax:{gold:5}, selfOnly:true, up:{ax:{gold:2}}, upText:'Gain 7 Gold'},
+  lightfingers: {name:'Light Fingers',      rarity:'common',    spec:'thief', cost:1, type:'skill', ax:{gold:5}, draw:1, selfOnly:true, up:{ax:{gold:2}}, upText:'Gain 7 Gold'},
   quicktrade:   {name:'Quick Trade',        rarity:'common',    spec:'thief', cost:1, type:'skill', energy:1, draw:1, ax:{spend:5}, selfOnly:true, up:{energy:1}, upText:'Gain 2 Energy'},
   tcheapshot:   {name:'Gilded Jab',         rarity:'common',    spec:'thief', cost:0, type:'attack', dmg:3, ax:{g50Dmg:3, g150Dmg:6}, up:{dmg:1, ax:{g50Dmg:1, g150Dmg:2}}, upText:'4 damage, bonus 4/8'},
   distraction:  {name:'Distraction',        rarity:'common',    spec:'thief', cost:1, type:'skill', weakAll:1, up:{weakAll:1}, upText:'2 Weak'},
-  stolenpouch:  {name:'Stolen Pouch',       rarity:'common',    spec:'thief', cost:1, type:'skill', ax:{gold:8}, selfOnly:true, up:{ax:{gold:4}}, upText:'Gain 12 Gold'},
+  stolenpouch:  {name:'Stolen Pouch',       rarity:'common',    spec:'thief', cost:1, type:'skill', ax:{gold:8}, draw:1, selfOnly:true, up:{ax:{gold:4}}, upText:'Gain 12 Gold'},
   duckroll:     {name:'Duck and Roll',      rarity:'common',    spec:'thief', cost:1, type:'block', block:5, ax:{g50Block:2, g150Block:4}, up:{block:2, ax:{g50Block:1, g150Block:1}}, upText:'7 Block, bonus 3/5'},
   cutpurse:     {name:'Cutpurse',           rarity:'uncommon',  spec:'thief', cost:2, type:'attack', dmg:2, hits:3, ax:{goldHit:3}, up:{dmg:1, ax:{goldHit:1}}, upText:'3 damage, 4 Gold per hit'},
   goldsack:     {name:'Gold Sack Swing',    rarity:'uncommon',  spec:'thief', cost:2, type:'attack', dmg:8, ax:{g50Dmg:4, g150Dmg:8}, up:{dmg:3, ax:{g50Dmg:1, g150Dmg:2}}, upText:'11 damage, bonus 5/10'},
   loadeddice:   {name:'Loaded Dice',        rarity:'uncommon',  spec:'thief', cost:1, type:'skill', draw:2, ax:{g50Energy:1, g150Draw:1}, selfOnly:true, up:{draw:1}, upText:'Draw 3 cards'},
   mug:          {name:'Mug',                rarity:'uncommon',  spec:'thief', cost:2, type:'attack', dmg:6, ax:{gold:8, killGold:10}, up:{dmg:2, ax:{gold:2}}, upText:'8 damage, steal 10 Gold'},
   shadowinvest: {name:'Shadow Investment',  rarity:'uncommon',  spec:'thief', cost:1, type:'skill', ax:{spend:20, invest:3, investDmg:4}, selfOnly:true, up:{ax:{spend:-5, investDmg:1}}, upText:'Spend 15 Gold, +5 damage'},
-  smokeescape:  {name:'Smokescreen Escape', rarity:'uncommon',  spec:'thief', cost:1, type:'skill', weakAll:1, invis:true, selfOnly:true, up:{weakAll:1}, upText:'2 Weak'},
+  smokeescape:  {name:'Smokescreen Escape', rarity:'uncommon',  spec:'thief', cost:1, type:'skill', weak:1, invis:true, up:{weak:1}, upText:'2 Weak'},
   greedystrike: {name:'Greedy Strike',      rarity:'uncommon',  spec:'thief', cost:2, type:'attack', dmg:5, ax:{gold:10, goldPer:25, goldMax:8}, up:{dmg:2, ax:{gold:2, goldMax:2}}, upText:'7 damage, 12 Gold, max +10'},
   fence:        {name:'Fence the Goods',    rarity:'rare',      spec:'thief', cost:0, type:'skill', exhaust:true, ax:{gold:25}, selfOnly:true, up:{ax:{gold:10}}, upText:'Gain 35 Gold'},
   goldendagger: {name:'Golden Dagger',      rarity:'rare',      spec:'thief', cost:2, type:'attack', dmg:9, crit:true, ax:{g50Dmg:4, g150Dmg:8}, up:{dmg:3, ax:{g50Dmg:1, g150Dmg:2}}, upText:'12 damage, bonus 5/10'},
@@ -5445,7 +5452,7 @@ addExpansion({
   kingsransom:  {name:"King's Ransom",      rarity:'legendary', spec:'thief', cost:4, type:'attack', dmg:12, hits:3, exhaust:true, ax:{goldHit:10}, up:{dmg:3, ax:{goldHit:5}}, upText:'15 damage, 15 Gold per hit'},
   kingsvault:   {name:"The King's Vault",   rarity:'legendary', spec:'thief', cost:3, type:'skill', energy:3, draw:4, block:15, exhaust:true, ax:{spend:75}, selfOnly:true, up:{draw:1, block:5, ax:{spend:-25}}, upText:'Spend 50 Gold, draw 5, 20 Block'},
   goldencontract:{name:'Golden Contract',   rarity:'legendary', spec:'thief', cost:2, type:'skill', exhaust:true, ax:{gold:40, contract:10}, selfOnly:true, up:{ax:{gold:10, contract:5}}, upText:'50 Gold, +15 damage per hit'},
-  millionaire:  {name:"Millionaire's Gambit", rarity:'legendary', spec:'thief', cost:3, type:'attack', dmg:5, ax:{spendUpTo:100, hitsPer:20}, up:{dmg:2}, upText:'7 damage per hit'},
+  millionaire:  {name:"Millionaire's Gambit", rarity:'legendary', spec:'thief', cost:3, type:'attack', dmg:8, ax:{spendUpTo:100, hitsPer:20}, up:{dmg:2}, upText:'10 damage per hit'},
   goldenempire: {name:'The Golden Empire',  rarity:'legendary', spec:'thief', cost:4, type:'buff', buff:{key:'empire', n:2}, buffText:'Gain 2 Gold per card played. +1 damage per hit per 50 Gold, +2 more at 200+ Gold.',
                  buffTextUp:'Gain <b class="up">3</b> Gold per card played. +1 damage per hit per 50 Gold, <b class="up">+3</b> more at 200+ Gold.', up:{buffN:1}, upText:'3 Gold per card, +3 at 200 Gold'},
 }, {
@@ -5494,45 +5501,45 @@ smokebomb:`<circle cx="20" cy="32" r="12" fill="#2a2a32" stroke="#6a6a7a" stroke
 });
 /* ===== Executioner ===== */
 addExpansion({
-  nightblade:   {name:'Night Blade',        rarity:'common',    spec:'assassin', cost:1, type:'attack', dmg:4, crit:true, up:{dmg:2}, upText:'6 damage'},
+  nightblade:   {name:'Night Blade',        rarity:'common',    spec:'assassin', cost:1, type:'attack', dmg:5, crit:true, up:{dmg:2}, upText:'7 damage'},
   shadowstep:   {name:'Shadow Step',        rarity:'common',    spec:'assassin', cost:1, type:'skill', invis:true, draw:1, selfOnly:true, up:{draw:1}, upText:'Draw 2 cards'},
-  throatslit:   {name:'Throat Slit',        rarity:'common',    spec:'assassin', cost:2, type:'attack', dmg:6, ax:{invisDmg:6}, up:{dmg:2, ax:{invisDmg:2}}, upText:'8 damage, bonus 8'},
+  throatslit:   {name:'Throat Slit',        rarity:'common',    spec:'assassin', cost:2, type:'attack', dmg:7, ax:{invisDmg:6}, up:{dmg:2, ax:{invisDmg:2}}, upText:'9 damage, bonus 8'},
   markweak:     {name:'Mark the Weak',      rarity:'common',    spec:'assassin', cost:1, type:'skill', vuln:1, ax:{toBack:1}, up:{vuln:1}, upText:'2 Vulnerable'},
   silentapproach:{name:'Silent Approach',   rarity:'common',    spec:'assassin', cost:1, type:'skill', ax:{sapproach:1}, selfOnly:true, up:{ax:{retain:1}}, upText:'Retain'},
-  quickexec:    {name:'Quick Execution',    rarity:'common',    spec:'assassin', cost:1, type:'attack', atk:'back', dmg:6, up:{dmg:3}, upText:'9 damage'},
+  quickexec:    {name:'Quick Execution',    rarity:'common',    spec:'assassin', cost:1, type:'attack', atk:'back', dmg:7, up:{dmg:3}, upText:'10 damage'},
   fade:         {name:'Fade',               rarity:'common',    spec:'assassin', cost:1, type:'skill', invis:true, ax:{fade:1}, selfOnly:true, up:{draw:1}, upText:'Draw 1 card'},
-  ambush:       {name:'Ambush',             rarity:'common',    spec:'assassin', cost:1, type:'attack', atk:'back', dmg:5, ax:{invisDmg:5}, up:{dmg:2, ax:{invisDmg:2}}, upText:'7 damage, bonus 7'},
+  ambush:       {name:'Ambush',             rarity:'common',    spec:'assassin', cost:1, type:'attack', atk:'back', dmg:6, ax:{invisDmg:5}, up:{dmg:2, ax:{invisDmg:2}}, upText:'8 damage, bonus 7'},
   fanblades:    {name:'Fan of Blades',      rarity:'uncommon',  spec:'assassin', cost:2, type:'attack', dmg:3, hits:3, random:true, crit:true, up:{dmg:1}, upText:'4 damage per hit'},
   markdeath:    {name:'Mark for Death',     rarity:'uncommon',  spec:'assassin', cost:1, type:'skill', vuln:2, draw:1, ax:{toBack:1}, up:{vuln:1}, upText:'3 Vulnerable'},
-  silentkill:   {name:'Silent Kill',        rarity:'uncommon',  spec:'assassin', cost:3, type:'attack', atk:'back', dmg:10, execute:true, up:{dmg:4}, upText:'14 damage'},
+  silentkill:   {name:'Silent Kill',        rarity:'uncommon',  spec:'assassin', cost:2, type:'attack', atk:'back', dmg:12, execute:true, up:{dmg:4}, upText:'16 damage'},
   umbralcloak:  {name:'Umbral Cloak',       rarity:'uncommon',  spec:'assassin', cost:2, type:'block', block:5, invis:true, selfOnly:true, up:{block:3}, upText:'8 Block'},
-  blinkstrike:  {name:'Blink Strike',       rarity:'uncommon',  spec:'assassin', cost:2, type:'attack', atk:'back', dmg:7, returnOnKill:true, up:{dmg:3}, upText:'10 damage'},
-  openwound:    {name:'Combo: Open Wound',  rarity:'uncommon',  spec:'assassin', cost:1, type:'attack', dmg:5, followUp:'expose', ax:{comboVuln:1}, up:{}, upText:'Expose upgraded'},
-  expose:       {name:'Expose',             rarity:'uncommon',  spec:'assassin', basic:true, token:true, cost:0, type:'attack', atk:'back', dmg:3, ax:{vulnTwice:1}, up:{dmg:2}, upText:'5 damage'},
+  blinkstrike:  {name:'Blink Strike',       rarity:'uncommon',  spec:'assassin', cost:2, type:'attack', atk:'back', dmg:9, returnOnKill:true, up:{dmg:3}, upText:'12 damage'},
+  openwound:    {name:'Combo: Open Wound',  rarity:'uncommon',  spec:'assassin', cost:1, type:'attack', dmg:6, followUp:'expose', ax:{comboVuln:1}, up:{}, upText:'Expose upgraded'},
+  expose:       {name:'Expose',             rarity:'uncommon',  spec:'assassin', basic:true, token:true, cost:0, type:'attack', atk:'back', dmg:4, ax:{vulnTwice:1}, up:{dmg:2}, upText:'6 damage'},
   shadowdance:  {name:'Combo: Shadow Dance', rarity:'uncommon', spec:'assassin', cost:1, type:'skill', invis:true, followUp:'shadowjab', ax:{manaIfN:2, manaIfE:1}, selfOnly:true, up:{}, upText:'Shadow Jab upgraded'},
-  shadowjab:    {name:'Shadow Jab',         rarity:'uncommon',  spec:'assassin', basic:true, token:true, cost:1, type:'attack', atk:'back', dmg:7, ax:{drawIfMana:1}, up:{dmg:3}, upText:'10 damage'},
+  shadowjab:    {name:'Shadow Jab',         rarity:'uncommon',  spec:'assassin', basic:true, token:true, cost:1, type:'attack', atk:'back', dmg:8, ax:{drawIfMana:1}, up:{dmg:3}, upText:'11 damage'},
   deathblossom: {name:'Death Blossom',      rarity:'rare',      spec:'assassin', cost:3, type:'attack', dmg:3, hits:3, aoe:true, crit:true, up:{dmg:2}, upText:'5 damage per hit'},
   phantomform:  {name:'Phantom Form',       rarity:'rare',      spec:'assassin', cost:2, type:'skill', invis:true, energy:2, selfOnly:true, up:{draw:1}, upText:'Draw 1 card'},
   serrated:     {name:'Serrated Edge',      rarity:'rare',      spec:'assassin', cost:2, type:'attack', atk:'back', dmg:3, hits:3, ax:{hitVuln:1}, up:{dmg:1}, upText:'4 damage per hit'},
   twinassassins:{name:'Combo: Twin Assassins', rarity:'rare',   spec:'assassin', cost:2, type:'attack', atk:'back', dmg:5, hits:2, followUp:'execmark', up:{}, upText:"Executioner's Mark upgraded"},
   execmark:     {name:"Executioner's Mark", rarity:'rare',      spec:'assassin', basic:true, token:true, cost:1, type:'attack', atk:'back', dmg:5, hits:2, crit:true, ax:{backVuln:2}, up:{dmg:2}, upText:'7 damage per hit'},
   ghostchain:   {name:'Combo: Ghost Chain', rarity:'rare',      spec:'assassin', cost:1, type:'skill', invis:true, draw:1, followUp:'phantomstrike', ax:{manaIfN:3, manaIfE:1}, selfOnly:true, up:{}, upText:'Phantom Strike upgraded'},
-  phantomstrike:{name:'Phantom Strike',     rarity:'rare',      spec:'assassin', basic:true, token:true, cost:1, type:'attack', atk:'back', dmg:10, ax:{keepInvis:1}, up:{dmg:5}, upText:'15 damage'},
-  huntersmark:  {name:"Hunter's Mark",      rarity:'rare',      spec:'assassin', cost:2, type:'skill', ax:{toBack:1, hunt:5}, up:{ax:{hunt:3}}, upText:'+8 damage'},
+  phantomstrike:{name:'Phantom Strike',     rarity:'rare',      spec:'assassin', basic:true, token:true, cost:1, type:'attack', atk:'back', dmg:11, ax:{keepInvis:1}, up:{dmg:5}, upText:'16 damage'},
+  huntersmark:  {name:"Hunter's Mark",      rarity:'rare',      spec:'assassin', cost:2, type:'buff', buff:{key:'hunterBuff', n:8}, buffText:'Until the end of the fight: your Back Attacks deal 8 more damage.', up:{buffN:3}, upText:'+11 damage'},
   assnwindow:   {name:'Assassination Window', rarity:'rare',    spec:'assassin', cost:2, type:'skill', invis:true, ax:{window:100}, selfOnly:true, up:{ax:{window:50}}, upText:'+150% damage'},
-  contractkill: {name:'Contract Kill',      rarity:'epic',      spec:'assassin', cost:4, type:'attack', atk:'back', dmg:14, execute:true, ax:{returnCopy:1}, up:{dmg:4}, upText:'18 damage'},
+  contractkill: {name:'Contract Kill',      rarity:'epic',      spec:'assassin', cost:3, type:'attack', atk:'back', dmg:15, execute:true, ax:{returnCopy:1}, up:{dmg:4}, upText:'19 damage'},
   shadowclone:  {name:'Shadow Clone',       rarity:'epic',      spec:'assassin', cost:3, type:'attack', dmg:4, hits:3, random:true, crit:true, invis:true, up:{dmg:2}, upText:'6 damage per hit'},
   silentnight:  {name:'Silent Night',       rarity:'epic',      spec:'assassin', cost:2, type:'skill', weakAll:2, invis:true, selfOnly:true, up:{weakAll:1}, upText:'3 Weak'},
   veilnight:    {name:'Veil of Night',      rarity:'epic',      spec:'assassin', cost:3, type:'block', blockAll:8, invis:true, draw:1, up:{blockAll:3}, upText:'11 Block'},
-  killingrhythm:{name:'Combo: Killing Rhythm', rarity:'epic',   spec:'assassin', cost:2, type:'skill', followUp:'rhythmicstrike', ax:{rhythm:1, fuNeed:3}, selfOnly:true, up:{}, upText:'Rhythmic Strike upgraded'},
+  killingrhythm:{name:'Combo: Killing Rhythm', rarity:'epic',   spec:'assassin', cost:1, type:'skill', followUp:'rhythmicstrike', ax:{rhythm:1, fuNeed:3}, selfOnly:true, up:{}, upText:'Rhythmic Strike upgraded'},
   rhythmicstrike:{name:'Rhythmic Strike',   rarity:'epic',      spec:'assassin', basic:true, token:true, cost:2, type:'attack', atk:'back', dmg:6, hits:2, up:{dmg:2}, upText:'8 damage per hit'},
-  deathsentence:{name:'Death Sentence',     rarity:'epic',      spec:'assassin', cost:2, type:'skill', ax:{toBack:1, sentN:3, sentDmg:4, sentCrit:6}, up:{ax:{sentN:1, sentDmg:1, sentCrit:2}}, upText:'4 attacks, +5 / Crit +8'},
-  execfinale:   {name:"Executioner's Finale", rarity:'epic',    spec:'assassin', cost:3, type:'attack', atk:'back', dmg:8, ax:{perCard:3, invisDouble:1}, up:{dmg:4, ax:{perCard:1}}, upText:'12 damage, +4 per card'},
-  assassinate:  {name:'Assassinate',        rarity:'legendary', spec:'assassin', cost:4, type:'attack', atk:'back', dmg:11, crit:true, soloMult:2, up:{dmg:3}, upText:'14 damage'},
+  deathsentence:{name:'Death Sentence',     rarity:'epic',      spec:'assassin', cost:2, type:'skill', ax:{toBack:1, sentN:3, sentDmg:6, sentCrit:9}, up:{ax:{sentN:1, sentDmg:1, sentCrit:2}}, upText:'4 attacks, +7 / Crit +11'},
+  execfinale:   {name:"Executioner's Finale", rarity:'epic',    spec:'assassin', cost:3, type:'attack', atk:'back', dmg:9, ax:{perCard:3, invisDouble:1}, up:{dmg:4, ax:{perCard:1}}, upText:'13 damage, +4 per card'},
+  assassinate:  {name:'Assassinate',        rarity:'legendary', spec:'assassin', cost:4, type:'attack', atk:'back', dmg:12, crit:true, soloMult:2, up:{dmg:3}, upText:'15 damage'},
   thousandcuts: {name:'Thousand Cuts',      rarity:'legendary', spec:'assassin', cost:5, type:'attack', dmg:2, hits:8, random:true, crit:true, up:{dmg:1}, upText:'3 damage per hit'},
   danceofdeath: {name:'Dance of Death',     rarity:'legendary', spec:'assassin', cost:3, type:'skill', invis:true, followUp:'deathwaltz', ax:{danceDiv:3}, selfOnly:true, up:{ax:{danceDiv:-1}}, upText:'1 Energy per 2 cards, Death Waltz upgraded'},
   deathwaltz:   {name:'Death Waltz',        rarity:'legendary', spec:'assassin', basic:true, token:true, cost:1, type:'attack', atk:'back', dmg:5, hits:3, up:{dmg:2}, upText:'7 damage per hit'},
-  finalexec:    {name:'Final Execution',    rarity:'legendary', spec:'assassin', cost:3, type:'attack', atk:'back', dmg:15, ax:{perCard:5, perCardMax:10, invisDouble:1, killMana:1, killCard:1, killInvis:1}, up:{dmg:5, ax:{perCard:1}}, upText:'20 damage, +6 per card'},
+  finalexec:    {name:'Final Execution',    rarity:'legendary', spec:'assassin', cost:3, type:'attack', atk:'back', dmg:16, ax:{perCard:5, perCardMax:10, invisDouble:1, killMana:1, killCard:1, killInvis:1}, up:{dmg:5, ax:{perCard:1}}, upText:'21 damage, +6 per card'},
   phantomreaper:{name:'Phantom Reaper',     rarity:'legendary', spec:'assassin', cost:3, type:'attack', atk:'back', dmg:8, hits:3, ax:{firstMult:2}, up:{dmg:2, ax:{firstMult:1}}, upText:'10 damage, first hit triple'},
 }, {
 nightblade:`<circle cx="38" cy="14" r="9" fill="#e8e0c0"/><circle cx="42" cy="11" r="8" fill="#1a1a2a"/><path d="M8 46 L32 18" stroke="#9aa0ac" stroke-width="4" stroke-linecap="round"/><path d="M10 44 L30 20" stroke="#e8ecf4" stroke-width="1.4"/><path d="M6 40 L14 48" stroke="#4a3a5a" stroke-width="3"/>`,
@@ -5591,22 +5598,23 @@ addExpansion({
   fester:       {name:'Fester',             rarity:'uncommon',  spec:'deathbringer', cost:2, type:'attack', dmg:5, ax:{pDmg:6, pDraw:1}, up:{dmg:3, ax:{pDmg:2}}, upText:'8 damage, bonus 8'},
   plaguerat:    {name:'Plague Rat',         rarity:'uncommon',  spec:'deathbringer', cost:2, type:'skill', poison:5, weak:1, up:{poison:2, weak:1}, upText:'7 Poison, 2 Weak'},
   venomsac:     {name:'Venom Sacrifice',    rarity:'uncommon',  spec:'deathbringer', cost:1, type:'skill', poison:8, ax:{selfPoison:4}, up:{poison:4, ax:{selfPoison:1}}, upText:'5 on you, 12 on the enemy'},
-  toxicamp:     {name:'Toxic Amplifier',    rarity:'uncommon',  spec:'deathbringer', cost:1, type:'skill', ax:{amp:50, needT:1}, up:{ax:{amp:50}}, upText:'+100%'},
+  toxicamp:     {name:'Toxic Amplifier',    rarity:'uncommon',  spec:'deathbringer', cost:1, type:'skill', poison:2, ax:{amp:50, needT:1}, up:{ax:{amp:50}}, upText:'+100%'},
+  venomtol:     {name:'Venom Tolerance',    rarity:'uncommon',  spec:'deathbringer', cost:1, type:'buff', buff:{key:'venomTol', n:2}, buffText:'Until the end of the fight: at the end of each round in which you are Poisoned, heal 2 HP.', up:{buffN:1}, upText:'Heal 3'},
   venomcarapace:{name:'Venom Carapace',     rarity:'uncommon',  spec:'deathbringer', cost:2, type:'block', ax:{blockPois:1, needT:1}, up:{cost:-1}, upText:'Costs 1'},
   miasmashroud: {name:'Miasma Shroud',      rarity:'epic',      spec:'deathbringer', cost:2, type:'block', selfOnly:true, ax:{blockPoisAll:1}, up:{draw:1}, upText:'Draw 1 card'},
   causticblade: {name:'Caustic Blade',      rarity:'uncommon',  spec:'deathbringer', cost:2, type:'attack', dmg:5, poison:3, ax:{spDmg:4}, up:{dmg:2, poison:1, ax:{spDmg:2}}, upText:'7 damage, 4 Poison, bonus 6'},
   gravegas:     {name:'Grave Gas',          rarity:'rare',      spec:'deathbringer', cost:2, type:'skill', poison:4, poisonPop:true, up:{poison:2}, upText:'6 Poison'},
   necrotouch:   {name:'Necrotic Touch',     rarity:'rare',      spec:'deathbringer', cost:2, type:'attack', dmg:6, poison:6, up:{dmg:3, poison:2}, upText:'9 damage, 8 Poison'},
   pestilence:   {name:'Pestilence',         rarity:'rare',      spec:'deathbringer', cost:3, type:'attack', dmg:3, aoe:true, poisonAll:4, up:{dmg:2, poisonAll:2}, upText:'5 damage, 6 Poison'},
-  rotward:      {name:'Rot Ward',           rarity:'rare',      spec:'deathbringer', cost:2, type:'block', block:8, poisonAll:1, up:{block:3, poisonAll:1}, upText:'11 Block, 2 Poison'},
+  rotward:      {name:'Rot Ward',           rarity:'rare',      spec:'deathbringer', cost:2, type:'block', block:8, heal:2, poisonAll:1, up:{block:3, poisonAll:1}, upText:'11 Block, 2 Poison'},
   toxicburst:   {name:'Toxic Burst',        rarity:'rare',      spec:'deathbringer', cost:1, type:'skill', poison:12, exhaust:true, up:{poison:4}, upText:'16 Poison'},
-  poisonextract:{name:'Poison Extraction',  rarity:'rare',      spec:'deathbringer', cost:2, type:'skill', ax:{extract:150, needT:1}, up:{ax:{extract:25}}, upText:'175%'},
-  bloodcatalyst:{name:'Blood Catalyst',     rarity:'rare',      spec:'deathbringer', cost:2, type:'skill', ax:{selfPoison:6, catN:3, catP:3}, selfOnly:true, up:{ax:{selfPoison:2, catP:1}}, upText:'8 Poison on you, 4 Poison'},
+  poisonextract:{name:'Poison Extraction',  rarity:'rare',      spec:'deathbringer', cost:2, type:'skill', ax:{extract:175, needT:1}, up:{ax:{extract:25}}, upText:'200%'},
+  bloodcatalyst:{name:'Blood Catalyst',     rarity:'rare',      spec:'deathbringer', cost:1, type:'skill', ax:{selfPoison:6, catN:3, catP:3}, selfOnly:true, up:{ax:{selfPoison:2, catP:1}}, upText:'8 Poison on you, 4 Poison'},
   blackdeath:   {name:'Black Death',        rarity:'epic',      spec:'deathbringer', cost:4, type:'skill', poisonAll:10, up:{poisonAll:4}, upText:'14 Poison'},
   carrionswarm: {name:'Carrion Swarm',      rarity:'epic',      spec:'deathbringer', cost:3, type:'attack', dmg:6, hits:2, random:true, poison:1, up:{hits:1, poison:1}, upText:'3 hits, 2 Poison per hit'},
   deathsdoor:   {name:"Death's Door",       rarity:'epic',      spec:'deathbringer', cost:2, type:'skill', poisonTrigger:true, draw:1, up:{draw:1}, upText:'Draw 2 cards'},
   venomlord:    {name:'Venom Lord',         rarity:'epic',      spec:'deathbringer', cost:3, type:'buff', buff:{key:'venomEdge', n:1}, buffText:'Your attack hits apply 1 extra Poison.', up:{buffN:1}, upText:'2 Poison per hit'},
-  toxiceruption:{name:'Toxic Eruption',     rarity:'epic',      spec:'deathbringer', cost:4, type:'skill', ax:{extractAll:175}, up:{ax:{extractAll:25}}, upText:'200%'},
+  toxiceruption:{name:'Toxic Eruption',     rarity:'epic',      spec:'deathbringer', cost:4, type:'skill', ax:{extractAll:200}, up:{ax:{extractAll:25}}, upText:'225%'},
   selfmutation: {name:'Self-Inflicted Mutation', rarity:'epic', spec:'deathbringer', cost:2, type:'buff', buff:{key:'toxmut', n:2}, ax:{mutThr:10}, buffText:'When Poison is applied to you: +2 damage per hit. 10 self-inflicted Poison: double damage.',
                  buffTextUp:'When Poison is applied to you: <b class="up">+3</b> damage per hit. <b class="up">8</b> self-inflicted Poison: double damage.', up:{buffN:1, ax:{mutThr:-2}}, upText:'+3 per trigger, threshold 8'},
   plagueengine: {name:'Plague Engine',      rarity:'epic',      spec:'deathbringer', cost:3, type:'buff', buff:{key:'plagueEng', n:3}, buffText:'At the end of your turn, each Poisoned enemy gains 3 Poison (+2 more if you are Poisoned).',
@@ -5614,7 +5622,7 @@ addExpansion({
   hollowdeath:  {name:'Hollow Death',       rarity:'legendary', spec:'deathbringer', cost:3, type:'attack', dmg:6, poison:10, poisonDouble:true, up:{dmg:4, poison:2}, upText:'10 damage, 12 Poison'},
   plagueofages: {name:'Plague of Ages',     rarity:'legendary', spec:'deathbringer', cost:5, type:'skill', poisonAll:14, weakAll:2, exhaust:true, up:{poisonAll:6, weakAll:1}, upText:'20 Poison, 3 Weak'},
   plaguetouch:  {name:"Plaguelord's Touch", rarity:'legendary', spec:'deathbringer', cost:1, type:'skill', poisonDouble:true, exhaust:true, up:{ax:{pmult:2.5}}, upText:'×2.5 instead'},
-  pandemic:     {name:'Pandemic',           rarity:'legendary', spec:'deathbringer', cost:4, type:'skill', ax:{extract:150, spreadPct:50, needT:1}, up:{ax:{extract:50, spreadPct:25}}, upText:'200%, spread 75%'},
+  pandemic:     {name:'Pandemic',           rarity:'legendary', spec:'deathbringer', cost:4, type:'skill', ax:{extract:225, spreadPct:50, needT:1}, up:{ax:{extract:50, spreadPct:25}}, upText:'275%, spread 75%'},
   heartvenom:   {name:'Heart of Venom',     rarity:'legendary', spec:'deathbringer', cost:3, type:'buff', buff:{key:'heartVenom', n:2}, buffText:'Poisoning an enemy poisons you by 1. At 10 self-inflicted Poison: use it up, gain 2 Energy, draw 2.',
                  buffTextUp:'Poisoning an enemy poisons you by 1. At <b class="up">8</b> self-inflicted Poison: use it up, gain <b class="up">3</b> Energy, draw <b class="up">3</b>.', up:{buffN:1}, upText:'Threshold 8, 3 Energy, draw 3'},
 }, {
@@ -5632,6 +5640,7 @@ fester:`<circle cx="27" cy="27" r="20" fill="#5a6a2a" stroke="#2a3a0a" stroke-wi
 plaguerat:`<ellipse cx="26" cy="32" rx="16" ry="10" fill="#6a6a5a" stroke="#2a2a1a" stroke-width="1.6"/><circle cx="40" cy="26" r="7" fill="#7a7a6a" stroke="#2a2a1a" stroke-width="1.4"/><circle cx="43" cy="24" r="1.6" fill="#ff3a3a"/><path d="M46 28 l5 1" stroke="#2a2a1a" stroke-width="1"/><circle cx="36" cy="20" r="3" fill="#9a8a8a"/><path d="M10 34 Q2 30 4 20" stroke="#9a8a7a" stroke-width="2" fill="none"/><circle cx="18" cy="28" r="2.4" fill="#9dff4a"/><circle cx="26" cy="34" r="2.4" fill="#9dff4a"/><circle cx="30" cy="28" r="2.4" fill="#9dff4a"/>`,
 venomsac:`<path d="M27 46 Q8 34 8 20 Q8 10 18 10 Q24 10 27 16 Q30 10 36 10 Q46 10 46 20 Q46 34 27 46Z" fill="#a82a3a" stroke="#3a0a12" stroke-width="2"/><path d="M27 16 Q24 28 27 40" stroke="#7cd42a" stroke-width="3" fill="none"/><path transform="translate(18 22) scale(0.6)" d="M0 -9 Q7 0 7 4 A7 7 0 0 1 -7 4 Q-7 0 0 -9Z" fill="#7cd42a" stroke="#2f5a0c" stroke-width="1.6"/><path transform="translate(36 22) scale(0.6)" d="M0 -9 Q7 0 7 4 A7 7 0 0 1 -7 4 Q-7 0 0 -9Z" fill="#7cd42a" stroke="#2f5a0c" stroke-width="1.6"/>`,
 toxicamp:`<path d="M6 24 H14 L28 12 V42 L14 30 H6Z" fill="#4a5a3a" stroke="#1a2a0a" stroke-width="2" stroke-linejoin="round"/><path d="M34 18 Q40 27 34 36 M40 12 Q50 27 40 42" stroke="#7cd42a" stroke-width="3" fill="none" stroke-linecap="round"/><path transform="translate(18 27) scale(0.6)" d="M0 -9 Q7 0 7 4 A7 7 0 0 1 -7 4 Q-7 0 0 -9Z" fill="#7cd42a" stroke="#2f5a0c" stroke-width="1.6"/>`,
+venomtol:`<circle cx="27" cy="27" r="20" fill="#14301a" stroke="#0a1a0c" stroke-width="2"/><path d="M27 8 Q40 24 40 32 A13 13 0 0 1 14 32 Q14 24 27 8Z" fill="#5ab82a" stroke="#1a3a10" stroke-width="2"/><path d="M27 8 Q34 20 35 27" stroke="#b8ff8a" stroke-width="2" fill="none"/><rect x="23.5" y="22" width="7" height="20" rx="2" fill="#f4fff0"/><rect x="17" y="28.5" width="20" height="7" rx="2" fill="#f4fff0"/><circle cx="15" cy="16" r="2" fill="#9dff4a"/><circle cx="41" cy="14" r="1.6" fill="#9dff4a"/>`,
 venomcarapace:`<path d="M27 4 L46 12 Q48 32 27 50 Q6 32 8 12Z" fill="#2a4a1a" stroke="#0e1a08" stroke-width="2"/><path d="M27 9 L41 15 Q42 31 27 44 Q12 31 13 15Z" fill="#4a8a2a"/><path d="M27 9 V44 M14 22 Q27 28 40 22 M16 32 Q27 37 38 32" stroke="#1e3a10" stroke-width="2" fill="none"/><g fill="#9dff4a" stroke="#1e3a10" stroke-width="1"><path d="M20 16 q2 -4 4 0 q-2 3 -4 0Z"/><path d="M31 26 q2 -4 4 0 q-2 3 -4 0Z"/><path d="M22 34 q2 -4 4 0 q-2 3 -4 0Z"/></g><path d="M18 14 Q22 11 26 12" stroke="#c8ff9a" stroke-width="1.6" fill="none"/>`,
 miasmashroud:`<g fill="#5a9a2a" opacity=".75"><circle cx="12" cy="36" r="9"/><circle cx="42" cy="36" r="9"/><circle cx="20" cy="20" r="10"/><circle cx="34" cy="18" r="10"/></g><path d="M27 8 L44 15 Q45 33 27 47 Q9 33 10 15Z" fill="#1a2a14" fill-opacity=".85" stroke="#9dff4a" stroke-width="2"/><circle cx="21" cy="25" r="3.2" fill="#9dff4a"/><circle cx="33" cy="25" r="3.2" fill="#9dff4a"/><path d="M20 35 Q27 30 34 35" stroke="#9dff4a" stroke-width="2" fill="none"/><g fill="#c8ff9a"><circle cx="8" cy="12" r="1.6"/><circle cx="48" cy="10" r="1.4"/><circle cx="46" cy="46" r="1.6"/><circle cx="7" cy="46" r="1.3"/></g>`,
 causticblade:`<path d="M10 46 Q24 30 44 8 Q40 22 26 34Z" fill="#c8ccd4" stroke="#3a3e48" stroke-width="1.6"/><path d="M44 8 Q36 24 26 34" stroke="#9dff4a" stroke-width="3" fill="none"/><path d="M10 46 L6 50" stroke="#5a3a1a" stroke-width="4"/><circle cx="20" cy="40" r="2" fill="#9dff4a"/><circle cx="16" cy="46" r="1.4" fill="#9dff4a"/>`,
@@ -5940,7 +5949,7 @@ wakingnight:`<ellipse cx="27" cy="27" rx="23" ry="15" fill="#e8d8c8" stroke="#4a
 addExpansion({
   callfrombelow:  {name:'Call from Below',      rarity:'common', spec:'tidecaller', cost:1, type:'skill', depthGain:4, up:{depthGain:1}, upText:'+1 Depth'},
   summonspawn:    {name:'Drowned Spawn',        rarity:'common', spec:'tidecaller', cost:1, type:'skill', summon:'spawn', up:{summonUp:true}, upText:'Spawn deals 9 damage'},
-  brineshield:    {name:'Brine Shield',         rarity:'common', spec:'tidecaller', cost:2, type:'block', block:6, depthGain:1, up:{block:3}, upText:'+3 Block'},
+  brineshield:    {name:'Brine Shield',         rarity:'common', spec:'tidecaller', cost:1, type:'block', block:6, depthGain:1, up:{block:3}, upText:'+3 Block'},
   feedbeast:      {name:'Feed the Beast',       rarity:'common', spec:'tidecaller', cost:1, type:'skill', feed:5, depthGain:1, up:{feed:2}, upText:'+2 attack'},
   inkcloud:       {name:'Ink Cloud',            rarity:'common', spec:'tidecaller', cost:1, type:'skill', weakAll:1, depthGain:1, up:{weakAll:1}, upText:'+1 Weak'},
   offering:       {name:'Sacrificial Offering', rarity:'common', spec:'tidecaller', cost:0, type:'skill', sacrifice:{depth:5, draw:2}, up:{sacrifice:{depth:2}}, upText:'+2 Depth'},
@@ -5948,13 +5957,13 @@ addExpansion({
   undertow:       {name:'Undertow',             rarity:'common', spec:'tidecaller', cost:1, type:'attack', dmg:5, depthGain:1, perServant:2, up:{dmg:2}, upText:'+2 damage'},
   fling:          {name:'Fling',                rarity:'common', spec:'tidecaller', cost:2, type:'attack', fling:2, needServant:true, up:{fling:0.5}, upText:'2.5× instead of 2×'},
   summonhealer:   {name:'Abyssal Healer',       rarity:'common', spec:'tidecaller', cost:1, type:'skill', summon:'healer', up:{summonUp:true}, upText:'Healer heals 3'},
-  abyssfusion:    {name:'Abyssal Fusion',       rarity:'uncommon', spec:'tidecaller', cost:1, type:'skill', fuse:4, up:{fuse:3}, upText:'+7 instead of +4'},
+  abyssfusion:    {name:'Abyssal Fusion',       rarity:'uncommon', spec:'tidecaller', cost:1, type:'skill', fuse:6, draw:1, up:{fuse:3}, upText:'+9 instead of +6'},
   summonguardian: {name:'Abyssal Guardian',     rarity:'uncommon', spec:'tidecaller', cost:2, type:'skill', summon:'guardian', up:{summonUp:true}, upText:'8 Block for you, 3 for the others'},
-  feedfrenzy:     {name:'Feeding Frenzy',       rarity:'uncommon', spec:'tidecaller', cost:1, type:'skill', frenzyAll:50, up:{frenzyAll:25}, upText:'+75% instead of +50%'},
+  feedfrenzy:     {name:'Feeding Frenzy',       rarity:'uncommon', spec:'tidecaller', cost:1, type:'skill', frenzyAll:75, depthGain:1, up:{frenzyAll:25}, upText:'+100% instead of +75%'},
   riptide:        {name:'Riptide',              rarity:'uncommon', spec:'tidecaller', cost:2, type:'attack', dmg:3, aoe:true, perServant:1, up:{dmg:1}, upText:'+1 damage'},
   spawnbrood:     {name:'Spawn Brood',          rarity:'uncommon', spec:'tidecaller', cost:1, type:'skill', summon:'spawn', draw:1, up:{depthGain:1}, upText:'also gain 1 Depth'},
   deeptribute:    {name:'Tribute of the Deep',  rarity:'uncommon', spec:'tidecaller', cost:1, type:'skill', sacrifice:{blockAll:6, depth:1}, up:{sacrifice:{depth:1, blockAll:2}}, upText:'+1 Depth, +2 Block'},
-  cmddevour:      {name:'Command: Devour',      rarity:'uncommon', spec:'tidecaller', cost:1, type:'skill', devour:100, depthGain:1, up:{devour:50}, upText:'+150% instead of +100%'},
+  cmddevour:      {name:'Command: Devour',      rarity:'uncommon', spec:'tidecaller', cost:1, type:'skill', devour:150, depthGain:2, up:{devour:50}, upText:'+200% instead of +150%'},
   summonassassin: {name:'Abyssal Assassin',     rarity:'uncommon', spec:'tidecaller', cost:2, type:'skill', summon:'assassin', up:{summonUp:true}, upText:'Assassin deals 13 damage'},
   callabyss:      {name:'Call of the Abyss',    rarity:'uncommon', spec:'tidecaller', cost:1, type:'skill', delayed:true, callAbyss:1, up:{callAbyss:1}, upText:'2 Drowned Spawns'},
   callspecialists:{name:'Call the Specialists', rarity:'uncommon', spec:'tidecaller', cost:2, type:'skill', pickSummon:true, up:{summonBonus:3}, upText:'the Servant gains +3 attack (Healer: heals +1)'},
@@ -5980,9 +5989,9 @@ addExpansion({
   endlessbrood:   {name:'Call the Endless Brood',rarity:'epic', spec:'tidecaller', cost:3, type:'skill', brood:{free:0}, up:{brood:{free:1}}, upText:'the first Spawn costs 0 Depth'},
   seacommander:   {name:'Commander of the Sea', rarity:'legendary', spec:'tidecaller', cost:4, type:'skill', exhaust:true, summonList:['assassin','exploder','healer','guardian','spawn'], up:{summonBonus:3}, upText:'all five gain +3 attack (Healer: heals +1)'},
   summonsleeper:  {name:'The Sleeping One',     rarity:'legendary', spec:'tidecaller', cost:3, type:'skill', summon:'sleeper', up:{summonUp:true}, upText:'The Sleeping One deals 25 damage'},
-  tsunami:        {name:'Tsunami',              rarity:'legendary', spec:'tidecaller', cost:5, type:'attack', dmg:10, aoe:true, perDepth:2, exhaust:true, up:{dmg:2, perDepth:1}, upText:'+2 damage, +1 per Depth'},
+  tsunami:        {name:'Tsunami',              rarity:'legendary', spec:'tidecaller', cost:5, type:'attack', dmg:10, aoe:true, perDepth:3, exhaust:true, up:{dmg:2, perDepth:1}, upText:'+2 damage, +1 per Depth'},
   heartabyss:     {name:'Heart of the Abyss',   rarity:'legendary', spec:'tidecaller', cost:3, type:'buff', buff:{key:'heartabyss', n:1}, spawnAtk:3, buffText:'Drowned Spawns also deal 50% of their attack to ALL enemies.', up:{spawnAtk:2}, upText:'Spawns gain +5 attack'},
-  ancientcommand: {name:'Ancient Command',      rarity:'legendary', spec:'tidecaller', cost:2, type:'skill', ancient:true, frenzyAll:50, depthGain:2, up:{frenzyAll:25}, upText:'+75% instead of +50%'},
+  ancientcommand: {name:'Ancient Command',      rarity:'legendary', spec:'tidecaller', cost:2, type:'skill', ancient:true, frenzyAll:75, depthGain:3, up:{frenzyAll:25}, upText:'+100% instead of +75%'},
 }, {
 callfrombelow:`<rect x="2" y="2" width="50" height="50" rx="4" fill="#06202e"/><path d="M2 13 Q10 7 18 13 T34 13 T52 13" stroke="#5ad8ff" stroke-width="2.4" fill="none"/><path d="M27 49 V22 M18 31 L27 20 L36 31" stroke="#9fe8ff" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>${[[13,38,3],[41,30,2.4],[38,43,3.4],[16,25,2]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="#bff0ff" stroke-width="1.4"/>`).join('')}`,
 summonspawn:`<ellipse cx="27" cy="45" rx="22" ry="6" fill="#0a2a3a" stroke="#4ac8c8" stroke-width="2"/><path d="M11 45 Q9 22 27 15 Q45 22 43 45 Q39 39 35 45 Q31 39 27 45 Q23 39 19 45 Q15 39 11 45Z" fill="#2a6a6a" stroke="#0a2a2a" stroke-width="1.8"/><circle cx="21" cy="29" r="4.2" fill="#e8ffcf"/><circle cx="33" cy="29" r="4.2" fill="#e8ffcf"/><circle cx="21" cy="29" r="2" fill="#000"/><circle cx="33" cy="29" r="2" fill="#000"/><path d="M20 20 Q24 18 27 20" stroke="#9fe8e8" stroke-width="1.4" fill="none"/>`,
@@ -6777,7 +6786,8 @@ function atkTargets(e, it){                                          // -> [[Hel
 function rollTarget(it){                                             // zufälliges Ziel beim Würfeln festlegen (Vorschau = Wirklichkeit)
   const a = atkOf(it);
   if(a === 'normal' || a === 'splash' || a === 'pierce' || (!it.dmg && (it.poison || it.burn || it.weak || it.brittle || it.drain || it.vulnerable) && !it.atk)){
-    const p = atkPool(); if(p.length) it.tgt = p[Math.floor(rng() * p.length)].id;
+    const p = atkPool();                                             // vorderster Held wird etwas öfter getroffen (×1,4)
+    if(p.length){ const wt = (h, k) => k === 0 ? 1.4 : 1; let r = rng() * p.reduce((a, h, k) => a + wt(h, k), 0); let t = p[p.length - 1]; for(let k = 0; k < p.length; k++){ r -= wt(p[k], k); if(r < 0){ t = p[k]; break; } } it.tgt = t.id; }
     if(!it.dmg && !it.atk) it.atk = 'normal';                        // Fluch ohne Schaden: trifft ein Ziel
   }
 }
@@ -6826,7 +6836,9 @@ function moveAI(e){
   let opts = (e.moves || []).filter(m => moveOK(e, m));
   if(!opts.length) opts = (e.moves || []).filter(m => m.dmg) || e.moves;
   const w = m => { let x = m.w || 1; if(e.lastName === m.name) x *= m.dmg ? .6 : .25;
-    if(e.ecls === 'berserker' && m.dmg) x *= 2; if(m.if === 'hurt') x *= 1.5; return x; };
+    if(e.ecls === 'berserker' && m.dmg) x *= 2; if(m.if === 'hurt') x *= 1.5;
+    if(m.atk === 'front') x *= 1.3; else if(m.atk === 'back') x *= 0.8;   // etwas mehr Front-, etwas weniger Back Attacks
+    return x; };
   const tot = opts.reduce((s, m) => s + w(m), 0); let r = rng() * tot, pickM = opts[0];
   for(const m of opts){ r -= w(m); if(r <= 0){ pickM = m; break; } }
   if(pickM.cd) e.cds[pickM.name] = pickM.cd + 1;
@@ -6932,7 +6944,8 @@ function showBiomeIntro(){
   if(S.biome) AUDIO.music(S.biome);
   let el = $('#biomeIntro');
   if(!el){ el = document.createElement('div'); el.id = 'biomeIntro'; $('#stage').appendChild(el); }
-  if(el.dataset.k !== S.biome + S.biomeIdx){ el.dataset.k = S.biome + S.biomeIdx; el.innerHTML = biomeIntroHTML(S.biome); }
+  { const k = [S.biome, S.biomeIdx, S.affix, S.affix && AFFIXES[S.affix] ? AFFIXES[S.affix].desc : ''].join('|');   // Affix + aktueller Wert gehören zum Schlüssel
+    if(el.dataset.k !== k){ el.dataset.k = k; el.innerHTML = biomeIntroHTML(S.biome); } }
   el.classList.add('show');
   const me = (S.party || []).find(mine);
   const done = me && (S.biomeOk || {})[S.roles[me]], slots = playerSlots(), n = slots.filter(sl => (S.biomeOk || {})[sl]).length;
@@ -7166,8 +7179,10 @@ async function runQueue(){
   qRunning = true; const run = S.runId; refreshUI();
   let reflow = false;                                                 // Belohnung/Lager/Shop: Aktionen anderer Spieler werfen niemanden aus seinem Bildschirm
   while(Q.length && S.runId === run){
+    while(PREVIEW) await new Promise(r => setTimeout(r, 2));             // Vorschau tauscht S kurz aus: echte Aktionen warten
     const a = Q.shift(); const ph0 = S.phase;
     try { await execute(a); } catch(err){ console.error('action failed', a, err); }
+    try { if(S.mode !== 'solo') noteHash(a); } catch(e){}
     if(!(ph0 === 'post' && S.phase === 'post' && a.h && S.heroes[a.h] && !mine(a.h))) reflow = true;
     S.waiting = false;
     refreshUI();
@@ -7312,7 +7327,7 @@ async function execute(a){
     case 'ev': return eventAction(a);
     case 'spec': {
       if(S.phase !== 'spec' || !h || h.spec || !specOf(a.h, a.spec)) return;
-      h.spec = a.spec;
+      h.spec = a.spec; h.name = specOf(a.h, a.spec).name;            // überall der Subclass-Name (Toasts, Ziele, Loot …)
       h.deck = specOf(a.h, a.spec).starter.map(newCard);
       if(a.spec === 'knockout'){ h.maxHp = KO_MAXHP; h.hp = KO_MAXHP; }
       if(a.spec === 'drunkmaster' || a.spec === 'nightfighter'){ h.maxHp += 8; h.hp = h.maxHp; }   // Balancing: zähere Faustkämpfer   // Knockout Champion: weniger Leben, wächst mit jedem Schlag
@@ -7781,7 +7796,7 @@ function updateUnit(u){ if(PREVIEW) return;
     el.querySelector('.specname').textContent = sp ? sp.name : '';
     if(sp && sp.passive){ const spr = el.querySelector('.sprite'), pt = heroPassiveText(u, sp);
       spr.dataset.tip = sp.passiveName + ': ' + pt.replace(/<[^>]+>/g, '');
-      spr._tipHtml = `<b>${sp.passiveName}</b><div class="tpas">${pt}</div><div class="tpsub">${u.name} · ${sp.name} passive</div>`; }
+      spr._tipHtml = `<b>${sp.passiveName}</b><div class="tpas">${pt}</div><div class="tpsub">${sp.name} passive</div>`; }
     el.classList.toggle('active', S.phase === 'hero' && S.active === u.id);
     el.classList.toggle('done', S.phase === 'hero' && !!u.turnDone && !u.dead);
     el.classList.toggle('dead', !!u.dead); syncDeath(u, el);
@@ -7952,7 +7967,7 @@ function cardKeywords(c){
     if(x.invest) add('Shadow Investment'); if(x.contract) add('Golden Contract'); if(x.fade) add('Fade'); if(x.window) add('Assassination Window');
     if(x.sentN) add('Death Sentence'); if(x.hunt) add("Hunter's Mark"); if(x.amp) add('Toxic Amplifier'); if(x.catN) add('Blood Catalyst'); if(x.killGem) add("Dead Man's Treasure");
   }
-  if(s.buff){ const bk = {riches:'Riches to Power', empire:'The Golden Empire', toxmut:'Self-Inflicted Mutation', plagueEng:'Plague Engine', heartVenom:'Heart of Venom'}[s.buff.key]; if(bk) add(bk + ' (Buff)'); }
+  if(s.buff){ const bk = {riches:'Riches to Power', empire:'The Golden Empire', toxmut:'Self-Inflicted Mutation', plagueEng:'Plague Engine', heartVenom:'Heart of Venom', hourAwake:'The Hour of Awakening', hunterBuff:"Hunter's Mark", venomTol:'Venom Tolerance'}[s.buff.key]; if(bk) add(bk + ' (Buff)'); }
   if(s.atkType && ATK_TYPES[s.atkType]) add(ATK_TYPES[s.atkType].name);
   if(s.momentum || s.spendMomentum || s.spendCrit || s.momentumSparks || s.riftFinish || conds.includes('momentum')) add('Momentum (Ranger)');
   if(c.rune || s.runeScale || s.makeRune) add('Runes (Rift Architect)');
@@ -8018,7 +8033,7 @@ function showKeywords(el, c){
   if(made){                                                           // erschaffene Karte (z.B. Soul Avatar) als eigene Vorschau
     const pv = document.createElement('div'); pv.id = 'kwPrev';
     const fu = s && s.followUp && s.followUp.key === made;
-    pv.innerHTML = `<div class="kwpt">${fu ? 'Follow up' : 'Creates'}: ${CARDS[made].name}</div>`; pv.appendChild(makeCard(fu ? {...newCard(made), tmp:true, follow:true, ...(c.upgraded && upgradeKind(CARDS[made]) ? {upgraded:true} : {})} : {key:made, gems:[]}));
+    pv.innerHTML = `<div class="kwpt">${fu ? 'Follow up' : 'Creates'}: ${CARDS[made].name}</div>`; pv.appendChild(makeCard(fu ? {...{id:'pv-' + made, key:made, gems:[]}, tmp:true, follow:true, ...(c.upgraded && upgradeKind(CARDS[made]) ? {upgraded:true} : {}), ...(c.foil ? {foil:true} : {})} : {key:made, gems:[]}));
     st.appendChild(pv);
     const bx = list.length ? parseFloat(box.style.left) : (toRight ? right : Math.max(6, left));
     const px = list.length ? (toRight ? bx + w + 10 : bx - 160) : bx;
@@ -8121,7 +8136,8 @@ function pvClone(v, memo){
   const o = {}; memo.set(v, o); for(const k of Object.keys(v)) o[k] = pvClone(v[k], memo); return o;
 }
 async function simulatePlay(heroId, cardId, targetId, seed){
-  const real = {...S}, savedSeed = _seed, stubs = {}, sfx = AUDIO.sfx, out = {};
+  if(qRunning || PREVIEW) return {};                                  // Koop: nie während eine echte Aktion läuft (sonst Desync)
+  const real = {...S}, savedSeed = _seed, savedUid = uid, stubs = {}, sfx = AUDIO.sfx, out = {};
   const snap = pvClone(real, new Map());
   PREVIEW = true; AUDIO.sfx = () => {};
   try {
@@ -8142,7 +8158,7 @@ async function simulatePlay(heroId, cardId, targetId, seed){
   finally {
     for(const k of Object.keys(S)) delete S[k];
     Object.assign(S, real);
-    _seed = savedSeed; AUDIO.sfx = sfx;
+    _seed = savedSeed; uid = savedUid; AUDIO.sfx = sfx;                 // auch die ID-Zählung zurück: sonst bekommen neue Karten/Gegner auf den Clients verschiedene IDs
     PREVIEW = false;
   }
   return out;
@@ -8412,18 +8428,23 @@ function showHistory(){
   if(!H.length){ g.innerHTML = '<div class="vempty">Nothing happened yet in this fight.</div>'; return; }
   const rounds = [...new Set(H.map(e => e.round))].sort((a, b) => b - a);   // neueste Runde oben
   g.innerHTML = `<div class="hist">${rounds.map(r => `<div class="hround"><h4>Turn ${r}</h4>${H.filter(e => e.round === r).reverse().map(e =>
-    `<div class="hrow ${e.hero ? 'hh' : 'he'}"><b>${e.who}</b>${e.what ? ` – ${e.what}` : ''}: ${histLine(e)}</div>`).join('')}</div>`).join('')}</div>`;
+    `<div class="hrow ${e.hero ? 'hh' : 'he'}"><b>${e.who}</b>${e.what ? ` – ${e.card ? `<span class="hcard" data-tip="Card" data-hc="${H.indexOf(e)}">${e.what}</span>` : e.what}` : ''}: ${histLine(e)}</div>`).join('')}</div>`).join('')}</div>`;
   g.querySelectorAll('.hdmg[data-bd]').forEach(el => { const l = HIST_BD[+el.dataset.bd]; if(l) el._tipHtml = bdHTML(l); });
+  g.querySelectorAll('.hcard[data-hc]').forEach(el => { const e = H[+el.dataset.hc]; if(e && e.card && CARDS[e.card.key]) try { el._tipHtml = `<div class="htipcard">${makeCard(e.card).outerHTML}</div>`; } catch(err){} });
 }
 /* ---------- Kampfstatistik (pro Kampf und pro Run) ---------- */
 const STAT_KEYS = ['dmg','heal','block','debuff','buff'];
+function dotOwner(e, key){ const m = e.dotBy && e.dotBy[key]; if(!m) return null; if(typeof m !== 'object') return S.heroes[m] || null;
+  const best = Object.entries(m).sort((a, b) => b[1] - a[1])[0]; return best ? S.heroes[best[0]] || null : null; }
 function statAdd(h, key, n, sub){
   if(!h || !n || n <= 0 || !S.stats) return;
-  const bump = o => { o[key] += n; if(sub){ o.det = o.det || {}; const d = o.det[key] = o.det[key] || {}; d[sub] = (d[sub] || 0) + n; } };
+  const bump = o => { o[key] += n; if(sub){ o.det = o.det || {}; const d = o.det[key] = o.det[key] || {}; d[sub] = (d[sub] || 0) + n; }
+    if(key === 'dmg'){ o.det = o.det || {}; const d = o.det.dmg = o.det.dmg || {}; const w = S.dotTick ? 'dot' : 'direct'; d[w] = (d[w] || 0) + n; } };   // direkt / über DoTs
   if(!h.hero){ bump(S.stats.fight[h.id] = S.stats.fight[h.id] || {dmg:0, heal:0, block:0, debuff:0, buff:0}); return; }   // Gegner: nur aktueller Kampf
   for(const scope of ['fight','run']) bump(S.stats[scope][h.id] = S.stats[scope][h.id] || {dmg:0, heal:0, block:0, debuff:0, buff:0});
 }
 function loseHP(t, amount, cls){
+  if(!t.hero && t.status && t.status.intangible) amount = Math.min(amount, 1);   // Intangible: auch Gift, Burn, Nightmare höchstens 1
   if(t.status && t.status.vulnerable) amount = Math.round(amount * VULN_MULT);   // Vulnerable gilt auch für Gift, Burn usw.
   if(S.actor && !!t.hero !== !!S.actor.hero) statAdd(S.actor, 'dmg', Math.min(amount, t.hp), 'hp');
   histTick(t, Math.min(amount, t.hp), cls);
@@ -8453,6 +8474,9 @@ Object.assign(STATUS, {
   toxmut:    {icon:'toxmutIcon',    tip:n => `Self-Inflicted Mutation (buff): whenever Poison is applied to you, +${n} damage per hit for this fight.`},
   toxmight:  {icon:'toxmightIcon',  tip:n => `Mutation: +${n} damage per hit (this fight).`},
   mutdouble: {icon:'mutdoubleIcon', flag:true, tip:() => 'Mutated: your attacks deal double damage for the rest of the fight.'},
+  venomTol:  {icon:'venomTolIcon', tip:n => `Venom Tolerance (buff): at the end of each round in which you are Poisoned, heal ${n} HP.`},
+  hunterBuff:{icon:'huntedIcon', tip:n => `Hunter's Mark (buff): your Back Attacks deal ${n} more damage.`},
+  hourAwake: {icon:'hourAwakeIcon', tip:n => `The Hour of Awakening (buff): at the start of each of your turns, deal ${n} damage to ALL enemies.`},
   plagueEng: {icon:'plagueEngIcon', tip:n => `Plague Engine (buff): at the end of your turn, each Poisoned enemy gains ${n} Poison (+${n - 1} if you are Poisoned).`},
   heartVenom:{icon:'heartVenomIcon',tip:n => `Heart of Venom (buff): poisoning an enemy poisons you by 1. At ${10 - 2 * (n - 2)} self-inflicted Poison: gain ${n} Energy and draw ${n}.`},
   treasure:  {icon:'treasureIcon',  flag:true, tip:() => "Dead Man's Treasure: every kill this turn creates a random Gem."},
@@ -8461,7 +8485,7 @@ Object.assign(STATUS, {
   toxamp:    {icon:'toxampIcon',    tip:n => `Toxic Amplifier: its next Poison tick deals +${n}% damage.`},
 });
 Object.assign(STATUS_LABEL, {fade:'Fade', invest:'Shadow Investment', contract:'Golden Contract', window:'Assassination Window', catalyst:'Blood Catalyst', riches:'Riches to Power',
-  empire:'The Golden Empire', toxmut:'Self-Inflicted Mutation', toxmight:'Mutation', mutdouble:'Mutated', plagueEng:'Plague Engine', heartVenom:'Heart of Venom',
+  hunterBuff:"Hunter's Mark", venomTol:'Venom Tolerance', empire:'The Golden Empire', toxmut:'Self-Inflicted Mutation', toxmight:'Mutation', mutdouble:'Mutated', plagueEng:'Plague Engine', heartVenom:'Heart of Venom', hourAwake:'The Hour of Awakening',
   treasure:"Dead Man's Treasure", sentence:'Death Sentence', hunted:"Hunter's Mark", toxamp:'Toxic Amplifier'});
 const STATUS_CLS = {mark:'crit-f', might:'crit-f', critBuff:'crit-f', maxRange:'gold-f', poison:'poison-f', burn:'burn-f', ice:'ice-f', strength:'dmg'};
 Object.assign(STATUS_LABEL, {deepmark:'Mark of the Deep', binding:'Abyssal Binding', restraint:'Eldritch Restraint', regain:'Regain Control', forbidden:'The Forbidden One', voidembrace:'Embrace the Void', dreameater:'Dream Eater', sleepingeyes:'A Thousand Sleeping Eyes', instinct:'Abyssal Instincts', commander:'Abyssal Commander', mutation:'Abyssal Mutation', heartabyss:'Heart of the Abyss', awakening:'The Awakening', stockgenius:'Stock Market Genius', pyramid:'Pyramid Scheme'});
@@ -8475,7 +8499,7 @@ function applyStatus(u, key, n){
   }
   if(S.actor && n > 0 && !S.actor.hero){ statAdd(S.actor, !!u.hero ? 'debuff' : 'buff', n, key); }
   else if(S.actor && n > 0){
-    if(!u.hero){ statAdd(S.actor, 'debuff', n, key); if(key === 'poison' || key === 'burn'){ u.dotBy = u.dotBy || {}; u.dotBy[key] = S.actor.id; } }
+    if(!u.hero){ statAdd(S.actor, 'debuff', n, key); if(key === 'poison' || key === 'burn'){ u.dotBy = u.dotBy || {}; const m = u.dotBy[key] = (u.dotBy[key] && typeof u.dotBy[key] === 'object') ? u.dotBy[key] : {}; m[S.actor.id] = (m[S.actor.id] || 0) + n; } }   // DoT zählt für den Helden mit den meisten Stapeln
     else if(!['weak','poison','burn','brittle','drained','vulnerable'].includes(key)) statAdd(S.actor, 'buff', n, key);
   }
   u.status[key] = (u.status[key] || 0) + n; histAdd(u, 'st:' + key, n);
@@ -8540,6 +8564,7 @@ const allHeroesDead = () => !living().length;
 
 async function playCard(h, i, target){                               // Kampfhistorie um das Ausspielen herum
   const c0 = h.hand[i]; const hi = c0 ? histBegin(h, cardName(c0)) : null;
+  if(hi && c0) hi.card = {id:'h' + c0.id, key:c0.key, upgraded:!!c0.upgraded, foil:!!c0.foil, gems:(c0.gems || []).map(g => ({...g})), tmp:c0.tmp, follow:c0.follow};   // History: Karte beim Drübermausen zeigen
   try { return await playCardInner(h, i, target); } finally { histEnd(hi); }
 }
 async function playCardInner(h, i, target){
@@ -8705,7 +8730,8 @@ async function playCardInner(h, i, target){
           if(s.d7Pct && dPre >= 7) amount = Math.round(amount * (1 + s.d7Pct));
           mk('Deep Dream');
           let bleedFx = null;
-          if(s.bleed){ const n = t.status.dream || 0; bleedFx = n >= 9 ? 3 : n >= 6 ? 2 : n >= 3 ? 1 : 0;
+          if(s.bleed){ const n = t.status.dream || 0; const rdm = dreamEaterOn() ? 2 : 1;                                // Dream Eater: Stufen 6/12/18
+            bleedFx = n >= 9 * rdm ? 3 : n >= 6 * rdm ? 2 : n >= 3 * rdm ? 1 : 0;
             amount += [0, 6, 9, 12][bleedFx]; }                   // Reality Distortion: Zusatzschaden zum Grundschaden
           mk('Reality Distortion');
           if(s.atkType === 'pierce' && t !== group[0]) amount = Math.round(amount * 0.5);   // Piercing: der Gegner dahinter halb
@@ -8833,7 +8859,7 @@ async function playCardInner(h, i, target){
     if(s.momentum) gainMomentum(h, s.momentum);
     if(s.momentumDouble){ gainMomentum(h, h.status.momentum || 0); }
     if(s.createCard) addTempCard(h, s.createCard.key, s.createCard.n);
-    if(s.followUp && CARDS[s.followUp.key] && !(s.ax && s.ax.fuNeed && AX.prior < s.ax.fuNeed) && (!(s.followUp.chance < 1) || rng() < s.followUp.chance)) addTempCard(h, s.followUp.key, s.followUp.n, true, s.followIf7 && t7 ? {...(s.followUp.bonus || {}), dmg:((s.followUp.bonus || {}).dmg || 0) + s.followIf7.dmg} : s.followUp.bonus, !!c.upgraded);   // Follow up: Karte mit Vanish, weg nach dem Kampf
+    if(s.followUp && CARDS[s.followUp.key] && !(s.ax && s.ax.fuNeed && AX.prior < s.ax.fuNeed) && (!(s.followUp.chance < 1) || rng() < s.followUp.chance)) addTempCard(h, s.followUp.key, s.followUp.n, true, s.followIf7 && t7 ? {...(s.followUp.bonus || {}), dmg:((s.followUp.bonus || {}).dmg || 0) + s.followIf7.dmg} : s.followUp.bonus, !!c.upgraded, !!c.foil);   // Follow up: Karte mit Vanish, weg nach dem Kampf
     if(s.makeRune){ const rn = rollRune(); h.gems.push(rn); toast(`${h.name} found a ${RUNE_TYPES[rn.type].name}!`); updateCounters(); }
     if(s.runeFx === 'siphon' && markedBefore){ h.energy = Math.min(MAX_SAVED_ENERGY, h.energy + 2); updateUnit(h); floatText(h, '+2 Energy', 'blk'); }
     if(s.poisonTrigger){
@@ -8929,7 +8955,8 @@ const isRetain = c => !c.tmp && (() => { try { const s = stats(c); return !!(s.a
 function dotPreview(u, el){ if(PREVIEW) return;                        // Gegner: Burn + Gift, die im nächsten Gegnerzug ticken
   const P = el.querySelector('.hpdot.pois'), B = el.querySelector('.hpdot.burn'); if(!P || !B) return;
   const hp = Math.max(0, u.hp), M = u.maxHp || 1, st = u.status || {};
-  const burn = Math.min(hp, st.burn || 0), pois = Math.min(hp - burn, Math.round((st.poison || 0) * (1 + (st.toxamp || 0) / 100)));
+  const it1 = v => st.intangible ? Math.min(v, 1) : v;              // Intangible: höchstens 1
+  const burn = Math.min(hp, it1(st.burn || 0)), pois = Math.min(hp - burn, it1(Math.round((st.poison || 0) * (1 + (st.toxamp || 0) / 100))));
   const lethal = burn + pois >= hp && hp > 0;
   const set = (E, from, w, tip) => { E.classList.toggle('on', w > 0); E.classList.toggle('lethal', lethal && w > 0); E.style.left = (from / M * 100) + '%'; E.style.width = (w / M * 100) + '%'; };
   set(B, hp - burn, burn); set(P, hp - burn - pois, pois);
@@ -8992,6 +9019,7 @@ function axHitAdd(h, s, t, AX){
   if(AX.contractActive && AX.isAtk) a += h.status.contract || 0;
   if(h.status.empire) a += Math.floor(g / 50) + (g >= 200 ? h.status.empire : 0);
   if(s.atkType === 'back' && t.hunted && t.hunted.by === h.id) a += t.hunted.n;
+  if(s.atkType === 'back' && h.status.hunterBuff && !AX.hbDone){ AX.hbDone = true; a += h.status.hunterBuff; }   // Hunter's Mark (Buff)
   if(h.mutAtk) a += h.mutAtk;
   return a;
 }
@@ -9084,8 +9112,9 @@ async function axDice(h, lvl){                                          // High 
 
 function killEnemy(e){
   if(!PREVIEW && S.actor && S.actor.hero && S.actor.killGemTurn && !e.dead && !e.minionFlee) axTreasure(S.actor);
-  if(S.affix === 'restlessDead' && S.restless && !S.restless.enemy && !e.minion && !e.dead){   // Restless Dead: der erste Gegner steht wieder auf
-    S.restless.enemy = true; e.hp = Math.max(1, Math.round(e.maxHp * AFX().rise / 100)); floatText(e, 'Rises again!', 'heal-f'); updateUnit(e); return;
+  if(S.affix === 'restlessDead' && S.restless && !S.restless.enemy && !e.dead){   // Restless Dead: der erste Gegner (auch Diener) steht wieder auf – und verliert seine Aktion
+    S.restless.enemy = true; e.hp = Math.max(1, Math.round(e.maxHp * AFX().rise / 100)); floatText(e, 'Rises again!', 'heal-f');
+    e.intent = {name:'Rising from the dead'}; e.intentDone = false; e.risenSkip = true; updateUnit(e); return;
   }
   for(const x of living()) if(x.spec === 'tidecaller' && !e.dead) gainDepth(x, 1);          // Pressure of the Deep
   const poisonLeft = e.status.poison || 0;
@@ -9118,8 +9147,8 @@ function killEnemy(e){
     if(next){ floatText(e, 'Contagion!', 'poison-f'); applyStatus(next, 'poison', poisonLeft); }
   }
   if(!alive().length) S.enemies.forEach(o => { if(o.regrowIn){ o.regrowIn = 0; updateUnit(o); o.el.classList.remove('regrowing'); o.el.classList.add('dead'); } });
-  if(e.passive && e.passive.summoner){
-    S.enemies.filter(m => m.minion && !m.dead).forEach(m => {
+  {                                                                   // Diener sterben mit ihrem Beschwörer (Summoner-Passiv: alle Diener)
+    S.enemies.filter(m => m.minion && !m.dead && (m.summoner === e.id || (e.passive && e.passive.summoner))).forEach(m => {
       m.dead = true; m.intentDone = true; updateUnit(m);
       floatText(m, 'Flees!', 'status-f');
       setTimeout(() => m.el.classList.add('fled'), 300);
@@ -9162,6 +9191,16 @@ async function startRound(){
     updateUnit(h);
   });
   await runPendingFx();
+  for(const h of living()) if(h.status.hourAwake && alive().length){          // The Hour of Awakening (Buff): jede Runde Schaden auf ALLE
+    floatText(h, 'The Hour of Awakening!', 'crit-f'); S.actor = h;
+    for(const e of alive().slice()){
+      dealDamage(e, h.status.hourAwake);
+      if(e.hp <= 0){ killEnemy(e); continue; }
+      if(e.status.dream && living().some(x => x.spec === 'dreamweaver')) addDream(e, 1);   // Lingering Dreams
+      if(!e.dead && e.status.dream && h.status.sleepingeyes) addDream(e, 1);
+    }
+    S.actor = null; await sleep(350);
+  }
   if(S.enemies && S.enemies.length && !alive().length){ S.phase = 'won'; await sleep(500); return victory(); }
   return startTeamTurn();
 }
@@ -9417,13 +9456,15 @@ async function enemyAction(e){
   }
 }
 async function summonMinion(leader, kind){
-  const g = makeEnemy(MINIONS[kind], leader.mult);
-  const inFront = rng() < 0.5;                                  // zufällig vor oder hinter den Beschwörer
+  const g = makeEnemy(MINIONS[kind], leader.mult); g.summoner = leader.id;
+  const front = ['tank', 'berserker'].includes(g.ecls || g.cls || MINIONS[kind].ecls);           // Tanks und Berserker ganz nach vorne, alle anderen direkt hinter den Beschwörer
   const at = S.enemies.indexOf(leader);
-  S.enemies.splice(inFront ? at : at + 1, 0, g);                // Reihenfolge = Anzeige (links vorne, rechts hinten)
+  const first = S.enemies.find(o => !o.dead) || leader;
+  const idx = front ? S.enemies.indexOf(first) : at + 1;
+  S.enemies.splice(idx, 0, g);                                  // Reihenfolge = Anzeige (links vorne, rechts hinten)
   const el = buildUnit(g, false);
   el.classList.add('summoned');
-  if(inFront) leader.el.before(el); else leader.el.after(el);
+  if(front) first.el.before(el); else leader.el.after(el);
   rollIntent(g); g.intentDone = true; updateUnit(g);
   await sleep(300);
 }
@@ -9447,7 +9488,7 @@ async function enemyTurn(){ if(PREVIEW) return;
     if(e.dead) continue;
     await sleep(200);
     if(e.status.burn){                                   // Burn: zu Beginn des Gegnerzugs
-      S.actor = e.dotBy && S.heroes[e.dotBy.burn] || null; loseHP(e, e.status.burn, 'burn-f'); S.actor = null; e.status.burn--; updateUnit(e); await sleep(350);
+      S.actor = dotOwner(e, 'burn'); S.dotTick = true; loseHP(e, e.status.burn, 'burn-f'); S.dotTick = false; S.actor = null; e.status.burn--; updateUnit(e); await sleep(350);
       if(e.hp <= 0){ killEnemy(e); await sleep(300); continue; }
       if(e.boss) await checkBossPhase(e);
     }
@@ -9471,7 +9512,7 @@ async function enemyTurn(){ if(PREVIEW) return;
     }
     if(allHeroesDead()){ await sleep(500); return defeat(); }
     if(e.status.poison && !e.dead){                      // Gift: am Ende des Gegnerzugs
-      S.actor = e.dotBy && S.heroes[e.dotBy.poison] || null; loseHP(e, poisonHit(e), 'poison-f'); S.actor = null; e.status.poison--; updateUnit(e); await sleep(350);
+      S.actor = dotOwner(e, 'poison'); S.dotTick = true; loseHP(e, poisonHit(e), 'poison-f'); S.dotTick = false; S.actor = null; e.status.poison--; updateUnit(e); await sleep(350);
       if(e.hp <= 0){ killEnemy(e); await sleep(300); continue; }
       if(e.boss) await checkBossPhase(e);
     }
@@ -9491,7 +9532,8 @@ async function enemyTurn(){ if(PREVIEW) return;
   let poisoned = false;
   for(const h of living()) if(h.status.poison){
     poisoned = true;
-    loseHP(h, h.status.poison, 'poison-f');
+    loseHP(h, h.spec === 'deathbringer' ? Math.ceil(h.status.poison / 2) : h.status.poison, 'poison-f');   // Deathbringer: nur 50 % Giftschaden
+    if(h.status.venomTol && !h.dead && h.hp > 0){ const pa = S.actor; S.actor = h; heal(h, h.status.venomTol); S.actor = pa; }   // Venom Tolerance
     h.status.poison--; updateUnit(h);
   }
   if(poisoned){ await sleep(450); checkHeroDeaths(); if(allHeroesDead()){ await sleep(400); return defeat(); } }
@@ -9746,7 +9788,7 @@ function startRun(a){
   resetRunState(true);
   S.runActive = true;
   S.mode = a.mode === 'coop' || NET.g ? (NET.isHost ? 'host' : 'guest') : 'solo';   // NET.g: Nachzügler spielt einen Solo-Start nach
-  S.roles = a.roles;
+  S.roles = {...a.roles};                                            // Kopie: 'assign' darf die Start-Aktion im Log nicht verändern (Nachspielen)
   seedRng(a.seed); uid = 1;
   S.biome = null; S.affix = null; S.biomesSeen = []; S.biomeIdx = 0; S.biomeFor = null; setBiomeBg('night'); updateBiomeLabel();
   S.fight = 0; S.room = 0; S.lastRoom = null; S.biomeOk = {}; S.deeperVote = {}; S.deeperFor = null; S.sinceElite = 0; S.eventsSeen = []; S.bossesSeen = []; S.eliteBag = []; S.eliteSeen = []; S.elitesBeaten = 0; S.arena = null; S.event = null; S.mapOpts = [];
@@ -9822,7 +9864,10 @@ function rollGem(kind = 'gem', h = null){                           // kind: gem
     if(sk.length){ const st = pick(sk); return {id:uid++, type:st, tier, fleeting:!GEM_TYPES[st].noFleet && rng() < FLEET_CHANCE}; }
   }
   const types = GEM_ORDER.filter(t => gemFits(t, tier));
-  const type = pick(types);
+  const GW = {poison:'deathbringer', burn:'fire', ice:'ice'};            // Element-Gems: für die passende Spec häufiger (×3), sonst seltener (×0,5)
+  const w = t => GW[t] && h ? (h.spec === GW[t] ? 3 : 0.5) : 1;
+  let r = rng() * types.reduce((a, t) => a + w(t), 0), type = types[types.length - 1];
+  for(const t of types){ r -= w(t); if(r < 0){ type = t; break; } }
   return {id:uid++, type, tier, fleeting:!GEM_TYPES[type].noFleet && rng() < FLEET_CHANCE};
 }
 async function victory(){ if(PREVIEW) return;
@@ -10366,6 +10411,9 @@ const GLOSS_STATUS = [
   ['toxmutIcon','Self-Inflicted Mutation (Buff)','Until the end of the fight: whenever Poison is applied to you, +2 damage per hit. At 10 self-inflicted Poison your attacks deal double damage (upgraded +3 / 8).'],
   ['toxmightIcon','Mutation','Extra damage per hit from Self-Inflicted Mutation.'],
   ['mutdoubleIcon','Mutated','Your attacks deal double damage for the rest of the fight.'],
+  ['venomTolIcon','Venom Tolerance (Buff)','Until the end of the fight: at the end of each round in which you are Poisoned, heal 2 HP (upgraded 3).'],
+  ['huntedIcon',"Hunter's Mark (Buff)",'Until the end of the fight: your Back Attacks deal 8 more damage (upgraded 11).'],
+  ['hourAwakeIcon','The Hour of Awakening (Buff)','Until the end of the fight: from the next round on, at the start of your turn, ALL enemies take 18 damage (upgraded 24).'],
   ['plagueEngIcon','Plague Engine (Buff)','Until the end of the fight: at the end of your turn, each Poisoned enemy gains 3 Poison, +2 more if you are Poisoned (upgraded 5 / +4).'],
   ['heartVenomIcon','Heart of Venom (Buff)','Until the end of the fight: whenever you apply Poison to an enemy, apply 1 Poison to yourself. At 10 self-inflicted Poison: use it up, gain 2 Energy and draw 2 (upgraded 8 / 3 / 3).'],
   ['deepmarkIcon','Mark of the Deep (Buff)','Until the end of the fight: whenever the Acolyte gains Corruption, he gains Block.'],
@@ -10378,7 +10426,7 @@ const GLOSS_STATUS = [
   ['voidembraceIcon','Embrace the Void (Buff)','Until the end of the fight: whenever he loses Sanity, ALL enemies take damage.'],
   ['corruptIcon','Corruption (Eldritch Horror)','Permanent for the whole run (max 100). At 10 / 25 / 50 / 100 the Acolyte\'s cards get bonuses and his body changes. Costs Sanity every turn.'],
   ['mindIcon','Corrupted Mind','Loses its next turn. For the Acolyte it happens when his Sanity hits 0 – then Sanity refills.'],
-  ['nightmare','Reality Distortion','Extra damage, depending on the target\'s Dream before the hit. 3+ Dream: +6 damage. 6+ Dream: +9 damage. 9+ Dream: +12 damage and it triggers a Nightmare that deals 50% more damage.'],
+  ['nightmare','Reality Distortion','Extra damage, depending on the target\'s Dream before the hit. 3+ Dream: +6 damage. 6+ Dream: +9 damage. 9+ Dream: +12 damage and it triggers a Nightmare that deals 50% more damage. With Dream Eater the steps are 6+, 12+ and 18+ (the Nightmare then deals double damage +50%).'],
   ['dreamIcon','Dream (Dreamweaver)','4+: deals 25% less damage · 7+: takes 25% more damage · 10 (20 with Dream Eater): Nightmare – Dream consumed, loses 20% of its max HP (bosses 10%), ignoring Block. Reality Distortion triggers it already at 9.'],
   ['depthIcon','Depth (Tidecaller)','Resource for summoning Servants of the Deep. Builds up during the fight.'],
   ['servantIcon','Servant (Tidecaller)','Summoned creatures of the Deep (max 5). They act on their own and stay until the fight ends. Summoning a 6th lets you send one back. Attack boni only affect Servants that attack (not the Healer or Guardian).'],
@@ -10554,14 +10602,14 @@ function showStats(scope = 'fight'){
   const tot = Object.fromEntries(cols.map(([k]) => [k, heroes.reduce((a, h) => a + ((data[h.id] || {})[k] || 0), 0)]));
   g.innerHTML = `<div class="stbl"><div class="strow sthead"><span class="stname">${scope === 'fight' ? `Fight ${S.fight || 0}` : `Run – ${S.fight || 0} fights`}</span>${cols.map(([, n, col]) => `<span style="color:${col}">${n}</span>`).join('')}</div>
     ${heroes.map(h => { const o = data[h.id] || {}; const sp = h.spec && specOf(h.id, h.spec);
-      return `<div class="strow"><span class="stname"><span class="stport">${specPic(h)}</span><b>${h.name}</b><i>${sp ? sp.name : ''}</i></span>${cols.map(([k, , col]) => { const v = o[k] || 0;
+      return `<div class="strow"><span class="stname"><span class="stport">${specPic(h)}</span><b>${sp ? sp.name : h.name}</b></span>${cols.map(([k, , col]) => { const v = o[k] || 0;
         return `<span class="stcell" data-u="${h.id}" data-k="${k}"><b>${v}</b><em>${tot[k] ? Math.round(v / tot[k] * 100) : 0}%</em><i class="stbar"><i style="width:${v / max[k] * 100}%;background:${col}"></i></i></span>`; }).join('')}</div>`; }).join('')}
     ${scope === 'fight' && (S.enemies || []).length ? (() => { const es = S.enemies; const emax = Object.fromEntries(cols.map(([k]) => [k, Math.max(1, ...es.map(e => (data[e.id] || {})[k] || 0))]));
       return `<div class="strow sthead stenemy"><span class="stname">Enemies</span>${cols.map(([k, n, col]) => `<span style="color:${col}">${k === 'debuff' ? 'Debuffs on heroes' : k === 'buff' ? 'Buffs on allies' : n}</span>`).join('')}</div>` +
       es.map(e => { const o = data[e.id] || {};
         return `<div class="strow ${e.dead ? 'stdead' : ''}"><span class="stname"><span class="stport">${mini(SVG[e.key], 34)}</span><b>${e.name}</b><i>${e.dead ? 'defeated' : e.hp + '/' + e.maxHp + ' HP'}</i></span>${cols.map(([k, , col]) => { const v = o[k] || 0;
           return `<span class="stcell" data-u="${e.id}" data-k="${k}"><b>${v}</b><i class="stbar"><i style="width:${v / emax[k] * 100}%;background:${col}"></i></i></span>`; }).join('')}</div>`; }).join(''); })() : ''}
-    </div><div class="stnote">Hover Damage, Healing, Block, Debuffs or Buffs for details. Damage includes damage against Block and shields and Poison/Burn ticks (credited to whoever applied them last). Servants count for the Tidecaller.</div>`;
+    </div><div class="stnote">Hover Damage, Healing, Block, Debuffs or Buffs for details. Damage includes damage against Block and shields and Poison/Burn ticks (credited to whoever applied the most stacks of it). Servants count for the Tidecaller.</div>`;
   g.querySelectorAll('.stcell[data-k="debuff"],.stcell[data-k="buff"],.stcell[data-k="block"],.stcell[data-k="dmg"],.stcell[data-k="heal"]').forEach(cell => {
     cell.classList.add('sthov');
     cell.addEventListener('mouseenter', () => showStatDetail(cell, data[cell.dataset.u], cell.dataset.k));
@@ -10576,7 +10624,9 @@ function showStatDetail(cell, o, k){
   if(k === 'dmg'){                                                            // Schaden: gegen Block/Schilde und gegen Leben
     box.innerHTML = `<div class="kw"><div><b>Damage dealt <span class="stx">${(o && o.dmg) || 0}</span></b></div></div>
       <div class="kw"><span class="kwi">${SVG.shield(.5)}</span><div><b>Against Block & shields <span class="stx">${(det && det.shield) || 0}</span></b></div></div>
-      <div class="kw"><span class="kwi">${INC_ICON.hit}</span><div><b>Against HP <span class="stx">${(det && det.hp) || 0}</span></b></div></div>`;
+      <div class="kw"><span class="kwi">${INC_ICON.hit}</span><div><b>Against HP <span class="stx">${(det && det.hp) || 0}</span></b></div></div>
+      <div class="kw"><span class="kwi">${INC_ICON.hit}</span><div><b>Direct damage <span class="stx">${(det && det.direct) || 0}</span></b></div></div>
+      <div class="kw"><span class="kwi">${SVG.poisonIcon || ''}</span><div><b>Indirect (Poison, Burn) <span class="stx">${(det && det.dot) || 0}</span></b></div></div>`;
   } else if(k === 'heal'){                                                    // Heilung: sich selbst / Team
     const isHero = !!(S.heroes && S.heroes[cell.dataset.u]);
     box.innerHTML = `<div class="kw"><div><b>Healing done</b></div></div>
@@ -11673,7 +11723,19 @@ function netError(e){
   if(e.code === 'server') return 'The co-op server is not reachable right now. Try again in a moment.';
   return 'Co-op connection failed (' + (e.code || 'error') + ').';
 }
-function logAct(a){ const seq = ++NET.seq; NET.log[seq] = a; if(a.t === 'start') NET.runStart = seq; return seq; }
+function logAct(a){ const seq = ++NET.seq; NET.log[seq] = a; SEQ_OF.set(a, seq); if(a.t === 'start') NET.runStart = seq; return seq; }
+/* Koop-Desync-Erkennung: nach jeder Aktion ein Prüfwert über den Spielzustand; der Host schickt seinen im Herzschlag mit.
+   Weicht er beim Gast ab, holt sich der Gast den Run neu (wie ein Nachzügler) – danach sind alle wieder gleich. */
+const SEQ_OF = new WeakMap(), STATE_HASH = {};
+function stateHash(){ return hashStr(stateStr()); }
+function hashStr(t){ let x = 2166136261; for(let i = 0; i < t.length; i++){ x ^= t.charCodeAt(i); x = Math.imul(x, 16777619); } return x >>> 0; }
+function stateStr(){
+  let t = (S.round || 0) + '|' + _seed + '|' + (S.phase || '') + '|';
+  for(const h of heroList()) t += h.id + ':' + h.hp + ':' + h.block + ':' + (h.dead ? 1 : 0) + ':' + (h.gold || 0) + ':' + (h.hand || []).length + ';';
+  for(const e of (S.enemies || [])) t += e.id + ':' + e.hp + ':' + (e.block || 0) + ':' + (e.dead ? 1 : 0) + ';';
+  return t;
+}
+function noteHash(a){ const q = SEQ_OF.get(a); if(!q) return; STATE_HASH[q] = stateHash(); if(window.__dbgState) (window.__ss = window.__ss || {})[q] = stateStr(); delete STATE_HASH[q - 200]; NET.done = q; }
 function hostCommit(a){
   const seq = logAct(a);
   NET.g && NET.g.emit('act', {seq, a}).catch(() => {});
@@ -11682,7 +11744,7 @@ function hostCommit(a){
 function guestReceive(seq, a){
   if(seq < NET.expect || NET.buf[seq]) return;
   NET.buf[seq] = a;
-  while(NET.buf[NET.expect]){ const x = NET.buf[NET.expect]; delete NET.buf[NET.expect]; NET.expect++; enqueue(x); }
+  while(NET.buf[NET.expect]){ const x = NET.buf[NET.expect]; delete NET.buf[NET.expect]; if(x && typeof x === 'object') SEQ_OF.set(x, NET.expect); NET.expect++; enqueue(x); }
   if(Object.keys(NET.buf).length) requestResync();
 }
 let lastResync = 0;
@@ -11753,7 +11815,8 @@ async function hostGame(midRun = false){               // midRun: Solo-Run wird 
   });
   listen('bye', msg => { if(NET.guests[msg.peer]) partnerLeft(msg.peer); });
   NET.unsubs.push(NET.g.onPeers(ch => { ch.left.forEach(p => { if(NET.guests[p.peer]) partnerLeft(p.peer); }); }));
-  NET.hb = setInterval(() => { if(NET.g && NET.seq) NET.g.emit('hb', {seq:NET.seq}).catch(() => {}); if(guestPeers().length) sendLobby(); }, 2500);
+  NET.hb = setInterval(() => { if(NET.g && NET.seq) NET.g.emit('hb', {seq:NET.seq, hq:NET.done || 0, hh:STATE_HASH[NET.done] || 0}).catch(() => {}); if(guestPeers().length) sendLobby(); }, 2500);
+  listen('needsync', msg => { if(NET.guests[msg.peer] && S.runActive && msg.data && msg.data.me){ console.warn('Koop: Gast holt den Run neu', msg.data); sendSync(msg.data.me); } });
   if(midRun){ S.mode = 'host'; renderPlayersPage(); }
   else renderHostLobby();
 }
@@ -11774,6 +11837,7 @@ async function replaySync(){
     for(let n = 0; (qRunning || Q.length) && n < 2000; n++) await new Promise(r => setTimeout(r, 25));
   } finally { FASTFWD = false; }
   NET.lateJoin = false;
+  console.warn('Koop: Nachspielen fertig', S.phase, S.round, NET.expect, Q.length, qRunning);
   const pend = NET.pend; NET.pend = {};
   Object.keys(pend).map(Number).sort((x, y) => x - y).forEach(q => guestReceive(q, pend[q]));
   refreshUI(); postFlow();
@@ -11794,7 +11858,7 @@ function renderPlayersPage(){
   box.innerHTML = `<div class="mpcode"><span>Code</span><div class="code small">${NET.code}</div><button class="mbtn copybtn" id="mpCopy">Copy</button></div>
     ${GODOT ? godotLobbyInfo() : ''}
     <p class="keys">Friends click <b>Join Co-op</b> and enter the code – they join the running game. Click a player's name on a hero to hand it over.</p>
-    <div class="mpheroes">${S.party.map(id => `<div class="mphero">${heroPortrait(id, 34)}<b>${HEROES[id].name}</b><div class="seg">${players.map(sl =>
+    <div class="mpheroes">${S.party.map(id => `<div class="mphero">${heroPortrait(id, 34)}<b>${heroLabel(id)}</b><div class="seg">${players.map(sl =>
       `<button data-h="${id}" data-s="${sl}" class="${S.roles[id] === sl ? 'on' : ''}">${sl === 'host' ? (myName() || 'You') + ' (host)' : pName(sl)}</button>`).join('')}</div></div>`).join('')}</div>`;
   $('#mpCopy').onclick = ev => { ev.stopPropagation(); copyText(NET.code); ev.target.textContent = 'Copied!'; };
   box.querySelectorAll('.mphero button').forEach(b => b.onclick = () => {
@@ -11830,7 +11894,7 @@ function lobbyGrid(assign, players, me){
 }
 function lobbyRoster(assign, players, me, ready = {}){
   return `<p class="lobbyroster">${players.map(sl => {
-    const hs = CLASS_ORDER.filter(id => assign && assign[id] === sl).map(id => HEROES[id].name);
+    const hs = CLASS_ORDER.filter(id => assign && assign[id] === sl).map(id => heroLabel(id));
     const rd = ready[sl] ? ' <em class="rdy">Ready ✓</em>' : ' <em class="nrdy">not ready</em>';
     return `<span class="${sl === me ? 'me' : ''}"><b>${sl === me ? 'You' : pName(sl)}</b>: ${hs.length ? hs.join(', ') : '<i>no hero yet</i>'}${rd}</span>`;
   }).join('')}</p>`;
@@ -11930,7 +11994,13 @@ async function joinGame(code){
     }
     guestReceive(msg.data.seq, msg.data.a);
   });
-  listen('hb', msg => { if(!NET.lateJoin && msg.peer === NET.hostPeer && msg.data && msg.data.seq >= NET.expect) requestResync(); });
+  listen('hb', msg => { if(!NET.lateJoin && msg.peer === NET.hostPeer && msg.data && msg.data.seq >= NET.expect) requestResync();
+    const d = msg.data || {};                                           // Desync? Dann den Run neu holen
+    if(!NET.lateJoin && msg.peer === NET.hostPeer && d.hq && d.hh && STATE_HASH[d.hq] && STATE_HASH[d.hq] !== d.hh && !busy()){
+      console.warn('Koop: Desync bei Aktion', d.hq, STATE_HASH[d.hq], d.hh);
+      NET.lateJoin = true; NET.sync = null; NET.pend = {}; toast('Out of sync – reloading the run from the host…');
+      NET.g && NET.g.emit('needsync', {me:NET.me}).catch(() => {});
+    } });
   listen('sync', msg => {
     const d = msg.data; if(!d || d.to !== NET.me || !NET.lateJoin || !Array.isArray(d.acts)) return;
     if(NET.hostPeer && msg.peer !== NET.hostPeer) return;
@@ -11946,9 +12016,9 @@ async function joinGame(code){
   setTimeout(() => { if(!found && NET.code === code && !S.runActive){ leaveNet(); renderJoin(ipMode ? `No game found at ${code}.` : `No game found with code ${code}.`); } }, 9000);
 }
 function renderJoin(err = ''){
-  showOverlay(GODOT ? `<h1>Join Co-op</h1><p>Enter the code or the IP address your host sees:</p>
+  showOverlay(`${GODOT ? `<h1>Join Co-op</h1><p>Enter the code or the IP address your host sees:</p>
     <input id="codeIn" class="codein ipin" maxlength="60" placeholder="ABCD or 192.168.0.5" autocomplete="off" spellcheck="false">` : `<h1>Join Co-op</h1><p>Enter the code your host sees:</p>
-    <input id="codeIn" class="codein" maxlength="4" placeholder="ABCD" autocomplete="off">
+    <input id="codeIn" class="codein" maxlength="4" placeholder="ABCD" autocomplete="off">`}
     ${err ? `<p class="err">${err}</p>` : ''}
     <div class="mrow"><button class="mbtn" id="lobbyBack">Back</button><button class="mbtn" id="ovBtn">Join</button></div>`, () => joinGame($('#codeIn').value));
   $('#codeIn').focus();
@@ -12200,7 +12270,7 @@ function showTutorial(){
   showOverlay(`<h1>Tutorial</h1><div class="tutorial"><div class="tcols">
     <ul>
       <li><b>Goal:</b> cross 4 biomes of 10 rooms each with 1–4 heroes – a boss waits at the end of every biome (after each boss you may end the run or go deeper), and every biome has its own Affix. If one hero falls, the others fight on; fallen heroes return after the fight.</li>
-      <li><b>Turns:</b> all heroes play at the same time (switch with the buttons or keys 1–4), then the enemies act. Each hero gets <b>5 Energy</b> (unspent Energy is saved, max 10) and draws <b>4 cards</b>.</li>
+      <li><b>Turns:</b> all heroes play at the same time (switch with the buttons or keys 1–4), then the enemies act. Each hero gets <b>5 Energy</b> (unspent Energy is saved, max 10) and draws <b>5 cards</b>.</li>
       <li><b>Play a card:</b> click it or drag it onto the target (keys Q W E R T Z U). Cards marked <i>Any hero</i> can target an ally.</li>
       <li><b>Hover</b> a card in your hand: its mechanics are explained next to it. Hover any icon (statuses, enemy intents, energy) to see what it does.</li>
       <li><b>Read the enemy:</b> the icon above an enemy shows its next move. Kill healers and buffers first.</li>
