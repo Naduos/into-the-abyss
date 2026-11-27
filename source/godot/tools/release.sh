@@ -63,7 +63,7 @@ cd "$CLONE"
 git add -A
 git commit -q -m "Into the Abyss Version $V${NOTES:+ – $NOTES}
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01VL2RaEuLfFe5JqWnxBQh1H"
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VL2RaJqKAiunq6oWc1RL8Z"
 git -c push.negotiate=true push -q origin "HEAD:$BRANCH"
 echo "Veröffentlicht: Version $V"
