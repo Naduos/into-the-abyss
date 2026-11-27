@@ -55,8 +55,15 @@ html,body{margin:0;height:100%;background:#07060a;overflow:hidden;font-family:In
 .hp{position:absolute;inset:0;background:#1a0d10;border:2px solid #000;border-radius:10px;overflow:hidden;box-shadow:0 2px 4px rgba(0,0,0,.6)}
 .hpfill,.hpghost{position:absolute;left:0;top:0;bottom:0;transition:width .25s}
 .hpghost{background:#f6d6a0;transition:width .7s .25s}
+  .dicefx{position:absolute;left:50%;top:-20px;z-index:20;transform:translateX(-50%);transition:transform .08s;filter:drop-shadow(0 4px 6px rgba(0,0,0,.6));pointer-events:none}
+.dicefx.land{transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+#bmShop{position:fixed;inset:0;z-index:300;background:rgba(6,4,10,.72);display:grid;place-items:center}
+#bmShop .bmbox{background:#1b1522;border:2px solid #c8a060;border-radius:14px;padding:16px 22px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.8)}
+#bmShop h2{margin:0 0 4px;color:#ffd34a;font-family:Cinzel,serif}#bmShop p{margin:0 0 12px;color:#cfc6da;font-size:13px}
+#bmShop .bmrow{display:flex;gap:18px;justify-content:center;margin-bottom:12px}#bmShop .bmcol{display:flex;flex-direction:column;align-items:center;gap:8px}#bmShop .bmcol .card{position:relative;margin:0}
+.hist .hgold{color:#ffd34a}.hist .hen{color:#8ac4ff}.hist .hnote{color:#d8c8f0;font-style:italic}
 .hcard{text-decoration:underline dotted;text-underline-offset:3px;cursor:help}
-.htipcard{padding:4px}.htipcard .card{position:relative;transform:none!important;margin:0}
+#hcPrev{position:fixed;z-index:400;pointer-events:none;filter:drop-shadow(0 8px 18px rgba(0,0,0,.7))}#hcPrev .card{position:relative;margin:0}
 /* Thief: Gold-Aura (alle 100 Gold eine Stufe: Münzen kreisen, ab 300 ein Goldsack) */
 .sprite{isolation:isolate}
 .goldfx{position:absolute;inset:0;pointer-events:none}
@@ -1601,7 +1608,7 @@ invisIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><path d="M2 20 Q20 2 
 const ASSASSIN_CARDS = {
   evade:       {name:'Evade',       rarity:'common',   cost:1, type:'block', block:5, up:{block:3}, upText:'8 Block'},
   stab:        {name:'Stab',        rarity:'common',   cost:2, type:'attack', dmg:10, up:{dmg:3}, upText:'13 damage'},
-  precision:   {name:'Precision',   rarity:'common',   cost:2, type:'attack', dmg:6, crit:true, up:{dmg:3}, upText:'9 damage'},
+  precision:   {name:'Precision',   rarity:'common',   cost:2, type:'attack', dmg:8, crit:true, up:{dmg:4}, upText:'12 damage'},
   vanish:      {name:'Vanish',      rarity:'common',   cost:1, type:'skill', invis:true, selfOnly:true, up:{draw:1}, upText:'Draw 1 card'},
   cheapshot:   {name:'Cheap Shot',  rarity:'uncommon', cost:0, type:'attack', dmg:3, draw:1, up:{dmg:2}, upText:'5 damage'},
   dirtytrick:  {name:'Dirty Trick', rarity:'uncommon', cost:0, type:'skill', weak:1, draw:1, up:{weak:1}, upText:'2 Weak'},
@@ -1718,7 +1725,7 @@ function cndOn(key, n){
   const h = x.h, g = h.gold || 0, T = () => cndTargets();
   switch(key){
     case 'gold':     return g >= n;
-    case 'goldMid':  return g >= 50 && g < 150;
+    case 'goldMid':  return g >= 100 && g < 300;
     case 'invis':    return !!h.status.invis;
     case 'notInvis': return !h.status.invis;
     case 'selfPois': return (h.status.poison || 0) > 0;
@@ -2157,7 +2164,7 @@ function gainMomentum(h, n){
 }
 function addTempCard(h, key, n = 1, follow = false, bonus = null, up = false, foil = false){   // foil: Follow-up einer Foil-Karte ist selbst Foil   // up: Follow-up einer upgegradeten Karte ist selbst upgegradet    // Folgekarten: kosten 0, verschwinden nach dem Ausspielen (follow: behalten Kosten, Keyword Vanish)
   for(let k = 0; k < n; k++) h.hand.push({...newCard(key), tmp:true, ...(follow ? {follow:true} : {}), ...(bonus ? {bonus:{...bonus}} : {}), ...(up && upgradeKind(CARDS[key]) ? {upgraded:true} : {}), ...(foil ? {foil:true} : {})});
-  floatText(h, `+${n} ${CARDS[key].name}${n > 1 ? 's' : ''}`, 'status-f');
+  floatText(h, `+${n} ${CARDS[key].name}${n > 1 ? 's' : ''}`, 'status-f'); histNote(`+${n > 1 ? n + ' ' : ''}${CARDS[key].name} to the hand`);
 }
 
 /* ---------- Ranger-Modelle ---------- */
@@ -2543,7 +2550,7 @@ const GEM_TYPES = {
   bloodgem:   {name:'Bloodlust',   spec:'barbarian',    minTier:2, attackOnly:true, color:'#a01818', adj:'Bloodlust', fx:t=>`+${2*(t-1)} Damage per hit, lose 1 HP`},
   glorygem:   {name:'Glory',       spec:'gladiator',    minTier:2, color:'#f3cf7a', adj:'Glorious',   fx:t=>`+${t-1} Damage per hit and +${t-1} Block`},
   goldgem:    {name:'Greed',       spec:'thief',        minTier:2, color:'#ffd34a', adj:'Greedy',     fx:t=>`Steal ${3*t}–${5*t} Gold`},
-  shadowgem:  {name:'Shadow',      spec:'assassin',     minTier:2, attackOnly:true, color:'#3a3a48', adj:'Shadow',    fx:t=>`Card can Crit${t > 2 ? `, +${t-2} Damage per hit` : ''}`},
+  shadowgem:  {name:'Shadow',      spec:'assassin',     minTier:2, attackOnly:true, color:'#3a3a48', adj:'Shadow',    fx:t=>`Card gains Assassinate${t > 2 ? `, +${t-2} Damage per hit` : ''}`},
   toxingem:   {name:'Toxin',       spec:'deathbringer', minTier:2, attackOnly:true, color:'#7cff3a', adj:'Toxic',     fx:t=>`Apply +${t+1} Poison`},
   pyregem:    {name:'Pyre',        spec:'fire',         minTier:2, color:'#ff8a2a', adj:'Pyre',       fx:t=>`Apply ${t-1} Burn to ALL enemies`},
   glaciergem: {name:'Glacier',     spec:'ice',          minTier:2, color:'#bfefff', adj:'Glacier',    fx:t=>`Apply ${t-1} Ice to ALL enemies`},
@@ -2560,7 +2567,7 @@ const GEM_TYPES = {
   corruptgem: {name:'Corruption',  spec:'acolyte',      minTier:2, color:'#5aff9a', adj:'Corrupted',  fx:t=>`+${t-1} Corruption – at 100 Corruption instead +${2*(t-1)} Damage (or Block)`},
   dreamgem:   {name:'Dream',       spec:'dreamweaver',  minTier:2, color:'#9a7aff', adj:'Dreaming',   fx:t=>`Apply +${t-1} Dream`},
   // ---- weitere Spezialisierungs-Edelsteine (26.11.) ----
-  critgem:    {name:'Execution',   spec:'assassin',     minTier:5, attackOnly:true, noFleet:true, noCrit:true, color:'#8a1a2a', adj:'Executing', fx:()=>'Card can Crit'},
+  critgem:    {name:'Execution',   spec:'assassin',     minTier:5, attackOnly:true, noFleet:true, noCrit:true, color:'#8a1a2a', adj:'Executing', fx:()=>'Card gains Assassinate'},
   lootgem:    {name:'Plunder',     spec:'thief',        minTier:5, attackOnly:true, noFleet:true, color:'#e8b030', adj:'Plundering', fx:()=>'Kill: create a random gem'},
   blightgem:  {name:'Blight',      spec:'deathbringer', minTier:5, attackOnly:true, color:'#4a8a1a', adj:'Withering', fx:()=>"+damage equal to the target's Poison (once per target)"},
   claritygem: {name:'Clarity',     spec:'acolyte',      minTier:3, color:'#7ae0ff', adj:'Lucid',      fx:t=>`Restore ${t-2} Sanity`},
@@ -2746,6 +2753,7 @@ function stats(c){
   s.atkType = !s.dmg ? null : d.atk === 'aoe' || s.aoe ? 'aoe' : d.atk ? d.atk : s.extra ? 'splash' : null;   // Angriffsart wie bei Gegnern (null = normaler Angriff)
   if(s.atkType === 'aoe') s.aoe = true;
   if(s.atkType === 'splash' && !s.extra) s.extra = 2;                // Splash ohne Zahl: beide Nachbarn
+  if(s.crit && (d.char === 'assassin' || c.assnOwner || (S && S.heroes && S.heroes.assassin && (S.heroes.assassin.deck || []).includes(c)))){ s.crit = false; s.assn = true; }   // Assassin: Assassinate (+50 % am letzten Gegner) statt Crit
   return s;
 }
 const sanityOf = h => h.sanity ?? SANITY_MAX;
@@ -2853,15 +2861,15 @@ function axDescPre(s, d, L){                                            // Assas
   if(x.rhythm){ L.push(cnd(cndOn('cards', 3), 'If you played <b>3+</b> cards this turn: gain <b>2</b> Energy, become Invisible, Follow up.')); L.push(cnd(cndOn('cardsLess', 3), 'Otherwise: draw <b>2</b> cards.')); }
   if(x.manaIfN) L.push(cnd(cndOn('cards', x.manaIfN), `If you played <b>${x.manaIfN}+</b> cards this turn: gain <b>${x.manaIfE || 1}</b> Energy.`));
   if(x.danceDiv) L.push(`Gain <b>1</b> Energy for every ${nl(x.danceDiv, b('danceDiv'))} cards you played this turn (max 3).`);
-  if(x.g50Block){ L.push(cnd(cndOn('goldMid'), `If you have 50+ Gold: ${n(x.g50Block, b('g50Block'))} more Block.`)); L.push(cnd(cndOn('gold', 150), `If you have 150+ Gold: ${n(x.g150Block, b('g150Block'))} more Block instead.`)); }
-  if(x.g50Energy) L.push(cnd(cndOn('gold', 50), `If you have 50+ Gold: gain <b>${x.g50Energy}</b> Energy.`));
-  if(x.g150Draw) L.push(cnd(cndOn('gold', 150), `If you have 150+ Gold: also draw <b>${x.g150Draw}</b> card.`));
+  if(x.g50Block){ L.push(cnd(cndOn('goldMid'), `If you have 100+ Gold: ${n(x.g50Block, b('g50Block'))} more Block.`)); L.push(cnd(cndOn('gold', 300), `If you have 300+ Gold: ${n(x.g150Block, b('g150Block'))} more Block instead.`)); }
+  if(x.g50Energy) L.push(cnd(cndOn('gold', 100), `If you have 100+ Gold: gain <b>${x.g50Energy}</b> Energy.`));
+  if(x.g150Draw) L.push(cnd(cndOn('gold', 300), `If you have 300+ Gold: also draw <b>${x.g150Draw}</b> card.`));
 }
 function axDescPost(s, d, L){                                           // Assassin: Zeilen nach den Effekten
   const x = s.ax; if(!x) return; const b = k => (d.ax || {})[k] || 0, n = (v, base) => `<b${v > base ? ' class="up"' : ''}>${v}</b>`, nl = (v, base) => `<b${v < base ? ' class="up"' : ''}>${v}</b>`;
   if(x.blockPois) L.push("Gain Block equal to the target's Poison.");
   if(x.blockPoisAll) L.push('Gain Block equal to the Poison of ALL enemies combined.');
-  if(x.g50Dmg){ L.push(cnd(cndOn('goldMid'), `If you have 50+ Gold: ${n(x.g50Dmg, b('g50Dmg'))} more damage.`)); L.push(cnd(cndOn('gold', 150), `If you have 150+ Gold: ${n(x.g150Dmg, b('g150Dmg'))} more damage instead.`)); }
+  if(x.g50Dmg){ L.push(cnd(cndOn('goldMid'), `If you have 100+ Gold: ${n(x.g50Dmg, b('g50Dmg'))} more damage.`)); L.push(cnd(cndOn('gold', 300), `If you have 300+ Gold: ${n(x.g150Dmg, b('g150Dmg'))} more damage instead.`)); }
   if(x.invisDmg) L.push(cnd(cndOn('invis'), `If you are Invisible: ${n(x.invisDmg, b('invisDmg'))} more damage.`));
   if(x.pDmg) L.push(cnd(cndOn('tPois'), `If the target is ${s.poison || s.poisonAll ? 'already ' : ''}Poisoned: ${n(x.pDmg, b('pDmg'))} more damage${x.pDraw ? ` and draw <b>${x.pDraw}</b> card` : ''}.`));
   if(x.pPoison) L.push(cnd(cndOn('tPois'), `If the target is ${s.poison || s.poisonAll ? 'already ' : ''}Poisoned: apply ${n(x.pPoison, b('pPoison'))} Poison.`));
@@ -2883,16 +2891,16 @@ function axDescPost(s, d, L){                                           // Assas
   if(x.contract) L.push(`Your next attack deals ${n(x.contract, b('contract'))} more damage per hit.`);
   if(x.killGem) L.push(`This turn, every kill creates a random Gem${x.killDraw ? ' <b class="up">and draws 1 card</b>' : ''}.`);
   if(x.gems) L.push(`Create ${n(x.gems, b('gems'))} random Gem${x.gems > 1 ? 's' : ''}.`);
+  if(x.bmShop) L.push(x.bmShop > 1 ? 'Open an <b class="up">upgraded</b> Black Market.' : 'Open a Black Market.');
   if(x.randCard) L.push(x.randCard > 3 ? 'Create a random <b class="up">Epic or lower</b> card. It costs 0.' : 'Create a random Rare card. It costs 0.');
-  if(x.dice) L.push(x.dice > 1 ? 'Roll a die: <b>1</b> lose 5 HP · <b>2–3</b> gain 20 Gold · <b>4–5</b> draw 3, gain 1 Energy · <b>6</b> a random Epic or lower card (costs 0).'
-                                : 'Roll a die: <b>1–2</b> lose 10 HP · <b>3–4</b> gain 20 Gold · <b>5</b> draw 3, gain 2 Energy · <b>6</b> a random Rare card (costs 0).');
+  if(x.dice) L.push(x.dice > 1 ? 'Roll a die: <b>1</b> lose 5 HP · <b>2–3</b> gain 20 Gold · <b>4–5</b> draw 3, gain 1 Energy · <b>6</b> gain 20 Gold, draw 3, gain 2 Energy.' : 'Roll a die: <b>1–2</b> lose 10 HP · <b>3–4</b> gain 20 Gold · <b>5</b> draw 3, gain 2 Energy · <b>6</b> gain 20 Gold, draw 3, gain 2 Energy.');
   if(x.noDraw) L.push('You can\'t draw any other cards this turn.');
   if(x.fade) L.push('Your next attack costs <b>1</b> less.');
   if(x.comboVuln) L.push(cnd(cndOn('atkPrior'), `If you played another attack this turn: apply <b>${x.comboVuln}</b> Vulnerable to the last enemy.`));
   if(x.backVuln) L.push(`Apply <b>${x.backVuln}</b> Vulnerable to the last enemy.`);
   if(x.hunt) L.push(`This turn your Back Attacks deal ${n(x.hunt, b('hunt'))} more damage to the last enemy.`);
   if(x.window) L.push(`Your next Back Attack deals ${n(x.window, b('window'))}% more damage.`);
-  if(x.sentN) L.push(`Your next ${n(x.sentN, b('sentN'))} attacks against the last enemy deal ${n(x.sentDmg, b('sentDmg'))} more damage (Crit: ${n(x.sentCrit, b('sentCrit'))}).`);
+  if(x.sentN) L.push(`Your next ${n(x.sentN, b('sentN'))} attacks against the last enemy deal ${n(x.sentDmg, b('sentDmg'))} more damage (if it Assassinates: ${n(x.sentCrit, b('sentCrit'))}).`);
   if(x.selfPoison) L.push(`Apply ${n(x.selfPoison, b('selfPoison'))} Poison to yourself.`);
   if(x.spread) L.push(cnd(cndOn('tPois'), `If the target is already Poisoned: apply ${n(x.spread, b('spread'))} Poison to the nearest enemy.`));
   if(x.amp) L.push(`The target's next Poison tick deals ${n(x.amp, b('amp'))}% more damage.`);
@@ -2927,10 +2935,11 @@ function cardDesc(c){
     else if(s.random && !(d.spec === 'drunkmaster' || (heroOfCard(c) || {}).spec === 'drunkmaster')) L.push(`Deal ${dv} damage to a random enemy${times}.`);   // Drunk Master: steht schon im Passiv
     else L.push(`Deal ${dv} damage${times}.`);
     if(s.lowHpDouble) L.push(cnd(cndOn('selfLow'), 'If you are below half HP: double damage.'));
-    if(s.soloMult) L.push(cnd(cndOn('lone'), 'If it is the only enemy left: double damage.'));
+    if(s.soloMult) L.push(cnd(cndOn('lone'), `If it is the only enemy left: ${({2:'double',3:'triple',4:'quadruple'})[s.soloMult] || '×' + s.soloMult} damage.`));
     if(s.execute) L.push(cnd(cndOn('tLow'), 'If the target is below half HP: double damage.'));
     if(s.bonusRange) L.push(`<b class="up">+0–${s.bonusRange}</b> damage per hit.`);
     if(s.crit) L.push('Crit.');
+    if(s.assn) L.push('Assassinate.');
     if(s.returnOnKill) L.push(cnd(false, 'If it kills: return it to your hand.'));
     if(s.pull) L.push('Pull the target to the front.');
     if(s.extra && s.atkType === 'splash' && !(d.atk === 'splash' && s.extra === 2)) L.push(`Splashes <b${s.extra > (d.chain||0) ? ' class="up"' : ''}>${s.extra}</b> nearby enem${s.extra > 1 ? 'ies' : 'y'}.`);
@@ -3144,7 +3153,7 @@ function canSocket(c, g){
   if(g.type === 'foilgem' && isFoil(c)) return 'Already Foil';
   if(t.attackOnly && !d.dmg && !d.blockStrike) return 'Attacks only';
   if(t.noAoe && d.aoe) return 'Already hits ALL';
-  if(t.noCrit && (d.crit || c.gems.some(x => x.type === 'shadowgem' || x.type === 'critgem'))) return 'Already has Crit';
+  if(t.noCrit && (d.crit || d.assn || c.gems.some(x => x.type === 'shadowgem' || x.type === 'critgem'))) return 'Already has Assassinate';
   if(t.noBleed && (d.bleed || c.gems.some(x => x.type === 'distortgem'))) return 'Already has Reality Distortion';
   return '';
 }
@@ -3298,6 +3307,8 @@ Object.assign(SVG, {
   toxmightIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#2a4a0a" stroke="#111" stroke-width="2.5"/><path d="M20 8 L23 17 H31 L25 22 L27 31 L20 26 L13 31 L15 22 L9 17 H17Z" fill="#b4f04a" stroke="#1a3a0a" stroke-width="1.6"/></svg>`,
   mutdoubleIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#5a0a2a" stroke="#111" stroke-width="2.5"/><text x="20" y="27" font-size="17" text-anchor="middle" font-weight="900" fill="#b4f04a">×2</text></svg>`,
   venomTolIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#1a3a12" stroke="#111" stroke-width="2.5"/><path d="M20 8 Q28 18 28 24 A8 8 0 0 1 12 24 Q12 18 20 8Z" fill="#7ad84a" stroke="#1a3a12" stroke-width="1.5"/><path d="M20 19 V29 M15 24 H25" stroke="#fff" stroke-width="3"/></svg>`,
+  assnIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#2a0a12" stroke="#111" stroke-width="2.5"/><path d="M12 30 L27 9 L31 12 L16 32Z" fill="#d8dce8" stroke="#111" stroke-width="1.5"/><path d="M10 29 L18 35" stroke="#8a1a2a" stroke-width="3.5" stroke-linecap="round"/><circle cx="29" cy="28" r="3" fill="#e03a4a"/></svg>`,
+  bmIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#1a1410" stroke="#111" stroke-width="2.5"/><path d="M9 16 H31 L28 30 H12Z" fill="#6a4a2a" stroke="#111" stroke-width="1.5"/><path d="M14 16 Q20 7 26 16" fill="none" stroke="#c8a060" stroke-width="2.5"/><circle cx="20" cy="23" r="3.5" fill="#ffd34a" stroke="#8a5a12"/></svg>`,
   hourAwakeIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#1a1030" stroke="#111" stroke-width="2.5"/><circle cx="20" cy="20" r="13" fill="none" stroke="#c8b4ff" stroke-width="2"/><path d="M20 20 V10 M20 20 L27 24" stroke="#ffe07a" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="20" r="2.4" fill="#ffe07a"/></svg>`,
   plagueEngIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#3a4a2a" stroke="#111" stroke-width="2.5"/><circle cx="20" cy="20" r="8" fill="#7cd42a" stroke="#1a2a0a" stroke-width="2"/><rect x="18" y="6" width="4" height="6" fill="#7cd42a" stroke="#1a2a0a" stroke-width="1" transform="rotate(0 20 20)"/><rect x="18" y="6" width="4" height="6" fill="#7cd42a" stroke="#1a2a0a" stroke-width="1" transform="rotate(60 20 20)"/><rect x="18" y="6" width="4" height="6" fill="#7cd42a" stroke="#1a2a0a" stroke-width="1" transform="rotate(120 20 20)"/><rect x="18" y="6" width="4" height="6" fill="#7cd42a" stroke="#1a2a0a" stroke-width="1" transform="rotate(180 20 20)"/><rect x="18" y="6" width="4" height="6" fill="#7cd42a" stroke="#1a2a0a" stroke-width="1" transform="rotate(240 20 20)"/><rect x="18" y="6" width="4" height="6" fill="#7cd42a" stroke="#1a2a0a" stroke-width="1" transform="rotate(300 20 20)"/></svg>`,
   heartVenomIcon:`<svg width="18" height="18" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#1a3a0a" stroke="#111" stroke-width="2.5"/><path d="M20 31 Q8 23 8 15 Q8 9 14 9 Q18 9 20 13 Q22 9 26 9 Q32 9 32 15 Q32 23 20 31Z" fill="#7cd42a" stroke="#0a1a04" stroke-width="1.8"/></svg>`,
@@ -3336,7 +3347,7 @@ const STATUS = {
   drained:   {icon:'drainIcon',      tip:n => `Drained: gets ${n} less Energy at the start of the next round.`},
   aegis:     {icon:'aegisIcon',      tip:n => `Aegis: a ${n}-point shield that absorbs damage before Block and HP. Break it before the Annihilation Beam fires!`},
   bond:      {icon:'bondIcon',       flag:true, tip:() => `Twin Bond: when the other twin dies, this one gains 5 Strength and heals.`},
-  interrupt: {icon:'interruptIcon',  flag:true, tip:() => `Restless: after ${shiftLimit()} cards played by your team it interrupts – your turn ends and it transforms. Bear: Block + heals 15%. Hawk: Strength for the fight. Serpent: Poison on all heroes. Every transform is stronger than the last.`},
+  interrupt: {icon:'interruptIcon',  flag:true, tip:() => `Restless: after ${shiftLimit()} cards played by your team it interrupts – your turn ends, it does its shown action and then transforms. Bear: Block + heals 15%. Hawk: Strength for the fight. Serpent: Poison on all heroes. Every transform is stronger than the last.`},
   mark:      {icon:'markIcon',       tip:n => `Mark: this enemy takes +${n}% damage from every hit (from every hero). Marks stay until a Detonate effect makes them explode – the explosion also gets the +${n}%.`},
   momentum:  {icon:'momentumIcon',   tip:n => `Momentum: ${n} (max 10). Gained by playing a different card type than your previous card, and by cards. Finishers spend it.`},
   plan:      {icon:'planIcon',       tip:n => `Master Plan (buff): whenever you gain Momentum, gain ${n} more until the end of the fight.`},
@@ -4717,7 +4728,7 @@ async function shiftEffect(e){
 }
 const SHIFTER_BOSS = {
   id:'shifter', key:'wolfform', name:'Morrgan the Shapeshifter', hp:135, boss:true, passive:{interrupt:1},
-  desc:`Starts as a Wolf. After a number of cards played by your team (more heroes: more cards) he interrupts: your turn ends and he transforms – Bear (Block + heals 15%), Hawk (gains Strength) or Serpent (Poison on all heroes). Each transform is stronger than the last!`,
+  desc:`Starts as a Wolf. After a number of cards played by your team (more heroes: more cards) he interrupts: your turn ends, he does his shown action and then transforms – Bear (Block + heals 15%), Hawk (gains Strength) or Serpent (Poison on all heroes). Each transform is stronger than the last!`,
   ai:e => SHIFT_FORMS[e.form || 'wolf'].ai(e),
 };
 const BOSSES = [BOSS, AEGIS_BOSS, SHIFTER_BOSS];
@@ -5129,7 +5140,7 @@ addExpansion({
   lastcall:     {name:'Last Call',            rarity:'rare', spec:'nightfighter', cost:4, type:'attack', dmg:4, hits:6, up:{owed:1}, upText:'+1 Deserves a Beating per hit'},
   iseeyou:      {name:'I See You All',        rarity:'rare', spec:'nightfighter', cost:2, type:'skill', owedAll:4, exhaust:true, up:{owedAll:1}, upText:'+1 Deserves a Beating'},
   nexttime:     {name:'Next Time',            rarity:'rare', spec:'nightfighter', cost:2, type:'skill', keepPayback:50, selfOnly:true, exhaust:true, up:{cost:-1}, upText:'−1 cost'},
-  payday:       {name:'Pay Day',              rarity:'rare', spec:'nightfighter', cost:3, type:'attack', atk:'splash', dmg:6, hits:2, gold:[5, 10], consumeOwed:true, up:{hits:1}, upText:'+1 hit'},
+  payday:       {name:'Daypay',              rarity:'rare', spec:'nightfighter', cost:3, type:'attack', atk:'splash', dmg:6, hits:2, gold:[5, 10], consumeOwed:true, up:{hits:1}, upText:'+1 hit'},
   briefcaseswing:{name:'Briefcase Swing',     rarity:'epic', spec:'nightfighter', cost:3, type:'attack', atk:'front', dmg:20, spreadOwed:50, up:{spreadOwed:10}, upText:'60% instead of 50%'},
   interest:     {name:'Compound Interest',    rarity:'epic', spec:'nightfighter', cost:2, type:'skill', owedDouble:true, exhaust:true, up:{cost:-1}, upText:'−1 cost'},
   lastwarning:  {name:'Last Warning',         rarity:'epic', spec:'nightfighter', cost:4, type:'attack', dmg:20, vuln:2, consumeOwed:true, consumePayback:2, up:{consumePayback:1, dmg:5}, upText:'+5 damage, +1 per Payback'},
@@ -5436,7 +5447,7 @@ addExpansion({
   smokeescape:  {name:'Smokescreen Escape', rarity:'uncommon',  spec:'thief', cost:1, type:'skill', weak:1, invis:true, up:{weak:1}, upText:'2 Weak'},
   greedystrike: {name:'Greedy Strike',      rarity:'uncommon',  spec:'thief', cost:2, type:'attack', dmg:5, ax:{gold:10, goldPer:25, goldMax:8}, up:{dmg:2, ax:{gold:2, goldMax:2}}, upText:'7 damage, 12 Gold, max +10'},
   fence:        {name:'Fence the Goods',    rarity:'rare',      spec:'thief', cost:0, type:'skill', exhaust:true, ax:{gold:25}, selfOnly:true, up:{ax:{gold:10}}, upText:'Gain 35 Gold'},
-  goldendagger: {name:'Golden Dagger',      rarity:'rare',      spec:'thief', cost:2, type:'attack', dmg:9, crit:true, ax:{g50Dmg:4, g150Dmg:8}, up:{dmg:3, ax:{g50Dmg:1, g150Dmg:2}}, upText:'12 damage, bonus 5/10'},
+  goldendagger: {name:'Golden Dagger',      rarity:'rare',      spec:'thief', cost:2, type:'attack', dmg:12, crit:true, ax:{g50Dmg:5, g150Dmg:11}, up:{dmg:4, ax:{g50Dmg:2, g150Dmg:2}}, upText:'16 damage, bonus 7/13'},
   vault:        {name:'Vault Door',         rarity:'rare',      spec:'thief', cost:3, type:'block', block:12, ax:{g50Block:4, g150Block:8}, up:{block:4, ax:{g50Block:1, g150Block:2}}, upText:'16 Block, bonus 5/10'},
   thiefpayday:  {name:'Payday',             rarity:'rare',      spec:'thief', cost:2, type:'skill', ax:{gold:15, dpgPer:100, dpgMax:3}, selfOnly:true, up:{ax:{gold:5, dpgMax:1}}, upText:'Gain 20 Gold, up to 4 cards'},
   deadmanstreasure:{name:"Dead Man's Treasure", rarity:'rare',  spec:'thief', cost:2, type:'skill', ax:{killGem:1}, selfOnly:true, up:{ax:{killDraw:1}}, upText:'Also draw 1 card per kill'},
@@ -5444,9 +5455,9 @@ addExpansion({
   dirtymoney:   {name:'Dirty Money',        rarity:'rare',      spec:'thief', cost:2, type:'attack', dmg:6, ax:{goldPer:20, goldMax:10, loseGold:20}, up:{dmg:2, ax:{goldMax:2}}, upText:'8 damage, max +12'},
   fatpurse:     {name:'Fat Purse',          rarity:'epic',      spec:'thief', cost:3, type:'buff', buff:{key:'fortify', n:4}, buffText:'Gain 4 Block at the start of each of your turns.', up:{buffN:2}, upText:'6 Block'},
   larceny:      {name:'Grand Larceny',      rarity:'epic',      spec:'thief', cost:3, type:'attack', dmg:6, hits:3, ax:{goldHit:5}, up:{dmg:2, ax:{goldHit:2}}, upText:'8 damage, 7 Gold per hit'},
-  midas:        {name:'Midas Touch',        rarity:'epic',      spec:'thief', cost:4, type:'attack', dmg:20, ax:{g50Dmg:6, g150Dmg:12}, up:{dmg:5, ax:{g50Dmg:2, g150Dmg:4}}, upText:'25 damage, bonus 8/16'},
+  midas:        {name:'Midas Touch',        rarity:'epic',      spec:'thief', cost:3, type:'attack', dmg:27, crit:true, ax:{g50Dmg:9, g150Dmg:19}, up:{dmg:6, ax:{g50Dmg:3, g150Dmg:5}}, upText:'33 damage, bonus 12/24'},
   gemdealer:    {name:'Gem Dealer',         rarity:'epic',      spec:'thief', cost:3, type:'skill', ax:{gems:1}, selfOnly:true, up:{ax:{gems:1}}, upText:'2 Gems'},
-  blackmarket:  {name:'Black Market Deal',  rarity:'epic',      spec:'thief', cost:2, type:'skill', ax:{spend:40, randCard:3}, selfOnly:true, up:{ax:{spend:-10, randCard:1}}, upText:'Spend 30 Gold, Epic or lower'},
+  blackmarket:  {name:'Black Market Deal',  rarity:'epic',      spec:'thief', cost:2, type:'skill', ax:{spend:40, bmShop:1}, selfOnly:true, up:{ax:{bmShop:1}}, upText:'Upgraded Black Market'},
   highroller:   {name:'High Roller',        rarity:'epic',      spec:'thief', cost:1, type:'skill', ax:{spend:25, dice:1}, selfOnly:true, up:{ax:{spend:-10, dice:1}}, upText:'Spend 15 Gold, better odds'},
   richespower:  {name:'Riches to Power',    rarity:'epic',      spec:'thief', cost:3, type:'buff', buff:{key:'riches', n:20}, buffText:'Greed grants +1 damage per hit for every 25 Gold instead (max +20 at 500 Gold).', up:{cost:-1}, upText:'Costs 2'},
   kingsransom:  {name:"King's Ransom",      rarity:'legendary', spec:'thief', cost:4, type:'attack', dmg:12, hits:3, exhaust:true, ax:{goldHit:10}, up:{dmg:3, ax:{goldHit:5}}, upText:'15 damage, 15 Gold per hit'},
@@ -5483,7 +5494,7 @@ larceny:`<path d="M4 46 L16 18 H38 L50 46Z" fill="#3a2a1a" stroke="#1a0a04" stro
 midas:`<path d="M6 34 Q4 22 12 20 L24 26 L22 38 Q12 42 6 34Z" fill="#ffcf4a" stroke="#8a5a0a" stroke-width="1.6"/><path d="M14 20 L18 8 M20 22 L26 10 M24 26 L32 16" stroke="#ffcf4a" stroke-width="4" stroke-linecap="round"/><path d="M34 32 Q34 24 42 24 Q50 24 50 32 Q50 44 42 48 Q34 44 34 32Z" fill="#ffe27a" stroke="#8a5a0a" stroke-width="1.6"/><path d="M42 36 L42 30" transform="rotate(0 42 36)" stroke="#fff6c0" stroke-width="1.4"/><path d="M42 36 L42 28" transform="rotate(60 42 36)" stroke="#fff6c0" stroke-width="1.4"/><path d="M42 36 L42 30" transform="rotate(120 42 36)" stroke="#fff6c0" stroke-width="1.4"/><path d="M42 36 L42 28" transform="rotate(180 42 36)" stroke="#fff6c0" stroke-width="1.4"/><path d="M42 36 L42 30" transform="rotate(240 42 36)" stroke="#fff6c0" stroke-width="1.4"/><path d="M42 36 L42 28" transform="rotate(300 42 36)" stroke="#fff6c0" stroke-width="1.4"/>`,
 gemdealer:`<path d="M10 22 Q10 6 27 6 Q44 6 44 22 V28 H10Z" fill="#1a1a2a" stroke="#000" stroke-width="1.6"/><rect x="10" y="20" width="34" height="8" fill="#2a2a3a"/><ellipse cx="20" cy="24" rx="4" ry="2.4" fill="#fff"/><ellipse cx="34" cy="24" rx="4" ry="2.4" fill="#fff"/><path d="M16 32 L27 52 L38 32Z" fill="#9affff" stroke="#2a6a8a" stroke-width="1.6"/><path d="M16 32 H38 M22 32 L27 52 L32 32" stroke="#2a6a8a" stroke-width="1"/>`,
 blackmarket:`<path d="M6 22 L27 8 L48 22Z" fill="#2a1a2a" stroke="#0a0008" stroke-width="2"/><rect x="10" y="22" width="34" height="24" fill="#3a2a3a" stroke="#0a0008" stroke-width="2"/><rect x="18" y="28" width="18" height="14" rx="2" fill="#1a0a1a" stroke="#c84aff" stroke-width="1.6"/><path d="M27 31 L30 35 L27 39 L24 35Z" fill="#c84aff"/><path d="M12 22 Q16 26 20 22 Q24 26 28 22 Q32 26 36 22 Q40 26 44 22" fill="none" stroke="#c84aff" stroke-width="1.4"/>`,
-highroller:`<rect x="6" y="18" width="22" height="22" rx="4" fill="#f4f4f0" stroke="#3a3a4a" stroke-width="2" transform="rotate(-14 17 29)"/><circle cx="12" cy="24" r="2" fill="#c82a2a"/><circle cx="17" cy="29" r="2" fill="#c82a2a"/><circle cx="22" cy="34" r="2" fill="#c82a2a"/><rect x="26" y="12" width="22" height="22" rx="4" fill="#f4f4f0" stroke="#3a3a4a" stroke-width="2" transform="rotate(12 37 23)"/><circle cx="32" cy="17" r="2" fill="#1a1a2a"/><circle cx="42" cy="17" r="2" fill="#1a1a2a"/><circle cx="32" cy="27" r="2" fill="#1a1a2a"/><circle cx="42" cy="27" r="2" fill="#1a1a2a"/><circle cx="37" cy="22" r="2" fill="#1a1a2a"/><circle cx="32" cy="22" r="2" fill="#1a1a2a"/><circle cx="40" cy="44" r="5" fill="#ffcf4a" stroke="#8a5a0a" stroke-width="1.6"/><circle cx="40" cy="44" r="2.8" fill="none" stroke="#c8902a" stroke-width="1"/>`,
+highroller:`<g transform="rotate(-14 17 29)"><rect x="6" y="18" width="22" height="22" rx="4" fill="#f4f4f0" stroke="#3a3a4a" stroke-width="2"/><circle cx="11.5" cy="23.5" r="2.2" fill="#c82a2a"/><circle cx="17" cy="29" r="2.2" fill="#c82a2a"/><circle cx="22.5" cy="34.5" r="2.2" fill="#c82a2a"/></g><g transform="rotate(12 37 23)"><rect x="26" y="12" width="22" height="22" rx="4" fill="#f4f4f0" stroke="#3a3a4a" stroke-width="2"/><circle cx="31.5" cy="17" r="2.1" fill="#1a1a2a"/><circle cx="42.5" cy="17" r="2.1" fill="#1a1a2a"/><circle cx="31.5" cy="23" r="2.1" fill="#1a1a2a"/><circle cx="42.5" cy="23" r="2.1" fill="#1a1a2a"/><circle cx="31.5" cy="29" r="2.1" fill="#1a1a2a"/><circle cx="42.5" cy="29" r="2.1" fill="#1a1a2a"/></g><circle cx="40" cy="44" r="5" fill="#ffcf4a" stroke="#8a5a0a" stroke-width="1.6"/><circle cx="40" cy="44" r="2.8" fill="none" stroke="#c8902a" stroke-width="1"/>`,
 richespower:`<path d="M27 6 L32 20 H46 L35 29 L39 44 L27 35 L15 44 L19 29 L8 20 H22Z" fill="#ffcf4a" stroke="#8a5a0a" stroke-width="2"/><path d="M20 30 L27 22 L34 30" stroke="#c82a2a" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M27 22 V38" stroke="#c82a2a" stroke-width="3" stroke-linecap="round"/>`,
 kingsransom:`<path d="M8 22 L14 8 L22 16 L27 4 L32 16 L40 8 L46 22Z" fill="#ffcf4a" stroke="#8a5a0a" stroke-width="1.8"/><circle cx="14" cy="8" r="2" fill="#c83a3a"/><circle cx="27" cy="4" r="2" fill="#c83a3a"/><circle cx="40" cy="8" r="2" fill="#c83a3a"/><rect x="8" y="26" width="38" height="22" rx="2" fill="#6a3a1a" stroke="#2a1208" stroke-width="1.8"/><path d="M8 32 H46" stroke="#ffcf4a" stroke-width="2"/><rect x="24" y="30" width="6" height="8" fill="#ffcf4a"/>`,
 kingsvault:`<rect x="6" y="8" width="42" height="40" rx="5" fill="#6a6e7a" stroke="#1a1c22" stroke-width="2"/><circle cx="27" cy="28" r="12" fill="#8a8e9a" stroke="#1a1c22" stroke-width="2"/><circle cx="27" cy="28" r="4" fill="#3a3c44"/><path d="M27 16 V20 M27 36 V40 M15 28 H19 M35 28 H39" stroke="#1a1c22" stroke-width="2.4"/><path d="M14 4 L18 10 L22 6 L27 11 L32 6 L36 10 L40 4" fill="#ffcf4a" stroke="#8a5a0a" stroke-width="1.6"/>`,
@@ -5501,7 +5512,7 @@ smokebomb:`<circle cx="20" cy="32" r="12" fill="#2a2a32" stroke="#6a6a7a" stroke
 });
 /* ===== Executioner ===== */
 addExpansion({
-  nightblade:   {name:'Night Blade',        rarity:'common',    spec:'assassin', cost:1, type:'attack', dmg:5, crit:true, up:{dmg:2}, upText:'7 damage'},
+  nightblade:   {name:'Night Blade',        rarity:'common',    spec:'assassin', cost:1, type:'attack', dmg:7, crit:true, up:{dmg:2}, upText:'9 damage'},
   shadowstep:   {name:'Shadow Step',        rarity:'common',    spec:'assassin', cost:1, type:'skill', invis:true, draw:1, selfOnly:true, up:{draw:1}, upText:'Draw 2 cards'},
   throatslit:   {name:'Throat Slit',        rarity:'common',    spec:'assassin', cost:2, type:'attack', dmg:7, ax:{invisDmg:6}, up:{dmg:2, ax:{invisDmg:2}}, upText:'9 damage, bonus 8'},
   markweak:     {name:'Mark the Weak',      rarity:'common',    spec:'assassin', cost:1, type:'skill', vuln:1, ax:{toBack:1}, up:{vuln:1}, upText:'2 Vulnerable'},
@@ -5509,7 +5520,7 @@ addExpansion({
   quickexec:    {name:'Quick Execution',    rarity:'common',    spec:'assassin', cost:1, type:'attack', atk:'back', dmg:7, up:{dmg:3}, upText:'10 damage'},
   fade:         {name:'Fade',               rarity:'common',    spec:'assassin', cost:1, type:'skill', invis:true, ax:{fade:1}, selfOnly:true, up:{draw:1}, upText:'Draw 1 card'},
   ambush:       {name:'Ambush',             rarity:'common',    spec:'assassin', cost:1, type:'attack', atk:'back', dmg:6, ax:{invisDmg:5}, up:{dmg:2, ax:{invisDmg:2}}, upText:'8 damage, bonus 7'},
-  fanblades:    {name:'Fan of Blades',      rarity:'uncommon',  spec:'assassin', cost:2, type:'attack', dmg:3, hits:3, random:true, crit:true, up:{dmg:1}, upText:'4 damage per hit'},
+  fanblades:    {name:'Fan of Blades',      rarity:'uncommon',  spec:'assassin', cost:2, type:'attack', dmg:4, hits:3, random:true, crit:true, up:{dmg:1}, upText:'5 damage per hit'},
   markdeath:    {name:'Mark for Death',     rarity:'uncommon',  spec:'assassin', cost:1, type:'skill', vuln:2, draw:1, ax:{toBack:1}, up:{vuln:1}, upText:'3 Vulnerable'},
   silentkill:   {name:'Silent Kill',        rarity:'uncommon',  spec:'assassin', cost:2, type:'attack', atk:'back', dmg:12, execute:true, up:{dmg:4}, upText:'16 damage'},
   umbralcloak:  {name:'Umbral Cloak',       rarity:'uncommon',  spec:'assassin', cost:2, type:'block', block:5, invis:true, selfOnly:true, up:{block:3}, upText:'8 Block'},
@@ -5518,25 +5529,25 @@ addExpansion({
   expose:       {name:'Expose',             rarity:'uncommon',  spec:'assassin', basic:true, token:true, cost:0, type:'attack', atk:'back', dmg:4, ax:{vulnTwice:1}, up:{dmg:2}, upText:'6 damage'},
   shadowdance:  {name:'Combo: Shadow Dance', rarity:'uncommon', spec:'assassin', cost:1, type:'skill', invis:true, followUp:'shadowjab', ax:{manaIfN:2, manaIfE:1}, selfOnly:true, up:{}, upText:'Shadow Jab upgraded'},
   shadowjab:    {name:'Shadow Jab',         rarity:'uncommon',  spec:'assassin', basic:true, token:true, cost:1, type:'attack', atk:'back', dmg:8, ax:{drawIfMana:1}, up:{dmg:3}, upText:'11 damage'},
-  deathblossom: {name:'Death Blossom',      rarity:'rare',      spec:'assassin', cost:3, type:'attack', dmg:3, hits:3, aoe:true, crit:true, up:{dmg:2}, upText:'5 damage per hit'},
+  deathblossom: {name:'Death Blossom',      rarity:'rare',      spec:'assassin', cost:3, type:'attack', dmg:4, hits:3, aoe:true, crit:true, up:{dmg:3}, upText:'7 damage per hit'},
   phantomform:  {name:'Phantom Form',       rarity:'rare',      spec:'assassin', cost:2, type:'skill', invis:true, energy:2, selfOnly:true, up:{draw:1}, upText:'Draw 1 card'},
   serrated:     {name:'Serrated Edge',      rarity:'rare',      spec:'assassin', cost:2, type:'attack', atk:'back', dmg:3, hits:3, ax:{hitVuln:1}, up:{dmg:1}, upText:'4 damage per hit'},
   twinassassins:{name:'Combo: Twin Assassins', rarity:'rare',   spec:'assassin', cost:2, type:'attack', atk:'back', dmg:5, hits:2, followUp:'execmark', up:{}, upText:"Executioner's Mark upgraded"},
-  execmark:     {name:"Executioner's Mark", rarity:'rare',      spec:'assassin', basic:true, token:true, cost:1, type:'attack', atk:'back', dmg:5, hits:2, crit:true, ax:{backVuln:2}, up:{dmg:2}, upText:'7 damage per hit'},
+  execmark:     {name:"Executioner's Mark", rarity:'rare',      spec:'assassin', basic:true, token:true, cost:1, type:'attack', atk:'back', dmg:7, hits:2, crit:true, ax:{backVuln:2}, up:{dmg:2}, upText:'9 damage per hit'},
   ghostchain:   {name:'Combo: Ghost Chain', rarity:'rare',      spec:'assassin', cost:1, type:'skill', invis:true, draw:1, followUp:'phantomstrike', ax:{manaIfN:3, manaIfE:1}, selfOnly:true, up:{}, upText:'Phantom Strike upgraded'},
   phantomstrike:{name:'Phantom Strike',     rarity:'rare',      spec:'assassin', basic:true, token:true, cost:1, type:'attack', atk:'back', dmg:11, ax:{keepInvis:1}, up:{dmg:5}, upText:'16 damage'},
   huntersmark:  {name:"Hunter's Mark",      rarity:'rare',      spec:'assassin', cost:2, type:'buff', buff:{key:'hunterBuff', n:8}, buffText:'Until the end of the fight: your Back Attacks deal 8 more damage.', up:{buffN:3}, upText:'+11 damage'},
   assnwindow:   {name:'Assassination Window', rarity:'rare',    spec:'assassin', cost:2, type:'skill', invis:true, ax:{window:100}, selfOnly:true, up:{ax:{window:50}}, upText:'+150% damage'},
-  contractkill: {name:'Contract Kill',      rarity:'epic',      spec:'assassin', cost:3, type:'attack', atk:'back', dmg:15, execute:true, ax:{returnCopy:1}, up:{dmg:4}, upText:'19 damage'},
-  shadowclone:  {name:'Shadow Clone',       rarity:'epic',      spec:'assassin', cost:3, type:'attack', dmg:4, hits:3, random:true, crit:true, invis:true, up:{dmg:2}, upText:'6 damage per hit'},
+  contractkill: {name:'Contract Kill',      rarity:'epic',      spec:'assassin', cost:3, type:'attack', atk:'back', dmg:20, execute:true, ax:{returnCopy:1}, up:{dmg:4}, upText:'24 damage'},
+  shadowclone:  {name:'Shadow Clone',       rarity:'epic',      spec:'assassin', cost:3, type:'attack', dmg:5, hits:3, random:true, crit:true, invis:true, up:{dmg:3}, upText:'8 damage per hit'},
   silentnight:  {name:'Silent Night',       rarity:'epic',      spec:'assassin', cost:2, type:'skill', weakAll:2, invis:true, selfOnly:true, up:{weakAll:1}, upText:'3 Weak'},
   veilnight:    {name:'Veil of Night',      rarity:'epic',      spec:'assassin', cost:3, type:'block', blockAll:8, invis:true, draw:1, up:{blockAll:3}, upText:'11 Block'},
   killingrhythm:{name:'Combo: Killing Rhythm', rarity:'epic',   spec:'assassin', cost:1, type:'skill', followUp:'rhythmicstrike', ax:{rhythm:1, fuNeed:3}, selfOnly:true, up:{}, upText:'Rhythmic Strike upgraded'},
   rhythmicstrike:{name:'Rhythmic Strike',   rarity:'epic',      spec:'assassin', basic:true, token:true, cost:2, type:'attack', atk:'back', dmg:6, hits:2, up:{dmg:2}, upText:'8 damage per hit'},
-  deathsentence:{name:'Death Sentence',     rarity:'epic',      spec:'assassin', cost:2, type:'skill', ax:{toBack:1, sentN:3, sentDmg:6, sentCrit:9}, up:{ax:{sentN:1, sentDmg:1, sentCrit:2}}, upText:'4 attacks, +7 / Crit +11'},
+  deathsentence:{name:'Death Sentence',     rarity:'epic',      spec:'assassin', cost:0, type:'skill', ax:{toBack:1, sentN:3, sentDmg:6, sentCrit:9}, up:{ax:{sentN:1, sentDmg:1, sentCrit:2}}, upText:'4 attacks, +7 / Assassinate +11'},
   execfinale:   {name:"Executioner's Finale", rarity:'epic',    spec:'assassin', cost:3, type:'attack', atk:'back', dmg:9, ax:{perCard:3, invisDouble:1}, up:{dmg:4, ax:{perCard:1}}, upText:'13 damage, +4 per card'},
-  assassinate:  {name:'Assassinate',        rarity:'legendary', spec:'assassin', cost:4, type:'attack', atk:'back', dmg:12, crit:true, soloMult:2, up:{dmg:3}, upText:'15 damage'},
-  thousandcuts: {name:'Thousand Cuts',      rarity:'legendary', spec:'assassin', cost:5, type:'attack', dmg:2, hits:8, random:true, crit:true, up:{dmg:1}, upText:'3 damage per hit'},
+  assassinate:  {name:'Assassinate',        rarity:'legendary', spec:'assassin', cost:4, type:'attack', atk:'back', dmg:16, crit:true, soloMult:4, up:{dmg:4}, upText:'20 damage'},
+  thousandcuts: {name:'Thousand Cuts',      rarity:'legendary', spec:'assassin', cost:5, type:'attack', dmg:3, hits:8, random:true, crit:true, up:{dmg:1}, upText:'4 damage per hit'},
   danceofdeath: {name:'Dance of Death',     rarity:'legendary', spec:'assassin', cost:3, type:'skill', invis:true, followUp:'deathwaltz', ax:{danceDiv:3}, selfOnly:true, up:{ax:{danceDiv:-1}}, upText:'1 Energy per 2 cards, Death Waltz upgraded'},
   deathwaltz:   {name:'Death Waltz',        rarity:'legendary', spec:'assassin', basic:true, token:true, cost:1, type:'attack', atk:'back', dmg:5, hits:3, up:{dmg:2}, upText:'7 damage per hit'},
   finalexec:    {name:'Final Execution',    rarity:'legendary', spec:'assassin', cost:3, type:'attack', atk:'back', dmg:16, ax:{perCard:5, perCardMax:10, invisDouble:1, killMana:1, killCard:1, killInvis:1}, up:{dmg:5, ax:{perCard:1}}, upText:'21 damage, +6 per card'},
@@ -6352,7 +6363,7 @@ const BIOME_ELITES = {
 const BIOME_BOSSES = {
   /* Wald: Gestaltwandler (Tierformen wie bisher) */
   morrgan: {id:'shifter', key:'wolfform', name:'Morrgan the Shapeshifter', hp:135, boss:true, passive:{interrupt:1},
-    desc:'The druid of the raging woods starts as a Wolf. After a number of cards played by your team (more heroes: more cards) he interrupts: your turn ends and he transforms – Bear (Block + heals 15%), Hawk (gains Strength) or Serpent (Poison on all heroes). Each transform is stronger than the last!',
+    desc:'The druid of the raging woods starts as a Wolf. After a number of cards played by your team (more heroes: more cards) he interrupts: your turn ends, he does his shown action and then transforms – Bear (Block + heals 15%), Hawk (gains Strength) or Serpent (Poison on all heroes). Each transform is stronger than the last!',
     ai:e => ({wolf:{atk:'back', dmg:4, hits:3, name:'Flanking Pounce'}, bear:{atk:'front', dmg:12, block:14, name:'Maul'},
               serpent:{atk:'splash', dmg:5, poison:3, weak:1, name:'Venom Fang'}, hawk:{atk:'normal', dmg:6, hits:2, brittle:1, name:'Diving Talons'}})[e.form || 'wolf']},
   /* Nacht: der Hohle König mit 3 Phasen */
@@ -6786,8 +6797,8 @@ function atkTargets(e, it){                                          // -> [[Hel
 function rollTarget(it){                                             // zufälliges Ziel beim Würfeln festlegen (Vorschau = Wirklichkeit)
   const a = atkOf(it);
   if(a === 'normal' || a === 'splash' || a === 'pierce' || (!it.dmg && (it.poison || it.burn || it.weak || it.brittle || it.drain || it.vulnerable) && !it.atk)){
-    const p = atkPool();                                             // vorderster Held wird etwas öfter getroffen (×1,4)
-    if(p.length){ const wt = (h, k) => k === 0 ? 1.4 : 1; let r = rng() * p.reduce((a, h, k) => a + wt(h, k), 0); let t = p[p.length - 1]; for(let k = 0; k < p.length; k++){ r -= wt(p[k], k); if(r < 0){ t = p[k]; break; } } it.tgt = t.id; }
+    const p = atkPool();                                             // vorderster Held wird etwas öfter getroffen (×1,6)
+    if(p.length){ const wt = (h, k) => k === 0 ? 1.6 : 1; let r = rng() * p.reduce((a, h, k) => a + wt(h, k), 0); let t = p[p.length - 1]; for(let k = 0; k < p.length; k++){ r -= wt(p[k], k); if(r < 0){ t = p[k]; break; } } it.tgt = t.id; }
     if(!it.dmg && !it.atk) it.atk = 'normal';                        // Fluch ohne Schaden: trifft ein Ziel
   }
 }
@@ -6837,7 +6848,7 @@ function moveAI(e){
   if(!opts.length) opts = (e.moves || []).filter(m => m.dmg) || e.moves;
   const w = m => { let x = m.w || 1; if(e.lastName === m.name) x *= m.dmg ? .6 : .25;
     if(e.ecls === 'berserker' && m.dmg) x *= 2; if(m.if === 'hurt') x *= 1.5;
-    if(m.atk === 'front') x *= 1.3; else if(m.atk === 'back') x *= 0.8;   // etwas mehr Front-, etwas weniger Back Attacks
+    if(m.atk === 'front') x *= ['tank','berserker','special'].includes(e.ecls) ? 1.7 : 1.3; else if(m.atk === 'back') x *= 0.8; else if(m.atk === 'pierce') x *= 0.75;   // Nahkämpfer öfter Front, Pierce seltener
     return x; };
   const tot = opts.reduce((s, m) => s + w(m), 0); let r = rng() * tot, pickM = opts[0];
   for(const m of opts){ r -= w(m); if(r <= 0){ pickM = m; break; } }
@@ -7222,6 +7233,14 @@ async function execute(a){
       return playCard(h, i, target);
     }
     case 'end':     if(S.phase === 'hero' && h && !h.turnDone) return endHeroTurn(h); return;
+    case 'bmbuy': {                                                    // Black Market: kaufen (i) oder nichts (-1)
+      if(!h || !h.bmShop) return;
+      const o = a.i >= 0 ? h.bmShop.offers[a.i] : null;
+      if(!o || (h.gold || 0) >= o.price){ const hi = histBegin(h, 'Black Market', true); histNote(o ? `buys ${o.foil ? 'Foil ' : ''}${CARDS[o.key].name} for ${o.price} Gold` : 'buys nothing'); histEnd(hi); }
+      if(o && (h.gold || 0) >= o.price){ h.gold -= o.price; const nc = newCard(o.key); if(o.foil) nc.foil = true; h.deck.push(nc); if(inCombat() && !h.dead) h.hand.push(nc); floatText(h, `+${CARDS[o.key].name}`, 'gold-f'); toast(`${h.name} bought ${o.foil ? 'FOIL ' : ''}${CARDS[o.key].name} for ${o.price} Gold.`); }
+      else if(o) return;                                               // zu wenig Gold: Laden bleibt offen
+      delete h.bmShop; updateUnit(h); updateCounters(); showBlackMarket(); return;
+    }
     case 'resume':                                                     // Zug wieder aufnehmen, solange noch nicht alle fertig sind
       if(S.phase === 'hero' && !S.teamEnding && h && h.turnDone && !h.forcedEnd && !h.dead && !heroList().every(x => x.turnDone)){ h.turnDone = false; refreshUI(); }
       return;
@@ -7758,7 +7777,7 @@ function updateUnit(u){ if(PREVIEW) return;
   el.querySelector('.regrowTag').textContent = u.regrowIn ? `Regrows in ${u.regrowIn}` : '';
   const sc = el.querySelector('.shiftctr');
   if(sc){ const n = S.shiftCount || 0, L = shiftLimit(); sc.innerHTML = `${SVG.interruptIcon}<b>${n}/${L}</b>`; sc.classList.toggle('hot', n >= L - 2);
-    sc.dataset.tip = `Cards played: ${n}/${L}. At ${L} he interrupts: your turn ends and he transforms (Bear: Block + heal · Hawk: Strength · Serpent: Poison on all). Each transform is stronger.`; }
+    sc.dataset.tip = `Cards played: ${n}/${L}. At ${L} he interrupts: your turn ends, he does his shown action and then transforms (Bear: Block + heal · Hawk: Strength · Serpent: Poison on all). Each transform is stronger.`; }
   if(u.hero){
     const box = el.querySelector('.energy');
     let h = '';
@@ -7833,7 +7852,7 @@ function toast(text){ if(PREVIEW) return;
 
 /* ---------- Hand, Knöpfe, HUD ---------- */
 function refreshUI(){ if(PREVIEW) return;
-  renderHand();
+  renderHand(); try { showBlackMarket(); } catch(e){}
   heroList().forEach(updateUnit);
   const btn = $('#endTurn');
   const myOpen = S.phase === 'hero' ? heroList().filter(x => mine(x.id) && !x.dead && !x.turnDone) : [];
@@ -7863,10 +7882,10 @@ function greedHud(u){ if(PREVIEW || !u || !u.el) return;               // Thief:
   goldFx(u);
   const gh = u.el.querySelector('.ghud'); if(!gh) return;
   if(!u.hero || u.spec !== 'thief' || u.dead){ if(gh.innerHTML) gh.innerHTML = ''; return; }
-  const b = greedBonus(u), max = u.status.riches ? u.status.riches : 10, key = b + '/' + max + '/' + (u.gold || 0);
+  const gb = greedBase(u), eb = empireBonus(u), b = gb + eb, max = u.status.riches ? u.status.riches : 10, key = b + '/' + eb + '/' + max + '/' + (u.gold || 0);
   if(gh.dataset.k === key) return; gh.dataset.k = key;
-  gh.classList.toggle('max', b >= max);
-  gh.dataset.tip = `Greed: +${b} damage per hit from ${u.gold || 0} Gold (max +${max}${u.status.riches ? ', Riches to Power' : ''}).`;
+  gh.classList.toggle('max', gb >= max);
+  gh.dataset.tip = `Greed: +${gb} damage per hit from ${u.gold || 0} Gold (max +${max}${u.status.riches ? ', Riches to Power' : ''}).` + (u.status.empire ? ` The Golden Empire: +${eb} more. Total +${b} per hit.` : '');
   gh.innerHTML = `<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#f2c14a" stroke="#8a5a12" stroke-width="2.5"/><circle cx="20" cy="20" r="13.5" fill="#ffd96a" stroke="#c4902a" stroke-width="2"/></svg><b>${b}</b>`;
 }
 function updateCounters(){ if(PREVIEW) return;
@@ -7954,6 +7973,8 @@ function cardKeywords(c){
   if(d.type === 'buff') add('Vanish');
   if(c.replayTax) add('Played again');
   if(s.crit || conds.includes('crit')) add('Crit');
+  if(s.assn) add('Assassinate');
+  if(s.ax && s.ax.bmShop) add('Black Market');
   if(s.mark || s.markAll || s.detonate || s.detonateAll || conds.some(x => x.startsWith('marked'))) add('Mark (Ranger)');
   if(s.detonate || s.detonateAll) add('Detonate');
   if(s.initiate) add('Initiate'); if(s.delayed) add('Delayed'); if(s.banish) add('Banish');
@@ -8329,15 +8350,15 @@ function renderHeroSwitch(){ if(PREVIEW) return;                                
    ===================================================================== */
 var DMG_BD = null;                                                    // Aufschlüsselung des aktuellen Treffers (für die History)
 function dealDamage(t, amount){
-  const bd = DMG_BD || [['Damage', amount]]; DMG_BD = null; let bdl = amount; const mk = lbl => { if(amount !== bdl){ bd.push([lbl, amount, bdl]); bdl = amount; } };
+  const bd = DMG_BD || [['Damage', amount]]; DMG_BD = null; let bdl = amount; const mk = (lbl, op) => { if(amount !== bdl){ bd.push(op ? [lbl, amount, bdl, op] : [lbl, amount, bdl]); bdl = amount; } };
   amount = affixDmg(t, amount); if(amount < 0){ bd.push(['Missed', 0, bdl]); return 0; }   // Affixe: Overgrown, Witching Hour, Sandstorm
   mk((typeof AFFIXES !== 'undefined' && AFFIXES[S.affix] && AFFIXES[S.affix].name) || 'Biome affix');
   if(!t.hero && t.status && t.status.bulwark) amount = Math.round(amount * (1 - t.status.bulwark / 100));   // Bulwark (Gegner-Tank)
-  mk('Bulwark');
+  mk('Bulwark', t.status && t.status.bulwark ? `−${t.status.bulwark}%` : null);
   if(t.status && t.status.vulnerable) amount = Math.round(amount * VULN_MULT);   // Vulnerable: +33% Schaden (Gegner und Helden)
   mk('Vulnerable');
   if(!t.hero && t.status && (t.status.dream || 0) >= 7) amount = Math.floor(amount * 1.25);   // tiefer Traum: +25 %
-  mk('Deep Dream');
+  mk('Deep Dream', '+25%');
   if(!t.hero && t.passive && t.passive.armor) amount = Math.max(0, amount - t.passive.armor);   // Panzerung
   mk('Armor');
   if(!t.hero && t.status && t.status.intangible) amount = Math.min(amount, 1);               // Körperlos
@@ -8373,6 +8394,7 @@ function histBegin(actor, what, quiet){
   if(PREVIEW || !S.history) return null;
   const e = {round:S.round || 1, hero:!!actor.hero, who:histName(actor), what, fx:[], quiet};
   e._snap = new Map([...heroList(), ...(S.enemies || [])].filter(u => !u.dead).map(u => [u, {...u.status}]));   // für „entfernt/verbraucht“
+  e._res = new Map(heroList().map(h => [h, {gold:h.gold || 0, energy:h.energy || 0}]));   // Gold/Energie vorher (Gold- und Energie-Gewinne anzeigen)
   S.history.push(e); if(S.history.length > 400) S.history.shift();
   (S.histStack = S.histStack || []).push(e); return e;
 }
@@ -8383,7 +8405,15 @@ function histEnd(e){ if(!e || !S.histStack) return; const k = S.histStack.lastIn
       for(const key in before){ const b = +before[key] || 0, a = +(u.status[key] || 0); if(b > a && STATUS[key]) rm.push({who:histName(u), kind:'rm:' + key, n:b - a, hero:!!u.hero}); } });
     e.fx.unshift(...rm); delete e._snap;
   }
+  if(e._res){                                                         // Gold +/−, Energie gewonnen (Kosten der gespielten Karte herausgerechnet)
+    e._res.forEach((b, h) => { const dg = (h.gold || 0) - b.gold - ((e.goldNoted && e.goldNoted.get(h)) || 0); if(dg) e.fx.push({who:histName(h), kind:dg > 0 ? 'gold' : 'goldLost', n:Math.abs(dg), hero:true});
+      const de = (h.energy || 0) - b.energy + (e.cost && e.costBy === h ? e.cost : 0); if(de > 0) e.fx.push({who:histName(h), kind:'energy', n:de, hero:true}); });
+    delete e._res;
+  }
   if(e.quiet && !e.fx.length && S.history){ const j = S.history.lastIndexOf(e); if(j >= 0) S.history.splice(j, 1); } }
+function histGold(h, n){ if(PREVIEW || !n || !S.histStack || !S.histStack.length) return; const e = S.histStack[S.histStack.length - 1];   // Gold ausdrücklich verbuchen (nicht doppelt über die Differenz)
+  e.fx.push({who:histName(h), kind:n > 0 ? 'gold' : 'goldLost', n:Math.abs(n), hero:true}); (e.goldNoted = e.goldNoted || new Map()).set(h, ((e.goldNoted.get(h)) || 0) + n); }
+function histNote(text){ if(PREVIEW || !S.histStack || !S.histStack.length) return; S.histStack[S.histStack.length - 1].fx.push({kind:'note', text, n:1}); }
 function histAdd(u, kind, n, bd){
   if(PREVIEW || !n || n <= 0 || !S.history) return;
   if(!S.histStack || !S.histStack.length){                            // außerhalb einer Aktion (Rundenbeginn, Passive …): eigene Zeile
@@ -8407,16 +8437,22 @@ function histFxText(f){
   if(f.kind === 'absorbed') return `<span class="hblk">${f.n} blocked</span> by ${f.who}`;
   if(f.kind === 'block') return `<span class="hblk">+${f.n} Block</span> ${f.who}`;
   if(f.kind === 'heal') return `<span class="hheal">+${f.n} HP</span> ${f.who}`;
+  if(f.kind === 'gold') return `<span class="hgold">+${f.n} Gold</span> ${f.who}`;
+  if(f.kind === 'goldLost') return `<span class="hgold">−${f.n} Gold</span> ${f.who}`;
+  if(f.kind === 'energy') return `<span class="hen">+${f.n} Energy</span> ${f.who}`;
+  if(f.kind === 'draw') return `<span class="hen">draws ${f.n} card${f.n > 1 ? 's' : ''}</span> ${f.who}`;
+  if(f.kind === 'note') return `<span class="hnote">${f.text}</span>`;
   return `<span class="hst">${STATUS_LABEL[st] || (STATUS[st] ? st[0].toUpperCase() + st.slice(1) : st)} ${f.n}</span> → ${f.who}`;
 }
 let HIST_BD = [];                                                    // Aufschlüsselungen der angezeigten Schadenszahlen
 function bdHTML(list){                                                // „Base 9 / +3 Might = 12 / ×1.33 Vulnerable = 16 / −4 Block = 12“
-  return '<b>How the damage adds up</b>' + list.map((hit, i) => `<div class="bdhit">${list.length > 1 ? `<i>Hit ${i + 1}</i>` : ''}${hit.map(([l, v, p]) => {
+  return '<b>How the damage adds up</b>' + list.map((hit, i) => `<div class="bdhit">${list.length > 1 ? `<i>Hit ${i + 1}</i>` : ''}${hit.map(([l, v, p, op]) => {
     if(p === undefined) return `<div>${l} <span class="bdv">${v}</span></div>`;
-    const d = v - p, mult = p > 0 && d !== 0 && Math.abs(v / p - Math.round(v / p * 10) / 10) < 0.06 && Math.abs(d) > 2 && !['Block','Might','Power','Payback','Momentum','Condition','Greed','Runes','Eldritch Vigor','Biome affix','Armor','Deserves a Beating','Reality Distortion','Lightning gem'].includes(l);
-    const fix = {Vulnerable:VULN_MULT, Weak:WEAK_MULT, 'Deep Dream':1.25, 'Piercing ½':0.5}[l];
-    const op = fix ? `×${+fix.toFixed(2)}` : mult ? `×${(v / p).toFixed(2).replace(/\.?0+$/, '')}` : (d > 0 ? '+' : '−') + Math.abs(d);
-    return `<div>${op} ${l} → <span class="bdv">${v}</span></div>`; }).join('')}</div>`).join('');
+    const d = v - p, diff = (d > 0 ? '+' : '−') + Math.abs(d);         // nur echte Faktoren als „×“, alles andere als +/−
+    const fix = {Vulnerable:VULN_MULT, Weak:WEAK_MULT}[l], lx = /×\s?([\d.]+)/.exec(l);
+    const f = op ? op : fix ? `×${+fix.toFixed(2)}` : l === 'Piercing ½' ? '×½' : lx ? `×${lx[1]}` : null;
+    const name = lx ? l.replace(/\s*×\s?[\d.]+/, '') : l;
+    return f ? `<div>${f} ${name} <small>(${diff})</small> → <span class="bdv">${v}</span></div>` : `<div>${diff} ${name} → <span class="bdv">${v}</span></div>`; }).join('')}</div>`).join('');
 }
 function histLine(e){                                                // „20 Mark removed from X → 20 damage to X, …“
   if(!e.fx.length) return '<i>no effect</i>';
@@ -8424,13 +8460,26 @@ function histLine(e){                                                // „20 Ma
   return rm.length && rest.length ? rm.map(histFxText).join(', ') + ' <span class="harr">→</span> ' + rest.map(histFxText).join(', ') : e.fx.map(histFxText).join(', ');
 }
 function showHistory(){
+  document.querySelectorAll('#hcPrev').forEach(x => x.remove());
   const g = $('#vGrid'); const H = S.history || []; HIST_BD = [];
   if(!H.length){ g.innerHTML = '<div class="vempty">Nothing happened yet in this fight.</div>'; return; }
   const rounds = [...new Set(H.map(e => e.round))].sort((a, b) => b - a);   // neueste Runde oben
   g.innerHTML = `<div class="hist">${rounds.map(r => `<div class="hround"><h4>Turn ${r}</h4>${H.filter(e => e.round === r).reverse().map(e =>
-    `<div class="hrow ${e.hero ? 'hh' : 'he'}"><b>${e.who}</b>${e.what ? ` – ${e.card ? `<span class="hcard" data-tip="Card" data-hc="${H.indexOf(e)}">${e.what}</span>` : e.what}` : ''}: ${histLine(e)}</div>`).join('')}</div>`).join('')}</div>`;
+    `<div class="hrow ${e.hero ? 'hh' : 'he'}"><b>${e.who}</b>${e.what ? ` – ${e.card ? `<span class="hcard" data-hc="${H.indexOf(e)}">${e.what}</span>` : e.what}` : ''}: ${histLine(e)}</div>`).join('')}</div>`).join('')}</div>`;
   g.querySelectorAll('.hdmg[data-bd]').forEach(el => { const l = HIST_BD[+el.dataset.bd]; if(l) el._tipHtml = bdHTML(l); });
-  g.querySelectorAll('.hcard[data-hc]').forEach(el => { const e = H[+el.dataset.hc]; if(e && e.card && CARDS[e.card.key]) try { el._tipHtml = `<div class="htipcard">${makeCard(e.card).outerHTML}</div>`; } catch(err){} });
+  g.querySelectorAll('.hcard[data-hc]').forEach(el => {               // Karte wie überall sonst zeigen (echtes Kartenelement, Text eingepasst)
+    el.addEventListener('mouseenter', () => { const e = H[+el.dataset.hc]; if(!e || !e.card || !CARDS[e.card.key]) return;
+      document.querySelectorAll('#hcPrev').forEach(x => x.remove());
+      const box = document.createElement('div'); box.id = 'hcPrev';
+      try { box.appendChild(makeCard(e.card)); } catch(err){ return; }
+      document.body.appendChild(box);
+      const r = el.getBoundingClientRect(), b = box.getBoundingClientRect();
+      box.style.left = Math.max(6, Math.min(innerWidth - b.width - 6, r.left)) + 'px';
+      box.style.top = (r.bottom + 8 + b.height > innerHeight ? Math.max(6, r.top - b.height - 8) : r.bottom + 8) + 'px';
+      box.querySelectorAll('.card').forEach(c => { try { fitCardDesc(c); } catch(err){} });
+    });
+    el.addEventListener('mouseleave', () => document.querySelectorAll('#hcPrev').forEach(x => x.remove()));
+  });
 }
 /* ---------- Kampfstatistik (pro Kampf und pro Run) ---------- */
 const STAT_KEYS = ['dmg','heal','block','debuff','buff'];
@@ -8470,7 +8519,7 @@ Object.assign(STATUS, {
   window:    {icon:'windowIcon',    tip:n => `Assassination Window: your next Back Attack deals +${n}% damage.`},
   catalyst:  {icon:'catalystIcon',  tip:n => `Blood Catalyst: your next ${n} attack${n > 1 ? 's' : ''} apply Poison.`},
   riches:    {icon:'richesIcon',    tip:n => `Riches to Power (buff): Greed grants +1 damage per hit for every 25 Gold (max +${n} at 500 Gold).`},
-  empire:    {icon:'empireIcon',    tip:n => `The Golden Empire (buff): +${n} Gold per card played; +1 damage per hit per 50 Gold, +${n} more at 200 Gold.`},
+  empire:    {icon:'empireIcon', flag:true, tip:n => `The Golden Empire (buff): +${n} Gold per card played; +1 damage per hit per 50 Gold, +${n} more at 200 Gold.`},
   toxmut:    {icon:'toxmutIcon',    tip:n => `Self-Inflicted Mutation (buff): whenever Poison is applied to you, +${n} damage per hit for this fight.`},
   toxmight:  {icon:'toxmightIcon',  tip:n => `Mutation: +${n} damage per hit (this fight).`},
   mutdouble: {icon:'mutdoubleIcon', flag:true, tip:() => 'Mutated: your attacks deal double damage for the rest of the fight.'},
@@ -8541,14 +8590,17 @@ function openingOrder(list){
   const del = list.filter(c => has(c, 'delayed') && !has(c, 'initiate')), ini = list.filter(c => has(c, 'initiate'));
   return [...del, ...list.filter(c => !del.includes(c) && !ini.includes(c)), ...ini];   // gezogen wird von hinten
 }
+const MAX_HAND = 10;
 function drawCards(h, n){
   if(h.noDraw) return;                                                   // Prepare: keine weiteren Karten in diesem Zug
   const drawn = [];
   for(let i=0;i<n;i++){
+    if(h.hand.length >= MAX_HAND) break;                                 // Handlimit: weitere Draws verfallen
     if(!h.draw.length){ if(!h.discard.length) break; h.draw = shuffle(h.discard); h.discard = []; }
     const c = h.draw.pop(); h.hand.push(c); drawn.push(c.id);
     c.replayTax = (h.turnPlayed && h.turnPlayed[c.id]) || 0;            // in diesem Zug schon gespielt: +1 Energie pro Mal
   }
+  if(drawn.length && S.histStack && S.histStack.length) histAdd(h, 'draw', drawn.length);   // History: gezogene Karten
   if(S.active === h.id) renderHand(drawn); else updateUnit(h);
 }
 function withNeighbors(primary, n){
@@ -8564,6 +8616,7 @@ const allHeroesDead = () => !living().length;
 
 async function playCard(h, i, target){                               // Kampfhistorie um das Ausspielen herum
   const c0 = h.hand[i]; const hi = c0 ? histBegin(h, cardName(c0)) : null;
+  if(hi && c0){ try { hi.cost = stats(c0).cost; hi.costBy = h; } catch(e){} }
   if(hi && c0) hi.card = {id:'h' + c0.id, key:c0.key, upgraded:!!c0.upgraded, foil:!!c0.foil, gems:(c0.gems || []).map(g => ({...g})), tmp:c0.tmp, follow:c0.follow};   // History: Karte beim Drübermausen zeigen
   try { return await playCardInner(h, i, target); } finally { histEnd(hi); }
 }
@@ -8680,7 +8733,7 @@ async function playCardInner(h, i, target){
           let amount = s.blockStrike ? h.block + s.dmg - 1                     // Shieldstrike: Schaden = Block
                      : s.backstab ? s.backstab[Math.min(left, 3) - 1]          // Backstab: je weniger Gegner, desto mehr
                      : s.dmgMax ? (maxed ? s.dmgMax : rand(s.dmgMin, s.dmgMax)) : s.dmg;   // Blitz: Schadensbereich
-          const bd = [['Base', amount]]; let bdl = amount; const mk = lbl => { if(amount !== bdl){ bd.push([lbl, amount, bdl]); bdl = amount; } };   // Aufschlüsselung für die History
+          const bd = [['Base', amount]]; let bdl = amount; const mk = (lbl, op) => { if(amount !== bdl){ bd.push(op ? [lbl, amount, bdl, op] : [lbl, amount, bdl]); bdl = amount; } };   // Aufschlüsselung für die History
           if(s.bonusRange) amount += maxed ? s.bonusRange : rand(0, s.bonusRange);           // Lightning-Edelstein
           mk('Lightning gem');
           if(h.status.might) amount += h.status.might;                        // Buff: +Schaden pro Treffer
@@ -8692,7 +8745,7 @@ async function playCardInner(h, i, target){
           amount += axHitAdd(h, s, t, AX);
           mk('Card bonus');
           if(s.soloMult && left === 1) amount *= s.soloMult;
-          mk('Lone enemy');
+          mk('Lone enemy', s.soloMult ? `×${s.soloMult}` : null);
           if(s.lowHpDouble && h.hp < h.maxHp / 2) amount *= 2;               // Executioner
           mk('Low HP ×2');
           const met = metFor(t);
@@ -8705,7 +8758,7 @@ async function playCardInner(h, i, target){
           if(h.status.payback && h.spec === 'nightfighter') amount += h.status.payback;   // Payback
           mk('Payback');
           if(firstHit && paybackSpent){ amount += s.consumePayback * paybackSpent; }   // keine Selbstheilung mehr
-          mk('Payback spent');
+          mk(paybackSpent && s.consumePayback ? `Payback spent (${paybackSpent} × ${s.consumePayback})` : 'Payback spent');
           amount += cashOwed(h, t);                                           // Deserves a Beating einlösen
           mk('Deserves a Beating');
           firstHit = false;
@@ -8716,6 +8769,8 @@ async function playCardInner(h, i, target){
           mk('Focus crit ×2');
           if(s.crit && (h.status.critBuff || t === rearmost() || (h.spec === 'deadeye' && (t.status.mark || 0) >= 10))){ amount *= 2; floatText(t, 'CRIT!', 'crit-f'); critHit = anyCrit = true; }
           mk('Crit ×2');
+          if(s.assn && (h.status.critBuff || t === rearmost())){ amount = Math.round(amount * 1.5); floatText(t, 'ASSASSINATE!', 'crit-f'); critHit = anyCrit = true; }
+          mk('Assassinate ×1.5');
           conds.forEach((cd, j) => { if(cd.if === 'crit') met[j] = critHit; });
           if(momSpent && s.spendCrit) amount += (critHit ? s.spendCrit.crit : s.spendCrit.base) * momSpent;   // Kill Shot
           mk('Momentum');
@@ -8737,7 +8792,7 @@ async function playCardInner(h, i, target){
           if(s.atkType === 'pierce' && t !== group[0]) amount = Math.round(amount * 0.5);   // Piercing: der Gegner dahinter halb
           mk('Piercing ½');
           if(t.status.mark) amount = Math.round(amount * (1 + t.status.mark / 100));   // Mark: +1 % Schaden pro Mark
-          mk('Marks');
+          mk('Marks', `+${t.status.mark}%`);
           if(h.status.weak) amount = Math.round(amount * WEAK_MULT);         // geschwächter Held
           mk('Weak');
           const blockBefore = t.block;
@@ -8934,10 +8989,8 @@ async function playCardInner(h, i, target){
     S.shiftCount = (S.shiftCount || 0) + 1; updateUnit(shifter);
     if(S.shiftCount >= shiftLimit()){                                  // Unterbrechung: Zug der Helden endet, er verwandelt sich (mit Formeffekt) und die Gegner sind dran
       S.shiftCount = 0;
-      await banner(`${shifter.name} interrupts!`, 'Your turn ends – he transforms.', 1300);
-      shiftForm(shifter); await shiftEffect(shifter); rollIntent(shifter);
-      checkHeroDeaths(); refreshUI();
-      if(allHeroesDead()){ await sleep(400); return defeat(); }
+      await banner(`${shifter.name} interrupts!`, 'Your turn ends – he acts, then transforms.', 1300);
+      shifter.shiftPending = true; refreshUI();                       // Verwandlung erst nach seiner angezeigten Aktion im Gegnerzug
       for(const x of heroList()) if(!x.dead){ x.turnDone = true; x.forcedEnd = true; }
       return checkTeamDone();
     }
@@ -8948,8 +9001,10 @@ async function playCardInner(h, i, target){
 
 /* ===== Assassin-Mechaniken (Excel 26.11.) ===== */
 const axCnt = () => { if(!PREVIEW) updateCounters(); };
-const greedBonus = h => { if(h.spec !== 'thief') return 0; const g = h.gold || 0;
+const greedBase = h => { if(h.spec !== 'thief') return 0; const g = h.gold || 0;
   return h.status.riches ? Math.min(h.status.riches, Math.floor(g / 25)) : Math.min(10, Math.floor(g / 50)); };
+const empireBonus = h => { const g = h.gold || 0; return h.status && h.status.empire ? Math.floor(g / 50) + (g >= 200 ? h.status.empire : 0) : 0; };   // The Golden Empire
+const greedBonus = h => greedBase(h) + empireBonus(h);              // Greed-Münze zeigt beides
 const axBlocked = (h, s) => !!(s && s.ax && s.ax.spend && (h.gold || 0) < s.ax.spend);
 const isRetain = c => !c.tmp && (() => { try { const s = stats(c); return !!(s.ax && s.ax.retain); } catch(e){ return false; } })();
 function dotPreview(u, el){ if(PREVIEW) return;                        // Gegner: Burn + Gift, die im nächsten Gegnerzug ticken
@@ -8988,12 +9043,12 @@ function selfPoison(h, n){                                              // Gift 
 }
 function axPre(h, c, s, d){
   const x = s.ax || {}, AX = {prior:h.cardsTurn || 0, atkPrior:h.atkTurn || 0, gold:0, isAtk:d.type === 'attack' && !!s.dmg,
-    invisStart:!!h.status.invis, selfPoisoned:(h.status.poison || 0) > 0, rich:(h.gold || 0) >= 150 ? 2 : (h.gold || 0) >= 50 ? 1 : 0, sentHit:new Set(),
+    invisStart:!!h.status.invis, selfPoisoned:(h.status.poison || 0) > 0, rich:(h.gold || 0) >= 300 ? 2 : (h.gold || 0) >= 100 ? 1 : 0, sentHit:new Set(),
     poisonedBefore:new Set(alive().filter(e => e.status.poison > 0)), investActive:!!h.status.invest, contractActive:!!h.status.contract,
     catActive:!!h.status.catalyst};
   h.cardsTurn = AX.prior + 1; if(d.type === 'attack') h.atkTurn = AX.atkPrior + 1;
   if(h.status.empire && !PREVIEW){ h.gold += h.status.empire; floatText(h, `+${h.status.empire} Gold`, 'gold-f'); axCnt(); }   // The Golden Empire
-  if(x.spend){ h.gold = Math.max(0, h.gold - x.spend); floatText(h, `−${x.spend} Gold`, 'gold-f'); axCnt(); }
+  if(x.spend){ histGold(h, -Math.min(h.gold, x.spend)); h.gold = Math.max(0, h.gold - x.spend); floatText(h, `−${x.spend} Gold`, 'gold-f'); axCnt(); }
   if(x.spendUpTo){ const sp = Math.min(h.gold || 0, x.spendUpTo); h.gold -= sp; AX.spent = sp; s.hits = (s.hits || 1) + Math.floor(sp / (x.hitsPer || 20)); if(sp) floatText(h, `−${sp} Gold`, 'gold-f'); axCnt(); }
   if(AX.rich && x.g50Block) s.block = (s.block || 0) + (AX.rich === 2 ? x.g150Block : x.g50Block);
   if(AX.rich && x.g50Energy) s.energy = (s.energy || 0) + x.g50Energy;
@@ -9017,7 +9072,6 @@ function axHitAdd(h, s, t, AX){
   if(x.perCard) a += x.perCard * (x.perCardMax ? Math.min(x.perCardMax, AX.prior) : AX.prior) * (x.invisDouble && AX.invisStart ? 2 : 1);
   if(AX.investActive && AX.isAtk) a += h.investDmg || 0;
   if(AX.contractActive && AX.isAtk) a += h.status.contract || 0;
-  if(h.status.empire) a += Math.floor(g / 50) + (g >= 200 ? h.status.empire : 0);
   if(s.atkType === 'back' && t.hunted && t.hunted.by === h.id) a += t.hunted.n;
   if(s.atkType === 'back' && h.status.hunterBuff && !AX.hbDone){ AX.hbDone = true; a += h.status.hunterBuff; }   // Hunter's Mark (Buff)
   if(h.mutAtk) a += h.mutAtk;
@@ -9057,6 +9111,7 @@ async function axPost(h, c, s, d, killed, AX){
   if(x.killGem){ h.killGemTurn = true; h.killGemDraw = x.killDraw || 0; h.status.treasure = 1; }
   if(x.gems && !PREVIEW) axGemFor(h, x.gems);
   if(x.randCard && !PREVIEW) axRandCard(h, x.randCard);
+  if(x.bmShop && !PREVIEW) openBlackMarket(h, x.bmShop > 1, isFoil(c));
   if(x.dice && !PREVIEW) await axDice(h, x.dice);
   if(x.selfPoison) selfPoison(h, x.selfPoison);
   if(x.spread && tgt && AX.poisonedBefore.has(tgt)){ const AL = alive(), i = AL.indexOf(tgt), nb = AL[i + 1] || AL[i - 1]; if(nb){ applyStatus(nb, 'poison', x.spread); floatText(nb, 'Infected!', 'poison-f'); } }
@@ -9087,25 +9142,66 @@ function axHitPost(h, s, t, critHit, AX, amount){
   if(h.mutDouble) amount *= 2;
   return amount;
 }
+/* Black Market Deal: 3 Angebote zu 50 % (mind. eine Rare / upgegradet mind. eine Epic), Foil-Karte: ein Angebot Foil zum doppelten Preis.
+   Die Wahl ist eine eigene Aktion ('bmbuy'), damit alle Clients gleich bleiben. */
+function openBlackMarket(h, up, foil){
+  const pool0 = cardPool(h.id, h.spec), want = up ? 'epic' : 'rare', picks = [];
+  const g = pool0.filter(k => CARDS[k].rarity === want); if(g.length) picks.push(pick(g));
+  for(let guard = 0; picks.length < 3 && guard < 200; guard++){ const r = rollRarity(up); const pl = pool0.filter(k => CARDS[k].rarity === r && !picks.includes(k)); if(pl.length) picks.push(pick(pl)); }
+  const fi = foil ? Math.floor(rng() * picks.length) : -1;
+  h.bmShop = {up, offers:picks.map((k, i) => ({key:k, foil:i === fi, price:Math.round(PRICES[CARDS[k].rarity] * 0.5) * (i === fi ? 2 : 1)}))};
+  floatText(h, 'Black Market!', 'gold-f'); histNote('opens the Black Market');
+  showBlackMarket();
+}
+function showBlackMarket(){ if(PREVIEW || FASTFWD) return;
+  const h = heroList().find(x => x.bmShop && mine(x.id) && !x.dead);
+  let el = $('#bmShop');
+  if(!h){ if(el) el.remove(); return; }
+  const key = JSON.stringify([h.id, h.bmShop, h.gold]);
+  if(el && el.dataset.k === key) return;
+  if(!el){ el = document.createElement('div'); el.id = 'bmShop'; document.body.appendChild(el); }
+  el.dataset.k = key;
+  el.innerHTML = `<div class="bmbox"><h2>Black Market${h.bmShop.up ? ' <small>(upgraded)</small>' : ''}</h2><p>${h.name} has <b>${h.gold || 0}</b> Gold. The card goes into the deck and straight into the hand.</p><div class="bmrow"></div><button class="mbtn" id="bmSkip">Buy nothing</button></div>`;
+  const row = el.querySelector('.bmrow');
+  h.bmShop.offers.forEach((o, i) => {
+    const col = document.createElement('div'); col.className = 'bmcol';
+    const card = makeCard({id:'bm' + i, key:o.key, gems:[], foil:o.foil}); col.appendChild(card);
+    const b = document.createElement('button'); b.className = 'mbtn bmbuy'; b.innerHTML = `${o.price} Gold`; b.disabled = (h.gold || 0) < o.price;
+    b.onclick = () => { if(!busy()) dispatch({t:'bmbuy', h:h.id, i}); };
+    col.appendChild(b); row.appendChild(col);
+    try { fitCardDesc(card); } catch(e){}
+  });
+  el.querySelector('#bmSkip').onclick = () => { if(!busy()) dispatch({t:'bmbuy', h:h.id, i:-1}); };
+}
 function axRandCard(h, maxTier){                                        // Black Market Deal / High Roller: zufällige Karte, kostet 0
   const R = ['common','uncommon','rare','epic','legendary'];
   const pool = Object.keys(CARDS).filter(k => { const d = CARDS[k]; return d.char === h.id && (!d.spec || d.spec === h.spec) && !d.basic && !d.token && !d.custom
     && (maxTier === 3 ? d.rarity === 'rare' : R.indexOf(d.rarity) <= maxTier - 1 && R.indexOf(d.rarity) >= 0); });
   if(pool.length) addTempCard(h, pick(pool), 1);
 }
+function diceFace(n){                                                  // Würfelseite als SVG
+  const P = {1:[[20,20]], 2:[[12,12],[28,28]], 3:[[11,11],[20,20],[29,29]], 4:[[12,12],[28,12],[12,28],[28,28]], 5:[[11,11],[29,11],[20,20],[11,29],[29,29]], 6:[[12,10],[28,10],[12,20],[28,20],[12,30],[28,30]]}[n];
+  return `<svg width="44" height="44" viewBox="0 0 40 40"><rect x="2" y="2" width="36" height="36" rx="8" fill="#f8f4ea" stroke="#3a2a1a" stroke-width="2.5"/>${P.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.6" fill="${n === 6 ? '#c41a2a' : '#1a1410'}"/>`).join('')}</svg>`;
+}
+function diceAnim(h, r){ if(PREVIEW || FASTFWD || !h.el) return;           // High Roller: Würfel rollt, landet auf r
+  const d = document.createElement('div'); d.className = 'dicefx'; h.el.appendChild(d);
+  let k = 0; const spin = () => { if(k++ < 9){ d.innerHTML = diceFace(1 + Math.floor(Math.random() * 6)); d.style.transform = `translateX(-50%) rotate(${k * 47}deg)`; setTimeout(spin, 60); }
+    else { d.innerHTML = diceFace(r); d.style.transform = 'translateX(-50%) rotate(0deg) scale(1.25)'; d.classList.add('land'); setTimeout(() => d.remove(), 1400); } };
+  spin();
+}
 async function axDice(h, lvl){                                          // High Roller
   const r = 1 + Math.floor(rng() * 6);
-  floatText(h, `🎲 ${r}`, 'crit-f'); await sleep(350);
+  diceAnim(h, r); histNote(`🎲 rolled a ${r}`); await sleep(900);
   if(lvl < 2){
     if(r <= 2) loseHP(h, 10, 'dmg');
-    else if(r <= 4){ h.gold += 20; floatText(h, '+20 Gold', 'gold-f'); axCnt(); }
+    else if(r <= 4){ h.gold += 20; histGold(h, 20); floatText(h, '+20 Gold', 'gold-f'); axCnt(); }
     else if(r === 5){ drawCards(h, 3); h.manaTurn = (h.manaTurn || 0) + 2; h.energy = Math.min(MAX_SAVED_ENERGY, h.energy + 2); floatText(h, '+2 Energy', 'blk'); }
-    else axRandCard(h, 3);
+    else { h.gold += 20; histGold(h, 20); drawCards(h, 3); h.manaTurn = (h.manaTurn || 0) + 2; h.energy = Math.min(MAX_SAVED_ENERGY, h.energy + 2); floatText(h, 'JACKPOT! +20 Gold, +2 Energy', 'gold-f'); axCnt(); }
   } else {
     if(r === 1) loseHP(h, 5, 'dmg');
-    else if(r <= 3){ h.gold += 20; floatText(h, '+20 Gold', 'gold-f'); axCnt(); }
+    else if(r <= 3){ h.gold += 20; histGold(h, 20); floatText(h, '+20 Gold', 'gold-f'); axCnt(); }
     else if(r <= 5){ drawCards(h, 3); h.manaTurn = (h.manaTurn || 0) + 1; h.energy = Math.min(MAX_SAVED_ENERGY, h.energy + 1); floatText(h, '+1 Energy', 'blk'); }
-    else axRandCard(h, 4);
+    else { h.gold += 20; histGold(h, 20); drawCards(h, 3); h.manaTurn = (h.manaTurn || 0) + 2; h.energy = Math.min(MAX_SAVED_ENERGY, h.energy + 2); floatText(h, 'JACKPOT! +20 Gold, +2 Energy', 'gold-f'); axCnt(); }
   }
   checkHeroDeaths(); updateUnit(h);
 }
@@ -9510,6 +9606,10 @@ async function enemyTurn(){ if(PREVIEW) return;
       updateUnit(e);
       await sleep(330);
     }
+    if(e.shiftPending && !e.dead){                                    // Morrgan: nach dem Intent verwandeln, neuer Intent erst nächste Runde
+      e.shiftPending = false; await banner(`${e.name} transforms!`, '', 900);
+      shiftForm(e); await shiftEffect(e); checkHeroDeaths(); updateUnit(e);
+    }
     if(allHeroesDead()){ await sleep(500); return defeat(); }
     if(e.status.poison && !e.dead){                      // Gift: am Ende des Gegnerzugs
       S.actor = dotOwner(e, 'poison'); S.dotTick = true; loseHP(e, poisonHit(e), 'poison-f'); S.dotTick = false; S.actor = null; e.status.poison--; updateUnit(e); await sleep(350);
@@ -9649,7 +9749,7 @@ function spawnEnemies(kind){
   const [el] = pickElites(1);
   return {list:eliteUnits(el, mult), special:el};
 }
-/* Gegner mit Taunt im Repertoire stehen vorne (Boss > Elite > normal); die übrigen behalten ihre Reihenfolge */
+/* Gegner mit Taunt im Repertoire und Tanks stehen vorne (Boss > Elite > normal); die übrigen behalten ihre Reihenfolge */
 function hasTauntKit(e){
   if(e._tk !== undefined) return e._tk;
   let yes = (e.moves || []).some(m => m.taunt);
@@ -9666,7 +9766,7 @@ function hasTauntKit(e){
 }
 function tauntersFirst(list){
   const rank = e => e.boss ? 3 : e.elite ? 2 : 1;
-  const t = list.filter(hasTauntKit).sort((a, b) => rank(b) - rank(a));
+  const t = list.filter(e => hasTauntKit(e) || e.ecls === 'tank').sort((a, b) => rank(b) - rank(a));   // Taunter und Tanks immer vorne
   return [...t, ...list.filter(e => !t.includes(e))];
 }
 async function startFight(kind){
@@ -9715,12 +9815,13 @@ function enterMap(){
   hideAllScreens(); hideEventScreens();
   const next = S.room + 1;
   if(next % BOSS_EVERY === 0) S.mapOpts = ['boss'];
-  else if(S.sinceElite >= 3) S.mapOpts = ['elite'];                  // spätestens jeder 4. Raum ist ein Eliteraum
+  else if(S.sinceElite >= 4 && (S.biomeElites || 0) < 3) S.mapOpts = ['elite'];   // spätestens jeder 5. Raum ist ein Eliteraum (≈2, max. 3 pro Biom)
   else {
-    const weights = {normal:30, elite:14, camp:S.lastRoom === 'camp' ? 0 : 16, shop:next <= 5 ? 0 : 16, event:eventsLeft().length ? 24 : 0};   // jedes Event nur 1× pro Run · nie 2 Lagerfeuer hintereinander · kein Shop in den ersten 5 Räumen
+    const weights = {normal:36, elite:S.sinceElite >= 2 && (S.biomeElites || 0) < 3 ? 10 : 0, camp:S.lastRoom === 'camp' ? 0 : 16, shop:next <= 5 ? 0 : 16, event:eventsLeft().length ? 24 : 0};   // jedes Event nur 1× pro Run · nie 2 Lagerfeuer hintereinander · kein Shop in den ersten 5 Räumen
     const n = rand(1, 3), opts = [];
     while(opts.length < n){
-      const pool = Object.keys(weights).filter(k => !opts.includes(k));
+      const pool = Object.keys(weights).filter(k => !opts.includes(k) && weights[k] > 0);
+      if(!pool.length) break;
       const tot = pool.reduce((x, k) => x + weights[k], 0);
       let x = rng() * tot;
       for(const k of pool){ x -= weights[k]; if(x < 0){ opts.push(k); break; } }
@@ -9730,7 +9831,7 @@ function enterMap(){
   refreshUI();
 }
 async function enterRoom(type){
-  S.room++; S.sinceElite = type === 'elite' || type === 'boss' ? 0 : S.sinceElite + 1; S.lastRoom = type;
+  S.room++; S.sinceElite = type === 'elite' || type === 'boss' ? 0 : S.sinceElite + 1; S.biomeElites = type === 'boss' ? 0 : (S.biomeElites || 0) + (type === 'elite' ? 1 : 0); S.lastRoom = type;
   updateRoomLabel();
   if(type === 'normal' || type === 'elite' || type === 'boss') return startFight(type);
   S.enemies = []; $('#enemySide').innerHTML = '';
@@ -9791,7 +9892,7 @@ function startRun(a){
   S.roles = {...a.roles};                                            // Kopie: 'assign' darf die Start-Aktion im Log nicht verändern (Nachspielen)
   seedRng(a.seed); uid = 1;
   S.biome = null; S.affix = null; S.biomesSeen = []; S.biomeIdx = 0; S.biomeFor = null; setBiomeBg('night'); updateBiomeLabel();
-  S.fight = 0; S.room = 0; S.lastRoom = null; S.biomeOk = {}; S.deeperVote = {}; S.deeperFor = null; S.sinceElite = 0; S.eventsSeen = []; S.bossesSeen = []; S.eliteBag = []; S.eliteSeen = []; S.elitesBeaten = 0; S.arena = null; S.event = null; S.mapOpts = [];
+  S.fight = 0; S.room = 0; S.lastRoom = null; S.biomeOk = {}; S.deeperVote = {}; S.deeperFor = null; S.sinceElite = 0; S.biomeElites = 0; S.eventsSeen = []; S.bossesSeen = []; S.eliteBag = []; S.eliteSeen = []; S.elitesBeaten = 0; S.arena = null; S.event = null; S.mapOpts = [];
   S.heroes = {}; S.stats = {fight:{}, run:{}}; S.actor = null;
   const ps = $('#playerSide'); ps.innerHTML = '';
   ps.classList.toggle('crowd', (a.party || []).length >= 4);         // 4 Helden: enger zusammen
@@ -9873,6 +9974,7 @@ function rollGem(kind = 'gem', h = null){                           // kind: gem
 async function victory(){ if(PREVIEW) return;
   S.phase = 'post'; S.active = null; heroList().forEach(restoreGaze);
   heroList().forEach(clearSoulState); lastingEtch(); S.links = {};
+  heroList().forEach(x => { delete x.bmShop; }); try { showBlackMarket(); } catch(e){}   // offener Black Market verfällt mit dem Kampfende
   const wasBoss = !!(S.special && S.special.boss);
   if(wasBoss && S.room >= ROOMS_PER_RUN) return runWon();
   if(wasBoss) await banner(`${S.special.name} has fallen!`, `The heroes recover fully. ${ROOMS_PER_RUN - S.room} rooms to go.`, 2000);
@@ -9934,7 +10036,7 @@ function showMap(){
     <p>${decider() ? (S.mapOpts.length > 1 ? 'Where do you want to go next?' : 'There is only one way forward.') : 'The host chooses the next room…'}</p>
     <div class="doors">${S.mapOpts.map(t => `<button class="door d-${t}" data-t="${t}" ${decider() ? '' : 'disabled'}>
       <div class="door-ic">${ROOM_TYPES[t].icon()}</div><b>${ROOM_TYPES[t].name}</b><span>${ROOM_TYPES[t].desc}</span></button>`).join('')}</div>
-    ${S.sinceElite >= 3 && next < ROOMS_PER_RUN ? '<p class="keys">At least every 4th room is an elite room.</p>' : ''}
+    ${S.mapOpts.length === 1 && S.mapOpts[0] === 'elite' && S.sinceElite >= 4 ? '<p class="keys">At least every 5th room is an elite room.</p>' : ''}
   </div>`;
   roomScreen.querySelectorAll('.door').forEach(b => b.onclick = () => { if(!decider() || busy()) return; roomScreen.classList.remove('show'); dispatch({t:'room', type:b.dataset.t}); });
 }
@@ -10059,7 +10161,7 @@ const BUDDY_CLASS = {
   barbarian:   [{add:{dmg:9, selfDmg:2}, label:'Bloodlust: +9 Damage, lose 2 HP'}, {add:{dmg:4, lowHpDouble:1}, label:'Rage: +4 Damage, double below 50% HP'}],
   gladiator:   [{add:{dmg:3, block:4}, label:'Glory: +3 Damage and +4 Block'}, {add:{dmg:4, weak:1}, label:'Crowd Pleaser: +4 Damage, 1 Weak'}],
   thief:       [{set:{gold:[8, 14]}, add:{dmg:3}, label:'Pickpocket: steal 8–14 Gold, +3 Damage'}, {add:{draw:1, energy:1}, label:'Quick Hands: draw 1, +1 Energy'}],
-  assassin:    [{set:{crit:true}, add:{dmg:5}, label:'Shadow Strike: +5 Damage, can Crit'}, {set:{invis:true}, add:{draw:1}, label:'Vanish into shadows: Invisible, draw 1'}],
+  assassin:    [{set:{crit:true}, add:{dmg:5}, label:'Shadow Strike: +5 Damage, Assassinate'}, {set:{invis:true}, add:{draw:1}, label:'Vanish into shadows: Invisible, draw 1'}],
   deathbringer:[{add:{poison:6}, label:'Toxic: apply 6 Poison'}, {add:{poisonAll:3}, label:'Plague: 3 Poison to ALL enemies'}],
   fire:        [{add:{burnAll:3}, label:'Pyre: 3 Burn to ALL enemies'}, {add:{burn:6}, label:'Ignite: apply 6 Burn'}],
   ice:         [{add:{iceAll:3}, label:'Frost Nova: 3 Ice to ALL enemies'}, {add:{frostArmor:2, block:4}, label:'Frost Armor 2 + 4 Block'}],
@@ -10087,7 +10189,7 @@ function rollBuddyOptions(ev){                                       // zwei ver
 }
 const BUDDY_KIND = {damage:'Damage', debuff:'Debuff', buff:'Buff for you', draw:'Card draw', energy:'Energy', class:'Class'};
 function buddyDef(ev){
-  const d = {name:'Buddy', rarity:ev.rarity, cost:1, custom:true, buddy:true, art:()=>SVG.laurel};
+  const d = {name:'Buddy', rarity:ev.rarity, cost:1, custom:true, buddy:true, exhaust:true, art:()=>SVG.laurel};   // Buddy-Karte hat immer Vanish
   for(const m of ev.mods){
     if(m.field) d[m.field] = (d[m.field] || 0) + m.v;
     for(const k in (m.add || {})) d[k] = (d[k] || 0) + m.add[k];
@@ -10403,7 +10505,7 @@ const GLOSS_STATUS = [
   ['windowIcon','Assassination Window','Your next Back Attack deals 100% more damage (upgraded 150%).'],
   ['catalystIcon','Blood Catalyst','Your next 3 attacks apply Poison.'],
   ['treasureIcon',"Dead Man's Treasure",'This turn, every kill creates a random Gem (normal Gem drop chances) directly in your inventory.'],
-  ['sentenceIcon','Death Sentence','Marks an enemy: the Executioner\'s next attacks against it deal extra damage, more if they Crit.'],
+  ['sentenceIcon','Death Sentence','Marks an enemy: the Executioner\'s next attacks against it deal extra damage, more if they Assassinate.'],
   ['huntedIcon',"Hunter's Mark",'Marks the last enemy: the Executioner\'s Back Attacks deal extra damage to it this turn.'],
   ['toxampIcon','Toxic Amplifier','The next Poison tick on this enemy deals more damage.'],
   ['richesIcon','Riches to Power (Buff)','Until the end of the fight: Greed grants +1 damage per hit for every 25 Gold instead (max +20 at 500 Gold).'],
@@ -10443,9 +10545,12 @@ const GLOSS_STATUS = [
   ['blockBadgeIcon','Block','Absorbs incoming attack damage. Heroes lose their Block at the start of each round, enemies at the start of their turn.'],
   ['strengthIcon','Might (Buff)','Buff cards are played once per fight and last until it ends. Might: attacks deal extra damage per hit.'],
   ['drainIcon','Played again','A card that was already played this turn and is drawn again costs +1 Energy per earlier play – only for this turn. Stops endless loops with tiny decks.'],
+  ['retainIcon','Hand limit','You can hold at most 10 cards. Draws beyond that do nothing.'],
   ['strengthIcon','Vanish','A card with Vanish goes to the Vanished pile when played and comes back next fight. All Buff cards have Vanish.'],
   ['frostArmorIcon','Iron Will (Buff)','Gain Block at the start of each of your turns until the end of the fight.'],
-  ['critBuffIcon','Crit','Attacks with Crit deal double damage to the rearmost (right-most) enemy. Enemies in front of it are hit normally.'],
+  ['critBuffIcon','Crit','Double damage. A Crit needs a trigger, which is named on the card or in the class passive.'],
+  ['bmIcon','Black Market','Choose 1 of 3 cards at 50% off – or none. At least one is Rare (upgraded: at least one Epic). The card goes into your deck for good and into your hand right away. Foil: one offer is Foil and costs double.'],
+  ['assnIcon','Assassinate','Deals 50% more damage to the last (right-most) enemy. Enemies in front of it are hit normally.'],
   ['atkKw_front','Front Attack','Always hits the enemy in front – no target needed.'],
   ['atkKw_back','Back Attack','Always hits the enemy at the back – no target needed.'],
   ['atkKw_aoe','Area Attack','Hits ALL enemies.'],
@@ -10585,6 +10690,7 @@ $('#glossBtn').addEventListener('click', ev => { ev.stopPropagation();          
   showGlossary('cards', h && h.spec && specOf(h.id, h.spec) ? h.id + ':' + h.spec : null); });
 $('#statsBtn').addEventListener('click', ev => { ev.stopPropagation(); showStats('fight'); });
 function showStats(scope = 'fight'){
+  document.querySelectorAll('#hcPrev').forEach(x => x.remove());
   deselect();
   setViewBack(null);
   $('#vTitle').textContent = 'Stats';
