@@ -366,6 +366,51 @@ html,body{margin:0;height:100%;background:#07060a;overflow:hidden;font-family:In
 #gemScreen #gsContinue.gx-leave:hover{transform:translateY(-2px);border-color:#ffd35a;box-shadow:0 6px 18px rgba(0,0,0,.6)}
 #gemScreen #gsContinue.gx-leave small{font:600 11px Inter,sans-serif;color:#e8c880;opacity:1;margin-top:2px}
 .gxfx{position:fixed;inset:0;z-index:9998;pointer-events:none}
+.gxrk-dim{position:absolute;inset:0;background:rgba(6,4,2,.55)}
+.gxrk{position:absolute;left:50%;top:50%;min-width:480px;padding:20px 30px 22px;border-radius:16px;background:linear-gradient(#2a2320,#16110e);border:2px solid #6a5440;box-shadow:0 20px 50px rgba(0,0,0,.8);display:flex;flex-direction:column;gap:12px;opacity:0}
+.gxrk-t{font:800 28px Cinzel,serif;color:#ffb06a;text-align:center;text-shadow:0 2px 6px #000}
+.gxrk-row{position:relative;display:flex;align-items:center;gap:12px}
+.gxrk-row>b{width:140px;font:800 16px Cinzel,serif;color:#e8dcc8;text-align:right}
+.gxrk-bar{position:relative;flex:1;height:26px;border-radius:12px;background:#1a0e0e;border:2px solid #000;overflow:hidden}
+.gxrk-fill,.gxrk-chip{position:absolute;left:0;top:0;bottom:0;border-radius:8px}
+.gxrk-fill{background:linear-gradient(#ff6a5a,#b8252a);transition:width .25s ease-out}
+.gxrk-chip{background:#ffd9a0;transition:width .5s ease-in}
+.gxrk-bar span{position:absolute;inset:0;display:grid;place-items:center;font:800 14px Inter,sans-serif;color:#fff;text-shadow:0 1px 2px #000}
+.gxbl{min-width:420px;align-items:center}
+.gxbl .gxbl-row{flex-direction:column;gap:6px;width:340px}.gxbl .gxbl-row>b{width:auto;text-align:center}.gxbl .gxrk-bar{flex:none;width:100%}
+.gxbl-dmg{height:18px;font:800 15px Inter,sans-serif;font-style:normal;color:#ff6a6a;text-shadow:0 1px 3px #000;opacity:0}
+.gxbl .gxbl-gem{width:340px;box-sizing:border-box}.gxbl-fill{background:linear-gradient(#ff4a4a,#8a0e18)}
+.gxbl-drop{position:absolute;width:7px;height:11px;border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;background:radial-gradient(circle at 35% 35%,#ff7a7a,#a80e18 60%,#5a0008);box-shadow:0 0 4px rgba(255,40,40,.6)}
+.gxbl-gem{display:flex;align-items:center;gap:14px;margin-top:4px;overflow:hidden;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.04);border:1.5px solid color-mix(in srgb,var(--c) 60%,transparent);opacity:0}
+.gxbl-gem small{display:block;font:700 11px Inter,sans-serif;letter-spacing:2px;text-transform:uppercase}
+.gxbl-gem b{display:block;font:800 19px Cinzel,serif;color:#fff}.gxbl-gem span{font:600 13px Inter,sans-serif;color:#e0d6ea}
+.gxev{max-width:520px}.gxev .gxbl-row{width:360px}
+.gxev-track{width:100%;display:flex}.gxev .gxrk-bar{flex:none;overflow:visible}.gxev .gxrk-bar>i,.gxev .gxrk-bar>span{border-radius:10px}
+.gxev-cut{position:absolute;top:-2px;bottom:-2px;right:-2px;border-radius:0 12px 12px 0;background:repeating-linear-gradient(-60deg,color-mix(in srgb,var(--cc) 70%,#000) 0 6px,color-mix(in srgb,var(--cc) 40%,#000) 6px 12px);border:2px solid #000;box-shadow:0 0 12px var(--cc);opacity:0}
+.gxev-gold{display:flex;align-items:center;justify-content:center;gap:8px;font:800 20px Inter,sans-serif;color:#ffd770;text-shadow:0 1px 3px #000;overflow:hidden}
+.gxev-gold small{font:700 12px Inter,sans-serif;color:#cfc2d8;margin-right:6px}.gxev-coin svg{width:24px;height:24px;display:block}.gxev-gd{font-style:normal;font-size:16px;opacity:0}
+.gxev .gxbl-gem{width:360px;box-sizing:border-box}
+.gxev-gems{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:520px}.gxev-gems .gxbl-gem{width:auto;margin:0;padding:8px 10px;gap:10px}.gxev-gems .gxbl-ic svg{width:34px;height:34px}.gxev-gems .gxbl-gem b{font-size:15px}.gxev-gems .gxbl-gem span{font-size:11.5px}
+.gxev{max-width:580px}
+.gxev-cards{display:flex;justify-content:center;gap:16px;overflow:visible}
+.gxev-card{display:flex;flex-direction:column;align-items:center;gap:4px}.gxev-card small{font:700 11px Inter,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:#cfc2d8}
+.gxev-card.lost small{color:#ff8a7a}.gxev-card.add small{color:var(--tc)}
+.gxev-cw{width:105px;height:161px;position:relative;margin-bottom:6px}.gxev-cw .card{transform:scale(.75);transform-origin:0 0;margin:0;position:absolute;left:0;top:0}
+.gxev-note{display:flex;align-items:center;gap:10px;max-width:400px;font:600 14px Inter,sans-serif;color:#efe6ff;overflow:hidden;align-self:center}
+.gxev-note i{flex:none;width:8px;height:8px;border-radius:50%;box-shadow:0 0 8px currentColor}
+.gxev-p{position:absolute;pointer-events:none}
+.gxev-thorns{width:12px;height:12px;margin:-6px;background:conic-gradient(from 200deg,#3a8a3a 0 25%,transparent 0);clip-path:polygon(50% 0,62% 45%,100% 50%,62% 58%,50% 100%,38% 58%,0 50%,38% 45%);background:#5acb4a;box-shadow:0 0 6px #2a6a2a}
+.gxev-snow{width:9px;height:9px;margin:-4px;border-radius:50%;background:radial-gradient(circle,#fff,#cfeaff 60%,transparent 70%);box-shadow:0 0 6px #bfe6ff}
+.gxev-blades{width:6px;height:30px;margin:-15px -3px;background:linear-gradient(#f4f8ff,#8a96a8);clip-path:polygon(50% 0,100% 100%,0 100%);transform-origin:50% 100%}
+.gxev-sand{width:4px;height:4px;margin:-2px;border-radius:50%;background:#e8c070;box-shadow:0 0 3px #a87a30}
+.gxev-smoke{width:18px;height:18px;margin:-9px;border-radius:50%;background:radial-gradient(circle,rgba(197,138,255,.8),rgba(120,60,200,.3) 55%,transparent 70%);filter:blur(1px)}
+.gxev-crimson{width:7px;height:11px;margin:-1px -3px;border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;background:radial-gradient(circle at 35% 35%,#ff5a6a,#7a0010 65%)}
+.gxev-heal{width:10px;height:10px;margin:-5px;background:#7dff9a;clip-path:polygon(38% 0,62% 0,62% 38%,100% 38%,100% 62%,62% 62%,62% 100%,38% 100%,38% 62%,0 62%,0 38%,38% 38%);filter:drop-shadow(0 0 4px #7dff9a)}
+.gxev-gold{}
+.gxev-fc{position:absolute;left:-11px;top:-11px}
+.gxrk-rock{position:absolute;left:-12px;top:-12px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.6))}
+.gxrk-dust{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:rgba(190,170,140,.7)}
+.gxrk-dmg{position:absolute;right:-50px;font:800 18px Inter,sans-serif;font-style:normal;color:#ff6a5a;text-shadow:0 1px 3px #000}
 .gxar-dim{position:absolute;inset:0;background:radial-gradient(circle at 50% 42%,rgba(20,14,26,.55),rgba(4,2,8,.82) 55%);opacity:0}
 .gxar-item{position:absolute;display:grid;place-items:center}
 .gxar-item>div{grid-area:1/1;display:grid;place-items:center;width:100%;height:100%}.gxar-item svg{max-width:100%;max-height:100%;overflow:visible}
@@ -1512,6 +1557,7 @@ body.ontitle #hud{visibility:hidden}
 .shx.carv .shx-panel{background:rgba(48,22,10,.66);border-color:rgba(255,190,110,.5)}
 .shx.carv .shx-panel h3{color:#ffc27a!important}
 .shx.carv .shx-gold{background:rgba(48,22,8,.88);border-color:#d89a4a}
+.gcoin.gdon,.ev2-ledger .gcoin{animation:none!important;transform:none}.gcoin.gdon:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.12)}   /* Spenden-Münzen stehen fest (Thief-Goldaura nutzt auch .gcoin) */
 
 /* ---- Events: Szene + Geschichte ---- */
 #roomScreen.event.evx{padding:0;overflow:hidden;background:#05030a;backdrop-filter:none;flex-direction:column;--ac:#ffcf6a}   /* sichtbar nur mit .show (sonst bleibt ein schwarzer Schirm stehen) */
@@ -9031,7 +9077,6 @@ async function execute(a){
       const nt = pick(types); const ng = {id:uid++, type:nt, tier:nt2, fleeting:!GEM_TYPES[nt].noFleet && rng() < FLEET_CHANCE};
       h.gems.push(ng);
       const p = S.post[a.h]; if(p) p.lastFused = ng.id;
-      toast(`${h.name} fused 3 gems into a ${gemTitle(ng)}!`);
       return;
     }
     case 'socket': {
@@ -9071,15 +9116,15 @@ async function execute(a){
       const p = S.post[a.h]; if(!p || p.kind !== 'shop') return;
       const item = (a.kind === 'card' ? p.shop.cards : p.shop.gems)[a.idx];
       if(!item || item.sold || h.gold < item.price) return;
-      h.gold -= item.price; item.sold = true;
+      h.gold -= item.price; item.sold = true; if(mine(h.id)) try { if(!PREVIEW) AUDIO.sfx('register'); } catch(e){}
       if(a.kind === 'card'){ const nc = newCard(item.key); if(item.foil) nc.foil = true; h.deck.push(nc); toast(`${h.name} bought ${nc.foil ? 'FOIL ' : ''}${CARDS[item.key].name}`); }
-      else { h.gems.push(item.gem); toast(`${h.name} bought a ${gemTitle(item.gem)}`); }
+      else { h.gems.push(item.gem); }
       return;
     }
     case 'sellgem': {                                   // Shop: lose Edelsteine für 50% verkaufen
       const p = S.post[a.h]; if(!p || p.kind !== 'shop') return;
       const g = h.gems.find(x => x.id === a.gem); if(!g) return;
-      h.gems = h.gems.filter(x => x !== g); h.gold += sellPrice(g);
+      h.gems = h.gems.filter(x => x !== g); h.gold += sellPrice(g); if(mine(h.id)) try { if(!PREVIEW) AUDIO.sfx('sell'); } catch(e){}
       toast(`${h.name} sold a ${gemTitle(g)} for ${sellPrice(g)} Gold`);
       return;
     }
@@ -10318,10 +10363,11 @@ function loseHP(t, amount, cls){
   if(S.actor && !!t.hero !== !!S.actor.hero) statAdd(S.actor, 'dmg', Math.min(amount, t.hp), 'hp');
   histTick(t, Math.min(amount, t.hp), cls);
   t.hp = Math.max(0, t.hp - amount); retrigger(t.el, 'hit'); floatText(t, '-' + amount, cls); updateUnit(t); }
-function heal(t, amount){ if(amount <= 0 || t.dead) return; if(S.affix === 'verdantBloom') amount = Math.round(amount * (1 + AFX().heal / 100)); if(S.actor && !!t.hero === !!S.actor.hero) statAdd(S.actor, 'heal', Math.min(amount, t.maxHp - t.hp), t === S.actor ? 'self' : 'others'); /* Stats: Selbst-/Teamheilung */ histAdd(t, 'heal', Math.min(amount, t.maxHp - t.hp)); t.hp = Math.min(t.maxHp, t.hp + amount); floatText(t, '+' + amount, 'heal-f'); updateUnit(t); }
+function heal(t, amount){ if(amount <= 0 || t.dead) return; if(inCombat() || S.phase === 'post') try { if(!PREVIEW) AUDIO.sfx('heal'); } catch(e){} if(S.affix === 'verdantBloom') amount = Math.round(amount * (1 + AFX().heal / 100)); if(S.actor && !!t.hero === !!S.actor.hero) statAdd(S.actor, 'heal', Math.min(amount, t.maxHp - t.hp), t === S.actor ? 'self' : 'others'); /* Stats: Selbst-/Teamheilung */ histAdd(t, 'heal', Math.min(amount, t.maxHp - t.hp)); t.hp = Math.min(t.maxHp, t.hp + amount); floatText(t, '+' + amount, 'heal-f'); updateUnit(t); }
 function gainBlock(u, amount, fromCard = false){
   if(fromCard && u.status.brittle) amount = Math.max(0, amount - u.status.brittle);
   if(amount <= 0){ floatText(u, 'Brittle!', 'status-f'); return; }
+  if(u.hero && inCombat()) try { if(!PREVIEW) AUDIO.sfx('block'); } catch(e){}
   if(S.affix === 'ironVeins') amount = Math.round(amount * (1 + AFX().iron / 100));
   if(u.status && u.status.overgrown) amount = Math.round(amount * (1 + AFX().overgrown / 100));
   if(u.hero && u.spec === 'knockout'){ amount = Math.floor(amount * KO_BLOCK); if(amount <= 0) return; }   // Knockout Champion: nur 50 % Block
@@ -10743,7 +10789,7 @@ async function playCardInner(h, i, target){
     if(s.momentumDouble){ gainMomentum(h, h.status.momentum || 0); }
     if(s.createCard) addTempCard(h, s.createCard.key, s.createCard.n);
     if(s.followUp && CARDS[s.followUp.key] && !(s.ax && s.ax.fuNeed && AX.prior < s.ax.fuNeed) && (!(s.followUp.chance < 1) || rng() < s.followUp.chance)) addTempCard(h, s.followUp.key, s.followUp.n, true, s.followIf7 && t7 ? {...(s.followUp.bonus || {}), dmg:((s.followUp.bonus || {}).dmg || 0) + s.followIf7.dmg} : s.followUp.bonus, !!c.upgraded, !!c.foil, c);   // Follow up: Karte mit Vanish (erbt passende Gems), weg nach dem Kampf
-    if(s.makeRune){ const rn = rollRune(); h.gems.push(rn); toast(`${h.name} found a ${RUNE_TYPES[rn.type].name}!`); updateCounters(); }
+    if(s.makeRune){ const rn = rollRune(); h.gems.push(rn); updateCounters(); }
     if(s.runeFx === 'siphon' && markedBefore){ h.energy = Math.min(MAX_SAVED_ENERGY, h.energy + 2); updateUnit(h); floatText(h, '+2 Energy', 'blk'); }
     if(s.poisonTrigger){
       for(const e of alive()) if(e.status.poison){ loseHP(e, poisonHit(e), 'poison-f'); if(e.hp <= 0){ killEnemy(e); killed = true; } }
@@ -10757,7 +10803,7 @@ async function playCardInner(h, i, target){
       let tier = 1; while(tier < 2) tier = RARITY_ORDER.indexOf(rollRarity()) + 1;
       const types = GEM_ORDER.filter(t => gemFits(t, tier));
       const nt = pick(types); const ng = {id:uid++, type:nt, tier, fleeting:!GEM_TYPES[nt].noFleet && rng() < FLEET_CHANCE};
-      h.gems.push(ng); toast(`${h.name} stole a ${gemTitle(ng)}!`); updateCounters();
+      h.gems.push(ng); updateCounters();
     }
     if(s.weakAll){ alive().forEach(e => applyStatus(e, 'weak', s.weakAll)); await sleep(200); }
     if(s.vulnAll){ alive().forEach(e => applyStatus(e, 'vulnerable', s.vulnAll)); await sleep(200); }
@@ -10854,7 +10900,7 @@ function poisonHit(e){                                                  // Gift-
   return p;
 }
 function axGemFor(h, n){                                                // Gem direkt ins Inventar (normale Drop-Chancen) mit Popup
-  for(let k = 0; k < n; k++){ const g = rollGem('gem', h); h.gems.push(g); floatText(h, 'Gem!', 'gold-f'); toast(`💎 ${h.name} found a ${gemTitle(g)}!`); }
+  for(let k = 0; k < n; k++){ const g = rollGem('gem', h); h.gems.push(g); floatText(h, 'Gem!', 'gold-f'); }
   axCnt();
 }
 function axTreasure(h){ axGemFor(h, 1); if(h.killGemDraw) drawCards(h, h.killGemDraw); }
@@ -11046,6 +11092,7 @@ function killEnemy(e){
   for(const x of living()) if(x.spec === 'tidecaller' && !e.dead) gainDepth(x, 1);          // Pressure of the Deep
   const poisonLeft = e.status.poison || 0;
   if(e.status.etaunt && !PREVIEW) setTimeout(() => living().forEach(syncRage), 0);   // Taunter tot: Wut-Symbol der Helden weg
+  try { if(!PREVIEW) AUDIO.sfx('death', {b:S.biome}); } catch(e){}
   e.dead = true; e.intentDone = true; e.status = {}; e.frozen = false;
   if(e.passive && e.passive.split){                                   // Slime King: teilt sich
     let at = S.enemies.indexOf(e), after = e.el;
@@ -11089,7 +11136,7 @@ async function checkBossPhase(e){ if(PREVIEW) return;
   const pct = e.hp / e.maxHp;
   const want = pct <= 1/3 ? 3 : pct <= 2/3 ? 2 : 1;
   while(e.phase < want && !e.dead){
-    e.phase++;
+    e.phase++; try { if(!PREVIEW) AUDIO.sfx('roar'); } catch(e){}
     const ph = PH[e.phase];
     e.el.classList.remove('phase2', 'phase3'); e.el.classList.add('phase' + e.phase);
     await banner(`Phase ${e.phase}: ${ph.name}`, ph.desc, 1900);
@@ -11616,6 +11663,7 @@ function tauntersFirst(list){
   return [...t, ...list.filter(e => !t.includes(e))];
 }
 async function startFight(kind){
+  if(kind === 'boss') setTimeout(() => { try { if(!PREVIEW) AUDIO.sfx('rumble'); } catch(e){} }, 150);
   S.post = {}; S.uiHero = null; S.phase = 'fight';
   hideAllScreens(); hideEventScreens();
   S.fight++; S.round = 0; S.history = []; S.histStack = []; S.fightKind = kind; S.shiftCount = 0; S.teamEnding = false;
@@ -11680,8 +11728,8 @@ function enterMap(){
   else if(S.forcedFights > 0){ S.forcedFights--; S.mapOpts = ['normal']; S.mapForced = true; }   // The long road / Eskorte
   else if(S.sinceElite >= 4 && (S.biomeElites || 0) < 3) S.mapOpts = ['elite'];   // spätestens jeder 5. Raum ist ein Eliteraum (≈2, max. 3 pro Biom)
   else {
-    const weights = {normal:36, elite:S.sinceElite >= 2 && (S.biomeElites || 0) < 3 ? 10 : 0, camp:S.lastRoom === 'camp' ? 0 : 16, shop:next <= 5 || (S.sinceShop ?? 9) < 3 ? 0 : 16, event:eventsLeft().length ? 24 : 0};   // jedes Event nur 1× pro Run · nie 2 Lagerfeuer hintereinander · kein Shop in den ersten 5 Räumen
-    const n = S.mapThree > 0 ? (S.mapThree--, 3) : rand(1, 3), opts = [];   // Cartographer's Map: 3 Türen
+    const weights = {normal:44, elite:S.sinceElite >= 2 && (S.biomeElites || 0) < 3 ? 10 : 0, camp:S.lastRoom === 'camp' ? 0 : 16, shop:next <= 5 || (S.sinceShop ?? 9) < 3 ? 0 : 16, event:eventsLeft().length ? 20 : 0};   // jedes Event nur 1× pro Run · nie 2 Lagerfeuer hintereinander · kein Shop in den ersten 5 Räumen
+    const nr = rng(), n = S.mapThree > 0 ? (S.mapThree--, 3) : nr < 0.25 ? 1 : nr < 0.75 ? 2 : 3, opts = [];   // Cartographer's Map: 3 Türen
     while(opts.length < n){
       const pool = Object.keys(weights).filter(k => !opts.includes(k) && weights[k] > 0);
       if(!pool.length) break;
@@ -12916,15 +12964,15 @@ async function ev2Resolve(ev, v){
   if(t === 'stag'){
     if(v === 'leave') return ev2Finish();
     if(v === 'free'){
-      for(const h of heroList()) evHurt(h, Math.round(h.maxHp * 0.1));
-      S.stagBlessing = S.biomeIdx; toast("Stag's Blessing: heal 10% after every fight in this biome");
+      const sn = GXS(); for(const h of heroList()) evHurt(h, Math.round(h.maxHp * 0.1));
+      S.stagBlessing = S.biomeIdx; await gxWait(GXE(sn, {title:'The snare bites back', theme:'thorns', notes:["Stag's Blessing – heal 10% after every fight in this biome"]}));
       if(rng() < 0.4){ await banner('The poachers return!', 'They want their stag back.', 1500); return ev2Fight({ev:'stagfree', list:[{bt:'poachbrute'}, {bt:'poacharcher'}, {bt:'poachknife'}], special:null}); }
       return ev2Finish();
     }
     if(v === 'trophy'){
-      const g = evL([80, 100, 120, 140]);
+      const g = evL([80, 100, 120, 140]), sn = GXS();
       for(const h of heroList()){ h.gold += g; h.gems.push(evGem(2)); floatText(h, `+${g} Gold`, 'gold-f'); updateUnit(h); }
-      S.markedForest = 3; updateCounters(); toast('Marked by the Forest: the next 3 fights are harder');
+      S.markedForest = 3; updateCounters(); GXE(sn, {title:'Trophies taken', theme:'gold', notes:['Marked by the Forest – the next 3 fights are harder']});
       return ev2Finish();
     }
     if(v === 'rob'){ await banner('Rob the poachers', 'Four of them. One of you.', 1400); return ev2Fight({ev:'rob', list:POACHERS.map(bt => ({bt})), special:null}); }
@@ -12935,10 +12983,10 @@ async function ev2Resolve(ev, v){
     if(v === 'smash'){ await banner('Smash it!', 'The giant wakes up.', 1300); return ev2Fight({ev:'smash', list:[{t:'giant'}], special:{name:'Crystal Giant', desc:EV_CRYSTAL_GIANT.desc}, elite:true}); }
   }
   if(t === 'avalanche'){
-    if(v === 'dig'){ const p = evL([20, 25, 30, 35]); for(const h of heroList()) evHurt(h, Math.round(h.maxHp * p / 100)); return ev2Finish(); }
+    if(v === 'dig'){ const p = evL([20, 25, 30, 35]), sn = GXS(); for(const h of heroList()) evHurt(h, Math.round(h.maxHp * p / 100)); GXE(sn, {title:'Dug through the snow', theme:'snow'}); return ev2Finish(); }
     if(v === 'wait'){
-      const g = evL([30, 40, 50, 60]); for(const h of heroList()){ const x = Math.min(h.gold, g); h.gold -= x; if(x) floatText(h, `-${x} Gold`, 'dmg'); updateUnit(h); }
-      updateCounters(); await banner('Ambush!', 'Something was waiting in the snow.', 1400);
+      const g = evL([30, 40, 50, 60]), sn = GXS(); for(const h of heroList()){ const x = Math.min(h.gold, g); h.gold -= x; if(x) floatText(h, `-${x} Gold`, 'dmg'); updateUnit(h); }
+      updateCounters(); await gxWait(GXE(sn, {title:'Paid the mountain toll', theme:'snow'})); await banner('Ambush!', 'Something was waiting in the snow.', 1400);
       const base = biomeSpawnNormal(S.room).map(e => ({bt:e.key.slice(2)})).slice(0, 4);
       const pool = BIOMES[S.biome].normals.filter(x => !['healer', 'summoner'].includes(BIOME_ENEMIES[x].cls));
       base.push({bt:pick(pool)});
@@ -12957,8 +13005,11 @@ async function ev2Resolve(ev, v){
       const n = ev.depth + 1;
       if(rng() * 100 < MINE_RISK[ev.depth]){                              // Einsturz
         ev.collapsed = true; ev.cart = {gold:0, gems:[]};
+        try { AUDIO.sfx('rumble'); } catch(e){}
         await banner('Collapse!', 'The shaft caves in. The cart is gone.', 1600);
+        const hp0 = heroList().map(h => [h, h.hp]);
         for(const h of heroList()) evHurt(h, Math.round(h.maxHp * 0.2));
+        try { gxRockFx(hp0.filter(([h]) => mine(h.id) && !h.dead).map(([h, v]) => ({h, from:v, to:h.hp}))); } catch(e){}
         ev.depth = n; return;
       }
       ev.depth = n;
@@ -12978,12 +13029,13 @@ async function ev2HeroPick(ev, h, o){
     if(o.id === 'prune') ev.pend[h.id] = [{kind:'prune'}];
   }
   if(t === 'altar' && o.pct){
-    evHurt(h, Math.round(h.maxHp * o.pct / 100));
-    const g = evGem(o.tier); h.gems.push(g); toast(`${h.name} received a ${gemTitle(g)}`);
+    const hp0 = h.hp; evHurt(h, Math.round(h.maxHp * o.pct / 100));
+    const g = evGem(o.tier); h.gems.push(g);
+    try { if(mine(h.id)) gxBloodFx(h, hp0, h.hp, g); } catch(e){}
   }
   if(t === 'bargain'){
     if(o.hex){
-      for(let k = 0; k < o.hex; k++) h.deck.push(newCard('hex'));
+      const sn = GXS(); for(let k = 0; k < o.hex; k++) h.deck.push(newCard('hex')); GXE(sn, {title:'The bargain is sealed', theme:'curse'});
       floatText(h, `+${o.hex} Hex`, 'status-f');
       const rar = o.id === 't1' ? 'epic' : 'legendary';
       ev.pend[h.id] = [{kind:'cards', keys:evSpecCards(h, rar), foil:o.id === 't3'}];
@@ -13024,7 +13076,7 @@ function armoryGive(ev, h, it){
 /* Gildenhaus: Stufen beim Verlassen */
 const guildTiers = () => { const N = heroList().length; return [25 * N, 60 * N, 100 * N, 150 * N]; };
 function guildPayout(ev){
-  ev.closed = true;
+  ev.closed = true; const sn = GXS();
   const tiers = guildTiers(), reached = tiers.filter(x => ev.pot >= x).length; ev.reached = reached;
   const L = heroList();
   if(reached >= 1) L.forEach(h => heal(h, Math.round(h.maxHp * 0.3)));
@@ -13034,7 +13086,7 @@ function guildPayout(ev){
   const top = Object.entries(ev.ledger).sort((a, b) => b[1] - a[1])[0];
   if(top && top[1] >= 50 && S.heroes[top[0]]){ ev.benefactor = top[0]; (ev.pend[top[0]] = ev.pend[top[0]] || []).push({kind:'cards', keys:evSpecCards(S.heroes[top[0]], 'rare'), bonus:true}); }
   L.forEach(updateUnit);
-  if(reached) toast(`The Hall reached tier ${reached}!`); else toast('The Hall reached no tier.');
+  if(!GXE(sn, {title:reached ? `The Hall reached tier ${reached}!` : 'The Hall reached no tier', theme:'gold', col:'#ffd35a'})) toast(reached ? `The Hall reached tier ${reached}!` : 'The Hall reached no tier.');
   return ev2HeroCheck(ev);
 }
 
@@ -13144,7 +13196,7 @@ function allyAfterFight(){                                                // nac
   allyRemove();
   if(A && A.fights <= 0){
     const h = S.heroes[A.owner];
-    if(h){ const tier = Math.min(5, A.tier + 1); const gem = evGem(tier); h.gems.push(gem); toast(`Golem Heart: ${h.name} receives a ${gemTitle(gem)}`); }
+    if(h){ const sn = GXS(), tier = Math.min(5, A.tier + 1); const gem = evGem(tier); h.gems.push(gem); GXE(sn, {title:'The Golem Heart', theme:'crystal', notes:['The golem crumbles – its heart stays with you']}); }
     S.allyGolem = null;
   }
 }
@@ -13390,12 +13442,14 @@ Object.assign(EV2_VOTES, {
 EV3_RESOLVE.oasis = async (ev, v) => {
   if(v === 'leave') return ev2Finish();
   const nm = {rest:'Rest', water:'Waterskins', forage:'Forage', scout:'Scout', pray:'Prayer', linger:'Linger'}[v];
+  const sn = GXS();
   if(v === 'rest') heroList().forEach(h => evHeal(h, .3));
-  if(v === 'water'){ S.hydrated = (S.hydrated || 0) + 2; toast(`Hydrated for ${S.hydrated} fights`); }
+  if(v === 'water'){ S.hydrated = (S.hydrated || 0) + 2; }
   if(v === 'forage'){ const g = evL([20, 30, 40, 50]); heroList().filter(h => !h.dead).forEach(h => (ev.pend[h.id] = ev.pend[h.id] || []).push({kind:'forage', gold:g, keys:shuffle(cardPool(h.id, h.spec).filter(k => CARDS[k].rarity === 'uncommon')).slice(0, 3)})); }
-  if(v === 'scout'){ S.mapThree = 3; S.scoutLeft = 3; toast('Scouted: the next 3 path choices show 3 doors'); }
+  if(v === 'scout'){ S.mapThree = 3; S.scoutLeft = 3; }
   if(v === 'pray'){ ev.prayed = true; heroList().forEach(h => { h.maxHp += 4; heal(h, 4); floatText(h, '+4 max HP', 'heal-f'); }); }
   heroList().forEach(updateUnit);
+  if(v !== 'forage' && v !== 'linger') GXE(sn, {title:nm, theme:'heal', col:'#ffb86a', notes:v === 'water' ? [`Hydrated – Scorching Sun is ignored for ${S.hydrated} fights`] : v === 'scout' ? ['Scouted – the next 3 path choices show 3 doors'] : []});
   if(v === 'linger'){
     heroList().forEach(h => evHeal(h, .15));
     await banner('Ambush!', 'Scarabs crawl out of the dark sand.', 1400);
@@ -13406,12 +13460,13 @@ EV3_RESOLVE.oasis = async (ev, v) => {
 };
 EV3_RESOLVE.djinn = async (ev, v) => {
   if(v === 'stop' || v === 'keep'){ if(v === 'keep'){ ev.stage = null; return djinnNext(ev); } if(!ev.made.length) toast('The djinn vanishes, offended.'); return ev2Finish(); }
-  if(ev.stage === 'free'){ const i = +v.slice(4), m = ev.made[i]; if(m){ djinnUndo(m); m.undone = true; ev.made.splice(i, 1); toast(`${DJINN[m.w].name} is undone.`); } ev.stage = null; return djinnNext(ev); }
-  if(v === 'more'){ ev.double = true; ev.max += 2; for(const m of ev.made) djinnPrice(m, true); toast('All prices double!'); return; }
+  if(ev.stage === 'free'){ const i = +v.slice(4), m = ev.made[i]; if(m){ const sn = GXS(); djinnUndo(m); m.undone = true; ev.made.splice(i, 1); heroList().forEach(updateUnit); GXE(sn, {title:`${DJINN[m.w].name} is undone`, theme:'smoke'}) || toast(`${DJINN[m.w].name} is undone.`); } ev.stage = null; return djinnNext(ev); }
+  if(v === 'more'){ ev.double = true; ev.max += 2; const sn = GXS(); for(const m of ev.made) djinnPrice(m, true); heroList().forEach(updateUnit); GXE(sn, {title:'All prices double!', theme:'smoke', notes:['+2 more wishes']}) || toast('All prices double!'); return; }
   if(v === 'freedom'){ ev.count++; ev.made.push({w:'freedom', rec:{}}); ev.stage = 'free'; return; }
   const m = {w:v, rec:{}}; ev.made.push(m); ev.count++;
-  djinnGift(m); djinnPrice(m, false);
+  const sn = GXS(); djinnGift(m); djinnPrice(m, false);
   heroList().forEach(updateUnit); updateCounters();
+  GXE(sn, {title:`Wish: ${DJINN[v].name}`, theme:'smoke', notes:[DJINN[v].fx(), 'Price: ' + DJINN[v].price]});
   return djinnNext(ev);
 };
 function djinnNext(ev){ if(ev.count >= ev.max && !heroList().some(h => (ev.pend[h.id] || []).length)) return ev2Finish(); }
@@ -13450,27 +13505,30 @@ function djinnUndo(m){
 }
 EV3_RESOLVE.caravan = async (ev, v) => {
   if(v === 'pass') return ev2Finish();
-  if(v === 'escort'){ S.escort = {left:2, step:0}; S.forcedFights = 2; toast('Escort the caravan: 2 fights ahead'); return ev2Finish(); }
-  if(v === 'rob'){ const g = evL([100, 125, 150, 175]); heroList().forEach(h => { h.gold += g; floatText(h, `+${g} Gold`, 'gold-f'); updateUnit(h); }); updateCounters(); S.forcedElite = true; S.hiredBlades = true; toast('The caravan will send someone after you…'); return ev2Finish(); }
+  if(v === 'escort'){ S.escort = {left:2, step:0}; S.forcedFights = 2; GXE(GXS(), {title:'Escort the caravan', theme:'gold', col:'#ffd25a', notes:['The next 2 rooms are fights – protect the caravan', 'Afterwards: the caravan shop']}); return ev2Finish(); }
+  if(v === 'rob'){ const g = evL([100, 125, 150, 175]), sn = GXS(); heroList().forEach(h => { h.gold += g; floatText(h, `+${g} Gold`, 'gold-f'); updateUnit(h); }); updateCounters(); S.forcedElite = true; S.hiredBlades = true; GXE(sn, {title:'The caravan is robbed', theme:'gold', col:'#ff9a5a', notes:['The caravan will send hired blades after you…']}); return ev2Finish(); }
 };
 EV3_PICK.quicksand = (ev, h, o) => {
+  const sn = GXS();
   if(o.id === 'rope'){ h.gold -= 30; floatText(h, '-30 Gold', 'dmg'); updateCounters(); }
   if(o.id === 'pull') evHurt(h, Math.round(h.maxHp * .15));
-  if(o.id === 'sacrifice'){ const c = pick(h.deck); evRemoveCard(h, c.id); toast(`${h.name} lost ${cardName(c)} in the sand`); }
+  if(o.id === 'sacrifice'){ const c = pick(h.deck); evRemoveCard(h, c.id); }
   updateUnit(h);
+  GXE(sn, {title:{rope:'A rope is thrown', pull:'Pulled with bare hands', sacrifice:'Lost to the sand'}[o.id] || 'The Quicksand', theme:'sand'});
 };
 EV3_DONE.quicksand = async ev => {
   const s = S.heroes[ev.sinker], others = heroList().filter(h => !h.dead && h.id !== ev.sinker);
   if(others.length && others.every(h => ev.picks[h.id] && ev.picks[h.id] !== 'none')){ toast(`${s.name} is pulled out of the sand!`); return ev2Finish(); }
-  evHurt(s, Math.round(s.hp * .4));
-  if(s.deck.length > MIN_DECK){ const c = pick(s.deck); evRemoveCard(s, c.id); toast(`${s.name} lost ${cardName(c)} – buried in the sand`); }
+  const sn = GXS(); evHurt(s, Math.round(s.hp * .4));
+  if(s.deck.length > MIN_DECK){ const c = pick(s.deck); evRemoveCard(s, c.id); }
+  updateUnit(s); GXE(sn, {title:`${s.name} sinks into the sand`, theme:'sand'});
   return ev2Finish();
 };
 EV3_VMOD.escort = (h, post) => { const g = evL([30, 40, 50, 60]); h.gold += g; post.gold += g; };
 EV3_AFTER.escort = () => { if(S.escort && S.escort.left <= 0){ S.escort = null; S.caravanShop = true; } };
 EV3_VMOD.linger = () => {};
 function caravanShopOpen(){                                                // Karawanen-Laden nach der Eskorte
-  S.phase = 'post'; S.post = {};
+  S.phase = 'post'; S.post = {}; const sn = GXS();
   for(const h of heroList()){
     if(h.dead){ h.dead = false; h.hp = Math.max(1, Math.round(h.maxHp * REVIVE_HP)); }
     const shop = makeShop(h);
@@ -13482,7 +13540,7 @@ function caravanShopOpen(){                                                // Ka
     S.post[h.id] = {kind:'shop', shop, picked:true, gemsDone:true, ready:false, caravan:true};
     updateUnit(h);
   }
-  toast('The caravan opens its wares – and gives everyone a Rare gem!');
+  GXE(sn, {title:'The caravan thanks you', theme:'gold', col:'#ffd25a', notes:['The caravan opens its wares – 40% off']}) || toast('The caravan opens its wares – and gives everyone a Rare gem!');
   return refreshUI();
 }
 
@@ -13513,10 +13571,12 @@ EV3_RESOLVE.manor = async (ev, v) => {
     return ev2Fight({ev:'attic', list:[{be:'phantomduel', hpMul:1.3}, {mn:'imp'}, {mn:'imp'}], special:{name:'The Master of the House', desc:'A phantom duelist with two shadow imps.'}, elite:true}); }
   const hint = ev.doors[+v.slice(4)], out = pick(MANOR_HINTS[hint].out);
   ev.last = MANOR_OUT[out]; ev.floor++; ev.doors = shuffle(Object.keys(MANOR_HINTS)).slice(0, 2);
+  const sn = GXS();
   if(out === 'treasure') heroList().forEach(h => { h.gold += 40; h.gems.push(evGem(2)); floatText(h, '+40 Gold', 'gold-f'); });
   if(out === 'rest') heroList().forEach(h => { evHeal(h, .25); h.deck = h.deck.filter(c => c.key !== 'hex'); });
   if(out === 'trap') heroList().forEach(h => evHurt(h, Math.round(h.maxHp * .15)));
   heroList().forEach(updateUnit); updateCounters();
+  if(out !== 'haunt') GXE(sn, {title:{treasure:'Treasure!', rest:'A quiet room', trap:'A trap!'}[out] || ev.last && ev.last.name || 'The Manor', theme:{treasure:'gold', rest:'heal', trap:'blades'}[out] || 'smoke', col:{treasure:'#ffd35a', rest:'#9a8aff', trap:'#d8dde6'}[out]});
   if(out === 'haunt'){ await banner('Haunted!', 'The ghosts of the manor attack.', 1400); return ev2Fight({ev:'haunt', list:[{bt:'shade'}, {bt:'moaningwraith'}, {bt:'banshee'}, {bt:'gravehexer'}], special:null}); }
 };
 EV3_VMOD.haunt = (h, post) => { const g = evGem(3); h.gems.push(g); post.bonus.push(gemTitle(g)); };
@@ -13534,9 +13594,9 @@ EV3_ACT.embrace = async (ev, a, h) => {
   if(a.op !== 'drink') return 'next';
   if(!h || h.dead || ev.volunteer) return;
   if(a.v === 'embrace' && S.embraced) return;
-  ev.volunteer = h.id; ev.choice = a.v;
-  if(a.v === 'taste'){ const d = Math.round(h.maxHp * .1); h.taste = S.biomeIdx; h.tasteHp = d; evLoseMax(h, d); toast(`${h.name} took a taste – lifesteal until the end of the biome`); }
-  if(a.v === 'embrace'){ const d = Math.round(h.maxHp * .2); evLoseMax(h, d); h.embrace = true; S.embraced = h.id; toast(`${h.name} accepted the Embrace`); }
+  ev.volunteer = h.id; ev.choice = a.v; const sn = GXS();
+  if(a.v === 'taste'){ const d = Math.round(h.maxHp * .1); h.taste = S.biomeIdx; h.tasteHp = d; evLoseMax(h, d); GXE(sn, {title:'A taste of blood', theme:'crimson', notes:[`${h.name}: heal 15% of the damage dealt until the biome boss`]}) || toast(`${h.name} took a taste – lifesteal until the end of the biome`); }
+  if(a.v === 'embrace'){ const d = Math.round(h.maxHp * .2); evLoseMax(h, d); h.embrace = true; S.embraced = h.id; GXE(sn, {title:'The Crimson Embrace', theme:'crimson', notes:[`${h.name}: forever +1 damage and heal 1 HP per hit`, 'Campfires heal only 15% · Sun-Sick in the desert']}) || toast(`${h.name} accepted the Embrace`); }
   updateUnit(h);
   return ev2Finish();
 };
@@ -14767,6 +14827,12 @@ function gxPoofFx(cardEl){                                           // Karte ze
   setTimeout(() => fx.remove(), 1900 * k);
 }
 
+/* ---------- Klicks auf Knöpfe/Türen, Lagerfeuer-Atmosphäre (28.11.) ---------- */
+addEventListener('click', ev => { const b = ev.target.closest && ev.target.closest('button, .door, .campopt, .gxtab, .evx-opt, .ev2-obj.vote, .ar-item.can'); if(b && !b.disabled) try { AUDIO.sfx('click'); } catch(e){} }, true);
+setInterval(() => {
+  if(document.hidden || !S.runActive || S.phase !== 'post' || !S.post || !Object.values(S.post).some(p => p && p.kind === 'camp')) return;
+  try { const k = (window.__campT = (window.__campT || 0) + 1); if(k % 4 === 0) AUDIO.sfx('fire'); if(Math.random() < 0.55) setTimeout(() => AUDIO.sfx('crackle'), Math.random() * 250); if(Math.random() < 0.2) setTimeout(() => AUDIO.sfx('crackle'), 120 + Math.random() * 200); } catch(e){}
+}, 280);
 /* ---------- Kleine Animationen (28.11.) ---------- */
 let gxSockPending = null;
 const gxK = () => GX_FX_SLOW || 1;
@@ -14992,6 +15058,193 @@ function gxArmoryFx(h, it, el, r, gem, dv){
   lb.animate([{opacity:0, transform:'translate(-50%,8px)'}, {opacity:0, transform:'translate(-50%,8px)', offset:f(490)}, {opacity:1, transform:'translate(-50%,0)', offset:f(630)}, {opacity:1, transform:'translate(-50%,0)', offset:f(2190)}, {opacity:0, transform:'translate(-50%,-4px)', offset:f(2380)}, {opacity:0}], {duration:T, fill:'forwards'});
   if(tgt) setTimeout(() => tgt.animate([{filter:'none'}, {filter:`brightness(1.6) drop-shadow(0 0 10px ${col})`}, {filter:'none'}], {duration:400 * k}), T * .98);
 }
+/* Mine eingestürzt: HP-Leisten der eigenen Helden, Steine fallen darauf, die Leiste sinkt */
+const GX_ROCK = (s, c) => `<svg viewBox="0 0 40 34" width="${s}" height="${s * .85}"><path d="M5 22 L9 8 L22 3 L35 10 L37 24 L26 32 L10 31Z" fill="${c}" stroke="#1a1410" stroke-width="2.5" stroke-linejoin="round"/><path d="M10 10 L21 6 L30 11" stroke="#fff" stroke-width="2" fill="none" opacity=".35" stroke-linecap="round"/><path d="M22 3 L20 16 L37 24 M20 16 L10 31" stroke="#1a1410" stroke-width="1.3" opacity=".45" fill="none"/></svg>`;
+function gxRockFx(list){
+  if(gxOff() || !list.length) return;
+  const k = gxK(), T = 2600 * k, L = gxLayer('gxtop', T + 60);
+  const dim = document.createElement('div'); dim.className = 'gxrk-dim'; L.appendChild(dim); dim.animate([{opacity:0}, {opacity:1, offset:.08}, {opacity:1, offset:.86}, {opacity:0}], {duration:T, fill:'forwards'});
+  const box = document.createElement('div'); box.className = 'gxrk'; L.appendChild(box);
+  box.innerHTML = `<div class="gxrk-t">Collapse!</div>` + list.map((x, i) => `<div class="gxrk-row" data-i="${i}"><b>${x.h.name}</b><div class="gxrk-bar"><i class="gxrk-chip" style="width:${x.from / x.h.maxHp * 100}%"></i><i class="gxrk-fill" style="width:${x.from / x.h.maxHp * 100}%"></i><span>${x.from} / ${x.h.maxHp}</span></div></div>`).join('');
+  box.animate([{opacity:0, transform:'translate(-50%,-46%) scale(.94)'}, {opacity:1, transform:'translate(-50%,-50%) scale(1)', offset:.08}, {opacity:1, transform:'translate(-50%,-50%)', offset:.86}, {opacity:0, transform:'translate(-50%,-52%)'}], {duration:T, fill:'forwards'});
+  list.forEach((x, i) => {
+    const row = box.querySelector(`.gxrk-row[data-i="${i}"]`), bar = row.querySelector('.gxrk-bar');
+    for(let j = 0; j < 3; j++){
+      const d = (380 + i * 140 + j * 160) * k, big = j === 1;
+      setTimeout(() => {
+        const br = bar.getBoundingClientRect(), x0 = br.left + br.width * (0.2 + 0.6 * Math.random() * (x.from / x.h.maxHp)), y1 = br.top + br.height / 2;
+        const r = document.createElement('i'); r.className = 'gxrk-rock'; r.innerHTML = GX_ROCK(big ? 38 : 26, ['#8a7a6a', '#6e6258', '#9a8a76'][j]); L.appendChild(r);
+        r.animate([{transform:`translate(${x0}px,${y1 - 170}px) rotate(${-40 + Math.random() * 80}deg)`, opacity:1}, {transform:`translate(${x0}px,${y1 - 10}px) rotate(${Math.random() * 120}deg)`, opacity:1, offset:.7, easing:'cubic-bezier(.3,0,1,1)'},
+          {transform:`translate(${x0 + (Math.random() - .5) * 40}px,${y1 - 26}px) rotate(${Math.random() * 200}deg)`, opacity:1, offset:.85}, {transform:`translate(${x0 + (Math.random() - .5) * 60}px,${y1 + 30}px) rotate(${Math.random() * 260}deg)`, opacity:0}],
+          {duration:520 * k, fill:'forwards'});
+        setTimeout(() => {
+          try { AUDIO.sfx('rock', {big}); } catch(e){}
+          bar.animate([{transform:'translate(0,0)'}, {transform:'translate(-3px,3px)'}, {transform:'translate(3px,-1px)'}, {transform:'translate(0,0)'}], {duration:180 * k});
+          for(let q = 0; q < 6; q++){ const p = document.createElement('i'); p.className = 'gxrk-dust'; L.appendChild(p); const a = -Math.PI * Math.random(), v = 20 + Math.random() * 40;
+            p.animate([{transform:`translate(${x0}px,${y1 - 6}px) scale(1)`, opacity:.8}, {transform:`translate(${x0 + Math.cos(a) * v}px,${y1 - 6 + Math.sin(a) * v}px) scale(2)`, opacity:0}], {duration:500 * k, fill:'forwards'}); }
+          const part = x.from - (x.from - x.to) * (j + 1) / 3, w = part / x.h.maxHp * 100;
+          row.querySelector('.gxrk-fill').style.width = w + '%'; row.querySelector('span').textContent = `${Math.round(part)} / ${x.h.maxHp}`;
+          if(j === 2){ setTimeout(() => row.querySelector('.gxrk-chip').style.width = w + '%', 250 * k);
+            const dmg = document.createElement('i'); dmg.className = 'gxrk-dmg'; dmg.textContent = `−${x.from - x.to}`; row.appendChild(dmg);
+            dmg.animate([{opacity:0, transform:'translateY(4px)'}, {opacity:1, transform:'translateY(-4px)', offset:.2}, {opacity:1, offset:.7}, {opacity:0, transform:'translateY(-14px)'}], {duration:1200 * k, fill:'forwards'}); }
+        }, 360 * k);
+      }, d);
+    }
+  });
+}
+/* Blutopfer (Bloodroot Altar): HP-Leiste blutet aus, danach erscheint der Gem */
+function gxBloodFx(h, from, to, gem){
+  if(gxOff()) return;
+  const k = gxK() * 0.9, T = 3600 * k, L = gxLayer('gxtop', T + 60), M = h.maxHp, col = gemColor(gem);   // 10 % schneller
+  const dim = document.createElement('div'); dim.className = 'gxrk-dim'; L.appendChild(dim); dim.animate([{opacity:0}, {opacity:1, offset:.06}, {opacity:1, offset:.88}, {opacity:0}], {duration:T, fill:'forwards'});
+  const box = document.createElement('div'); box.className = 'gxrk gxbl'; L.appendChild(box);
+  box.innerHTML = `<div class="gxrk-t" style="color:#ff6a6a">The altar drinks</div><div class="gxrk-row gxbl-row"><b>${h.name}</b><div class="gxrk-bar"><i class="gxrk-chip" style="width:${from / M * 100}%"></i><i class="gxrk-fill gxbl-fill" style="width:${from / M * 100}%"></i><span>${from} / ${M}</span></div><i class="gxbl-dmg"></i></div>
+    <div class="gxbl-gem" style="--c:${col}"><div class="gxbl-ic">${gemSVG(gem, 52)}</div><div><small style="color:${col}">${RARITY[gemRarity(gem)].name} gem</small><b>${gemTitle(gem).replace(RARITY[gemRarity(gem)].name + ' ', '')}</b><span>${gemFx(gem)}</span></div></div>`;
+  box.animate([{opacity:0, transform:'translate(-50%,-46%) scale(.94)'}, {opacity:1, transform:'translate(-50%,-50%) scale(1)', offset:.06}, {opacity:1, transform:'translate(-50%,-50%)', offset:.88}, {opacity:0, transform:'translate(-50%,-52%)'}], {duration:T, fill:'forwards'});
+  const bar = box.querySelector('.gxrk-bar'), fill = box.querySelector('.gxrk-fill'), chip = box.querySelector('.gxrk-chip'), lab = box.querySelector('.gxrk-bar span');
+  try { setTimeout(() => AUDIO.sfx('heartbeat'), 300 * k); setTimeout(() => AUDIO.sfx('heartbeat'), 1200 * k); } catch(e){}
+  const t0 = 400 * k, dur = 1500 * k, steps = 10;
+  fill.style.transition = `width ${dur / steps / 1000 * 1.1}s linear`;
+  for(let i = 1; i <= steps; i++) setTimeout(() => { const v = Math.round(from - (from - to) * i / steps); fill.style.width = v / M * 100 + '%'; lab.textContent = `${v} / ${M}`; if(i === steps) setTimeout(() => chip.style.width = v / M * 100 + '%', 250 * k); }, t0 + dur * i / steps);
+  for(let i = 0; i < 16; i++){                                         // Tropfen fallen aus der Leiste
+    const d = t0 + Math.random() * dur * .8;
+    setTimeout(() => {
+      const br = bar.getBoundingClientRect(), fw = fill.getBoundingClientRect(), x0 = fw.left + Math.max(8, fw.width) * (.35 + Math.random() * .65) - 4, y0 = br.bottom - 3;
+      const dr = document.createElement('i'); dr.className = 'gxbl-drop'; dr.style.left = x0 + 'px'; dr.style.top = y0 + 'px'; L.appendChild(dr);
+      dr.animate([{transform:'translateY(0) scaleY(.4)', opacity:1}, {transform:'translateY(6px) scaleY(1.3)', opacity:1, offset:.25}, {transform:`translateY(${22 + Math.random() * 14}px) scaleY(1)`, opacity:0}], {duration:(450 + Math.random() * 200) * k, easing:'cubic-bezier(.5,0,.9,.6)', fill:'forwards'});
+      if(Math.random() < .5) try { AUDIO.sfx('drip'); } catch(e){}
+    }, d);
+  }
+  bar.animate([{boxShadow:'0 0 0 0 rgba(255,40,40,0)'}, {boxShadow:'0 0 18px 2px rgba(255,40,40,.8)', offset:.5}, {boxShadow:'0 0 0 0 rgba(255,40,40,0)'}], {duration:dur, delay:t0, fill:'both'});
+  const dm = box.querySelector('.gxbl-dmg'); dm.textContent = `−${from - to} HP`;
+  dm.animate([{opacity:0, transform:'translateY(-4px)'}, {opacity:1, transform:'translateY(0)', offset:.2}, {opacity:1, offset:.75}, {opacity:.6}], {duration:1100 * k, delay:t0 + dur * .8 + 680 * k, fill:'both'});
+  const ge = box.querySelector('.gxbl-gem'), at = t0 + dur + 150 * k;
+  ge.animate([{opacity:0, maxHeight:'0px', paddingTop:'0px', paddingBottom:'0px', marginTop:'-12px', transform:'scale(.9)'}, {opacity:.45, maxHeight:'90px', paddingTop:'10px', paddingBottom:'10px', marginTop:'4px', transform:'scale(.94)', offset:.35}, {opacity:1, maxHeight:'90px', transform:'scale(1.04)', offset:.7}, {opacity:1, maxHeight:'90px', paddingTop:'10px', paddingBottom:'10px', marginTop:'4px', transform:'scale(1)'}], {duration:600 * k, delay:at, fill:'both', easing:'ease-out'});
+  ge.querySelector('.gxbl-ic').animate([{transform:'scale(.3) rotate(-30deg)', filter:'drop-shadow(0 0 0 transparent)'}, {transform:'scale(1.25) rotate(6deg)', filter:`drop-shadow(0 0 16px ${col})`, offset:.5}, {transform:'scale(1)', filter:`drop-shadow(0 0 8px ${col})`}], {duration:650 * k, delay:at, fill:'both'});
+  setTimeout(() => { try { AUDIO.sfx('reveal'); } catch(e){} }, at);
+}
+/* ---------- Event-Ergebnis-Fenster (Grundlage: Altar) ---------- */
+function gxSnap(){ return (S.party || []).map(id => S.heroes[id]).filter(Boolean).map(h => ({h, hp:h.hp, mx:h.maxHp, gold:h.gold, gems:new Set(h.gems.map(g => g.id)), deck:new Map(h.deck.map(c => [c.id, c]))})); }
+const GXT = {                                                          // Themen: Farbe, Titelfarbe, Partikel, Sound
+  thorns:{c:'#7dd87a', fill:'linear-gradient(#ff6a5a,#b8252a)', snd:'vine'}, snow:{c:'#bfe6ff', fill:'linear-gradient(#ff6a5a,#b8252a)', snd:'snow'},
+  blades:{c:'#d8dde6', fill:'linear-gradient(#ff6a5a,#b8252a)', snd:'blade'}, sand:{c:'#e8c070', fill:'linear-gradient(#ff6a5a,#b8252a)', snd:'sandfx'},
+  smoke:{c:'#c58aff', fill:'linear-gradient(#ff6a5a,#b8252a)', snd:'smoke'}, crimson:{c:'#ff4a5a', fill:'linear-gradient(#ff3a4a,#6a0010)', snd:'drip'},
+  gold:{c:'#ffd35a', fill:'linear-gradient(#ff6a5a,#b8252a)', snd:'coin'}, heal:{c:'#7dff9a', fill:'linear-gradient(#ff6a5a,#b8252a)', snd:'heal'},
+  crystal:{c:'#8fe8ff', fill:'linear-gradient(#ff6a5a,#b8252a)', snd:'reveal'}, curse:{c:'#b06aff', fill:'linear-gradient(#ff6a5a,#b8252a)', snd:'curse'},
+};
+function gxPart(L, th, x, y, k, up){                                   // ein Themen-Partikel an einer Stelle der Leiste
+  const p = document.createElement('i'); p.className = 'gxev-p gxev-' + th; L.appendChild(p); p.style.left = x + 'px'; p.style.top = y + 'px';
+  const r = (a, b) => a + Math.random() * (b - a), d = r(500, 800) * k;
+  const A = {
+    thorns:[{transform:`translate(${r(-6, 6)}px,${r(-18, -10)}px) rotate(${r(-60, 60)}deg) scale(0)`, opacity:0}, {transform:`translate(0,0) rotate(${r(-30, 30)}deg) scale(1)`, opacity:1, offset:.3}, {transform:`translate(${r(-4, 4)}px,${r(4, 10)}px) rotate(${r(-40, 40)}deg) scale(.8)`, opacity:0}],
+    snow:[{transform:`translate(${r(-10, 10)}px,-60px) scale(${r(.6, 1.2)})`, opacity:0}, {transform:'translate(0,0)', opacity:1, offset:.6}, {transform:`translate(${r(-12, 12)}px,${r(2, 10)}px) scale(.6)`, opacity:0}],
+    blades:[{transform:'translateY(34px) scaleY(.2)', opacity:0}, {transform:'translateY(0) scaleY(1)', opacity:1, offset:.25}, {transform:'translateY(4px) scaleY(1)', opacity:1, offset:.6}, {transform:'translateY(34px) scaleY(.3)', opacity:0}],
+    sand:[{transform:`translate(${r(-8, 8)}px,-40px)`, opacity:0}, {transform:'translate(0,0)', opacity:1, offset:.5}, {transform:`translate(${r(-6, 6)}px,${r(18, 30)}px)`, opacity:0}],
+    smoke:[{transform:'translate(0,0) scale(.4)', opacity:0}, {transform:`translate(${r(-8, 8)}px,${r(-14, -8)}px) scale(1)`, opacity:.8, offset:.3}, {transform:`translate(${r(-16, 16)}px,${r(-40, -26)}px) scale(1.8)`, opacity:0}],
+    crimson:[{transform:'translateY(0) scaleY(.4)', opacity:1}, {transform:'translateY(6px) scaleY(1.3)', opacity:1, offset:.25}, {transform:`translateY(${r(22, 34)}px)`, opacity:0}],
+    heal:[{transform:'translateY(6px) scale(.5)', opacity:0}, {transform:`translateY(${r(-14, -6)}px) scale(1)`, opacity:1, offset:.4}, {transform:`translateY(${r(-34, -24)}px) scale(.6)`, opacity:0}],
+    gold:[{transform:`translateY(${up ? 0 : 0}px) scale(.6)`, opacity:0}, {transform:`translate(${r(-10, 10)}px,${up ? r(-26, -16) : r(10, 18)}px) scale(1)`, opacity:1, offset:.4}, {transform:`translate(${r(-16, 16)}px,${up ? r(-44, -34) : r(30, 40)}px) scale(.7)`, opacity:0}],
+  }[th] || [{opacity:1}, {opacity:0}];
+  p.animate(A, {duration:d, easing:'ease-out', fill:'forwards'}); setTimeout(() => p.remove(), d + 50);
+}
+function gxEvShow(snap, cfg = {}){
+  if(gxOff() || !snap) return 0;
+  const th = cfg.theme || 'smoke', TH = GXT[th] || GXT.smoke, col = cfg.col || TH.c, k = gxK() * 0.9;
+  const mineRows = snap.filter(s => mine(s.h.id));
+  const bars = mineRows.filter(s => s.h.hp !== s.hp || s.h.maxHp !== s.mx), golds = mineRows.filter(s => s.h.gold !== s.gold);
+  const gems = [], cards = [];
+  mineRows.forEach(s => { s.h.gems.forEach(g => { if(!s.gems.has(g.id)) gems.push({h:s.h, g}); });
+    s.deck.forEach((c, id) => { if(!s.h.deck.some(x => x.id === id)) cards.push({h:s.h, c, lost:true}); });
+    s.h.deck.forEach(c => { if(!s.deck.has(c.id)) cards.push({h:s.h, c, lost:false}); }); });
+  const notes = cfg.notes || [];
+  if(!bars.length && !golds.length && !gems.length && !cards.length && !notes.length) return 0;
+  const many = mineRows.length > 1;
+  let t = 380 * k; const tBar = t; if(bars.length) t += 1500 * k; const tGold = t; if(golds.length) t += 900 * k;
+  const tGem = t; t += gems.length * 420 * k + (gems.length ? 250 * k : 0); const tCard = t; const addN = cards.filter(x => !x.lost).length; t += cards.length ? 1000 * k : 0; if(addN) t += 1500 * k;   // neue Karten: länger lesbar, dann wegfliegen const tNote = t; t += notes.length * 260 * k + (notes.length ? 200 * k : 0);
+  const T = t + (addN ? 450 : 1400) * k, L = gxLayer('gxtop', T + 80);
+  const dim = document.createElement('div'); dim.className = 'gxrk-dim'; L.appendChild(dim); dim.animate([{opacity:0}, {opacity:1, offset:.06}, {opacity:1, offset:.9}, {opacity:0}], {duration:T, fill:'forwards'});
+  const box = document.createElement('div'); box.className = 'gxrk gxbl gxev'; box.style.setProperty('--tc', col); L.appendChild(box);
+  const maxM = s => Math.max(s.mx, s.h.maxHp);
+  box.innerHTML = `<div class="gxrk-t" style="color:${col}">${cfg.title || ''}</div>`
+    + bars.map((s, i) => `<div class="gxrk-row gxbl-row" data-b="${i}"><b>${s.h.name}</b><div class="gxev-track"><div class="gxrk-bar" style="width:${s.mx / maxM(s) * 100}%"><i class="gxrk-chip" style="width:${s.hp / s.mx * 100}%"></i><i class="gxrk-fill" style="width:${s.hp / s.mx * 100}%;background:${TH.fill}"></i><span>${s.hp} / ${s.mx}</span></div></div><i class="gxbl-dmg"></i></div>`).join('')
+    + golds.map((s, i) => `<div class="gxev-gold" data-g="${i}">${many ? `<small>${s.h.name}</small>` : ''}<span class="gxev-coin">${coinIcon}</span><b>${s.gold}</b><i class="gxev-gd"></i></div>`).join('')
+    + gems.map((x, i) => `<div class="gxbl-gem" data-m="${i}" style="--c:${gemColor(x.g)}"><div class="gxbl-ic">${gemSVG(x.g, 46)}</div><div><small style="color:${gemColor(x.g)}">${many ? x.h.name + ' · ' : ''}${x.g.rune ? 'Rune' : RARITY[gemRarity(x.g)].name + ' gem'}</small><b>${x.g.rune ? RUNE_TYPES[x.g.type].name : gemTitle(x.g).replace(RARITY[gemRarity(x.g)].name + ' ', '')}</b><span>${x.g.rune ? RUNE_TYPES[x.g.type].fx : gemFx(x.g)}</span></div></div>`).join('')
+    + (cards.length ? `<div class="gxev-cards">${cards.map((x, i) => `<div class="gxev-card ${x.lost ? 'lost' : 'add'}" data-c="${i}"><div class="gxev-cw"></div><small>${many ? x.h.name + ' · ' : ''}${x.lost ? 'lost' : 'added'}</small></div>`).join('')}</div>` : '')
+    + notes.map(n => `<div class="gxev-note"><i style="background:${col}"></i>${n}</div>`).join('');
+  box.querySelectorAll('.gxev-card').forEach((el, i) => { const ce = makeCard(cards[i].c); el.querySelector('.gxev-cw').appendChild(ce); });
+  if(gems.length > 2){ const gw = document.createElement('div'); gw.className = 'gxev-gems'; box.querySelectorAll('.gxbl-gem').forEach(g => gw.appendChild(g)); const after = box.querySelector('.gxev-cards') || box.querySelector('.gxev-note'); after ? box.insertBefore(gw, after) : box.appendChild(gw); }
+  { const hh = box.offsetHeight, lim = innerHeight * .9; if(hh > lim) box.style.zoom = String(lim / hh); }
+  box.animate([{opacity:0, transform:'translate(-50%,-46%) scale(.94)'}, {opacity:1, transform:'translate(-50%,-50%) scale(1)', offset:.05}, {opacity:1, transform:'translate(-50%,-50%)', offset:.9}, {opacity:0, transform:'translate(-50%,-52%)'}], {duration:T, fill:'forwards'});
+  const show = (el, at) => el.animate([{opacity:0, maxHeight:'0px', transform:'scale(.94)'}, {opacity:.45, maxHeight:'200px', transform:'scale(.96)', offset:.35}, {opacity:1, maxHeight:'200px', transform:'scale(1)'}], {duration:520 * k, delay:at, fill:'both', easing:'ease-out'});
+  const snd = (n, o) => { try { AUDIO.sfx(n, o); } catch(e){} };
+  /* HP / max HP */
+  bars.forEach((s, i) => {
+    const row = box.querySelector(`[data-b="${i}"]`), bar = row.querySelector('.gxrk-bar'), fill = row.querySelector('.gxrk-fill'), chip = row.querySelector('.gxrk-chip'), lab = row.querySelector('span'), dmg = row.querySelector('.gxbl-dmg');
+    const h = s.h, d = h.hp - s.hp, dm = h.maxHp - s.mx, M = maxM(s), steps = 8, dur = 1100 * k, t0 = tBar + i * 120 * k;
+    const healTh = d > 0 ? 'heal' : th;
+    if(d){ fill.style.transition = `width ${dur / steps / 1000 * 1.1}s linear`;
+      if(d > 0) chip.style.background = 'rgba(125,255,154,.55)';
+      for(let j = 1; j <= steps; j++) setTimeout(() => { const v = Math.round(s.hp + d * j / steps), mxNow = j === steps && dm ? s.mx : s.mx; fill.style.width = v / mxNow * 100 + '%'; if(d > 0) chip.style.width = v / mxNow * 100 + '%'; lab.textContent = `${v} / ${s.mx}`; if(j === steps && d < 0) setTimeout(() => chip.style.width = v / s.mx * 100 + '%', 220 * k); }, t0 + dur * j / steps);
+      for(let q = 0; q < 14; q++) setTimeout(() => { const br = bar.getBoundingClientRect(), fr = fill.getBoundingClientRect(); const x = (healTh === 'heal' ? br.left + Math.random() * fr.width : fr.left + Math.max(10, fr.width) * (.3 + Math.random() * .7)), y = healTh === 'blades' ? br.top + br.height / 2 : healTh === 'smoke' || healTh === 'heal' ? br.top : br.bottom - 3; gxPart(L, healTh, x, y, k); }, t0 + Math.random() * dur * .85);
+      bar.animate([{boxShadow:`0 0 0 0 transparent`}, {boxShadow:`0 0 16px 2px ${d > 0 ? '#7dff9a' : col}`, offset:.5}, {boxShadow:'0 0 0 0 transparent'}], {duration:dur, delay:t0, fill:'both'});
+      setTimeout(() => snd(d > 0 ? 'heal' : TH.snd), t0); if(d < 0) setTimeout(() => snd(TH.snd), t0 + dur * .5);
+    }
+    if(dm){ const ta = t0 + (d ? dur + 150 * k : 0);
+      setTimeout(() => {
+        const w = h.maxHp / M * 100;
+        if(dm < 0){ const cut = document.createElement('i'); cut.className = 'gxev-cut'; cut.style.left = (h.maxHp / s.mx * 100) + '%'; cut.style.setProperty('--cc', col); bar.appendChild(cut);
+          snd('crack'); cut.animate([{opacity:0}, {opacity:1, offset:.15}, {opacity:1, transform:'translate(0,0) rotate(0)', offset:.4}, {opacity:0, transform:'translate(12px,26px) rotate(14deg)'}], {duration:700 * k, fill:'forwards'});
+          setTimeout(() => { bar.style.transition = `width ${.35 * k}s ease-in`; bar.style.width = w + '%'; fill.style.width = h.hp / h.maxHp * 100 + '%'; chip.style.width = h.hp / h.maxHp * 100 + '%'; cut.remove(); }, 380 * k);
+        } else { snd('heal'); bar.style.transition = `width ${.5 * k}s ease-out`; bar.style.width = w + '%'; fill.style.width = h.hp / h.maxHp * 100 + '%'; chip.style.width = h.hp / h.maxHp * 100 + '%';
+          bar.animate([{boxShadow:'0 0 0 0 transparent'}, {boxShadow:'0 0 18px 3px #7dff9a', offset:.4}, {boxShadow:'0 0 0 0 transparent'}], {duration:800 * k}); }
+        lab.textContent = `${h.hp} / ${h.maxHp}`;
+      }, ta);
+    }
+    const parts = [d ? `${d > 0 ? '+' : '−'}${Math.abs(d)} HP` : '', dm ? `${dm > 0 ? '+' : '−'}${Math.abs(dm)} max HP` : ''].filter(Boolean).join(' · ');
+    dmg.textContent = parts; dmg.style.color = d > 0 || dm > 0 ? '#7dff9a' : '#ff6a6a';
+    dmg.animate([{opacity:0, transform:'translateY(-4px)'}, {opacity:1, transform:'translateY(0)', offset:.3}, {opacity:1}], {duration:700 * k, delay:t0 + (d ? dur : 0) + (dm ? 600 * k : 0) + 100 * k, fill:'both'});
+  });
+  /* Gold */
+  golds.forEach((s, i) => {
+    const el = box.querySelector(`[data-g="${i}"]`), num = el.querySelector('b'), gd = el.querySelector('.gxev-gd'), d = s.h.gold - s.gold, at = tGold + i * 120 * k;
+    show(el, at);
+    setTimeout(() => { snd(d > 0 ? 'sell' : 'coinloss'); const n = 10; for(let j = 1; j <= n; j++) setTimeout(() => num.textContent = Math.round(s.gold + d * j / n), j * 45 * k);
+      const r = el.querySelector('.gxev-coin').getBoundingClientRect();
+      for(let q = 0; q < 8; q++) setTimeout(() => { const c = document.createElement('i'); c.className = 'gx-coin gxev-fc'; c.innerHTML = coinIcon; L.appendChild(c);
+        const x = r.left + r.width / 2, y = r.top + r.height / 2, dx = (Math.random() - .5) * 60, dy = d > 0 ? -50 - Math.random() * 20 : 46 + Math.random() * 20;
+        c.animate(d > 0 ? [{transform:`translate(${x + dx}px,${y + 40}px) scale(.6)`, opacity:0}, {transform:`translate(${x + dx * .5}px,${y + 10}px) scale(1)`, opacity:1, offset:.5}, {transform:`translate(${x}px,${y}px) scale(.6)`, opacity:0}]
+          : [{transform:`translate(${x}px,${y}px) scale(.8)`, opacity:1}, {transform:`translate(${x + dx * .5}px,${y - 14}px) scale(1)`, opacity:1, offset:.3}, {transform:`translate(${x + dx}px,${y + dy}px) scale(.7)`, opacity:0}], {duration:700 * k, easing:'ease-out', fill:'forwards'}); setTimeout(() => c.remove(), 750 * k); }, q * 55 * k);
+    }, at + 250 * k);
+    gd.textContent = `${d > 0 ? '+' : '−'}${Math.abs(d)}`; gd.style.color = d > 0 ? '#ffd770' : '#ff6a6a';
+    gd.animate([{opacity:0}, {opacity:1, offset:.4}, {opacity:1}], {duration:600 * k, delay:at + 650 * k, fill:'both'});
+  });
+  /* Gems */
+  gems.forEach((x, i) => { const el = box.querySelector(`[data-m="${i}"]`), at = tGem + i * 420 * k, gc = gemColor(x.g);
+    show(el, at); el.querySelector('.gxbl-ic').animate([{transform:'scale(.3) rotate(-30deg)'}, {transform:'scale(1.25) rotate(6deg)', filter:`drop-shadow(0 0 16px ${gc})`, offset:.5}, {transform:'scale(1)', filter:`drop-shadow(0 0 8px ${gc})`}], {duration:620 * k, delay:at, fill:'both'});
+    setTimeout(() => snd('reveal'), at); });
+  /* Karten */
+  if(cards.length){ const wrapEl = box.querySelector('.gxev-cards'); show(wrapEl, tCard);
+    cards.forEach((x, i) => { const el = box.querySelector(`[data-c="${i}"]`), cw = el.querySelector('.gxev-cw'), at = tCard + 350 * k + i * 160 * k;
+      if(x.lost){ setTimeout(() => { if(th === 'sand') snd('sandfx');
+          if(th === 'sand'){ cw.animate([{transform:'translateY(0)', clipPath:'inset(0 0 0 0)'}, {transform:'translateY(50px)', clipPath:'inset(0 0 100% 0)'}], {duration:900 * k, easing:'ease-in', fill:'forwards'});
+            const r = cw.getBoundingClientRect(); for(let q = 0; q < 16; q++) setTimeout(() => gxPart(L, 'sand', r.left + Math.random() * r.width, r.bottom - 6, k), q * 50 * k); }
+          else gxPoofFx(cw.querySelector('.card')), cw.style.visibility = 'hidden'; }, at); }
+      else { cw.animate([{transform:'translateY(-40px) scale(.7) rotate(-8deg)', opacity:0, filter:'brightness(2)'}, {transform:'translateY(4px) scale(1.04)', opacity:1, filter:`drop-shadow(0 0 16px ${col}) brightness(1.2)`, offset:.6}, {transform:'none', opacity:1, filter:`drop-shadow(0 0 8px ${col})`}], {duration:600 * k, delay:at, fill:'both'}); setTimeout(() => snd(th === 'curse' ? 'curse' : 'whoosh', {d:.35, v:.3}), at);
+        setTimeout(() => {                                             // nach dem Lesen: zum Deck nach unten rechts
+          const ce = cw.querySelector('.card'); if(!ce) return; const dp = $('#drawPile'), dr = dp && dp.getBoundingClientRect();
+          const tx = dr && dr.width ? dr.left + dr.width / 2 : innerWidth - 90, ty = dr && dr.width ? dr.top + dr.height / 2 : innerHeight - 100;
+          const {box: b, r} = gxClone(ce, L); cw.style.visibility = 'hidden'; snd('whoosh', {d:.5, v:.35});
+          const x1 = tx - (r.left + r.width / 2), y1 = ty - (r.top + r.height / 2);
+          b.animate(gxArc(0, 0, x1, y1, 120, 12).map(([x, y, q]) => ({transform:`translate(${x}px,${y}px) rotate(${q * 20}deg) scale(${1 - .7 * q})`, opacity:q > .9 ? 1 - (q - .9) * 10 : 1})), {duration:750 * k, easing:'cubic-bezier(.35,0,.25,1)', fill:'forwards'});
+        }, at + 2200 * k); }
+    }); }
+  /* Hinweise */
+  box.querySelectorAll('.gxev-note').forEach((el, i) => { show(el, tNote + i * 260 * k); setTimeout(() => snd('bump'), tNote + i * 260 * k); });
+  return T;
+}
+const gxWait = ms => ms ? new Promise(r => setTimeout(r, ms)) : null;
+const GXS = () => { try { return gxSnap(); } catch(e){ return null; } };
+const GXE = (sn, cfg) => { try { return gxEvShow(sn, cfg) || 0; } catch(e){ console.error(e); return 0; } };
 /* Sieg: Konfetti und Lichtstrahlen */
 function gxWinFx(){
   if(gxOff()) return; try { AUDIO.sfx('win'); } catch(e){}
@@ -15094,7 +15347,7 @@ function showCamp(h, p){
       <button class="campopt" id="campUp" ${anyUp && !chosen ? '' : 'disabled'}><div class="ci">${SVG.anvil || SVG.hammer || gemSVG({type:'protection', tier:5}, 56)}</div><b>Upgrade</b><span>Upgrade one card<br><em>${note(p.upgradeDone, anyUp ? '' : 'Nothing to upgrade')}</em></span></button>
     </div>
     <button id="ovBtn">Leave the campfire</button>`, () => { hideOverlay(); dispatch({t:'campdone', h:h.id}); }, true);
-  $('#campRest').onclick = () => { if(chosen || busy()) return; dispatch({t:'rest', h:h.id}); };
+  $('#campRest').onclick = () => { if(chosen || busy()) return; try { if(!PREVIEW) AUDIO.sfx('rest'); } catch(e){} dispatch({t:'rest', h:h.id}); };
   $('#campGem').onclick = () => { if(!anyGems || chosen) return; p.campChoice = 'unsocket'; showGemScreen(h, p, 'unsocket'); };
   $('#campUp').onclick = () => { if(!anyUp || chosen) return; showCampUpgrade(h, p); };
 }
@@ -15480,7 +15733,7 @@ const AUDIO = (() => {
     const dly = ctx.createDelay(2), fb = ctx.createGain(), dlf = ctx.createBiquadFilter(), dlOut = ctx.createGain();
     fb.gain.value = 0.33; dlf.type = 'lowpass'; dlf.frequency.value = 2400; dlOut.gain.value = 0.35;
     dly.connect(dlf); dlf.connect(fb); fb.connect(dly); dlf.connect(dlOut); dlOut.connect(music); dlOut.connect(rev);
-    const sfxRev = ctx.createGain(); sfxRev.gain.value = 0.25; sfxRev.connect(rev);
+    const sfxRev = ctx.createGain(); sfxRev.gain.value = 0.25; const rev2 = ctx.createConvolver(); rev2.buffer = impulse(ctx, 2.2, 2.6); const rev2Out = ctx.createGain(); rev2Out.gain.value = 0.55; sfxRev.connect(rev2); rev2.connect(rev2Out); rev2Out.connect(sfx);
     return {master, music, sfx, rev, dly, sfxRev, comp};
   }
   /* Ausgang einer Stimme: trocken in den Lied-Bus, Anteile in Hall und Echo */
@@ -15836,6 +16089,104 @@ const AUDIO = (() => {
         o.frequency.exponentialRampToValueAtTime(hz(m - 5), t + 2.2); o.connect(x); x.connect(og); og.connect(g.sfx); og.connect(g.sfxRev); });
       const b = osc(c, 'sine', 65, t, t + 2.5), bg = gainEnv(c, t, 0.3, 0.16, 1.2, 1.1); b.frequency.exponentialRampToValueAtTime(40, t + 2.3); b.connect(bg); bg.connect(g.sfx);
     },
+
+    heal(c, g, t){                                        // warmer Heilklang
+      [[67, 0], [71, 0.06], [74, 0.12]].forEach(([m, d]) => { const og = gainEnv(c, t + d, 0.05, 0.06, 0.12, 0.6); const o = osc(c, 'sine', hz(m), t + d, t + d + 1); o.connect(og); og.connect(g.sfx); og.connect(g.sfxRev);
+        const o2 = osc(c, 'triangle', hz(m + 12), t + d, t + d + 1), g2 = gainEnv(c, t + d, 0.05, 0.015, 0.1, 0.5); o2.connect(g2); g2.connect(g.sfx); });
+    },
+    block(c, g, t){                                       // Metallschild
+      const p = rnd(0.95, 1.06);
+      [[340, 0.09], [920, 0.06], [1630, 0.04], [2470, 0.025]].forEach(([f, a]) => { const og = decayEnv(c, t, 0.001, a, rnd(0.18, 0.3)); osc(c, 'sine', f * p, t, t + 0.5).connect(og); og.connect(g.sfx); og.connect(g.sfxRev); });
+      const th = osc(c, 'sine', 150, t, t + 0.2), tg = decayEnv(c, t, 0.002, 0.18, 0.08); th.frequency.exponentialRampToValueAtTime(70, t + 0.08); th.connect(tg); tg.connect(g.sfx);
+    },
+    death(c, g, t, o = {}){                               // Gegner stirbt – je Biom
+      const b = o.b || 'forest';
+      if(b === 'night'){                                  // Knochen klappern
+        for(let i = 0; i < 7; i++){ const tt = t + i * rnd(0.045, 0.08), f = rnd(700, 1400), og = decayEnv(c, tt, 0.001, 0.11, 0.05); const o1 = osc(c, 'triangle', f, tt, tt + 0.08); o1.frequency.exponentialRampToValueAtTime(f * 0.6, tt + 0.05); o1.connect(og); og.connect(g.sfx);
+          const n = noiseSrc(c, tt, tt + 0.04), nx = bp(c, rnd(2500, 4000), 3), ng = decayEnv(c, tt, 0.001, 0.08, 0.02); n.connect(nx); nx.connect(ng); ng.connect(g.sfx); }
+      } else if(b === 'mountain'){                        // Stein bricht
+        const n = noiseSrc(c, t, t + 0.8), x = lp(c, 1400), ng = decayEnv(c, t, 0.002, 0.45, 0.35); n.connect(x); x.connect(ng); ng.connect(g.sfx); ng.connect(g.sfxRev);
+        const th = osc(c, 'sine', 90, t, t + 0.5), tg = decayEnv(c, t, 0.002, 0.4, 0.25); th.frequency.exponentialRampToValueAtTime(35, t + 0.3); th.connect(tg); tg.connect(g.sfx);
+        for(let i = 0; i < 8; i++){ const tt = t + 0.08 + Math.random() * 0.5, cg = decayEnv(c, tt, 0.001, 0.1, 0.04), cn = noiseSrc(c, tt, tt + 0.06), cx = bp(c, rnd(600, 1800), 2); cn.connect(cx); cx.connect(cg); cg.connect(g.sfx); }
+      } else if(b === 'desert'){                          // Sand rieselt
+        const n = noiseSrc(c, t, t + 1.3), x = hp(c, 2500), ga = gainEnv(c, t, 0.08, 0.1, 0.4, 0.8); x.frequency.setValueAtTime(4500, t); x.frequency.exponentialRampToValueAtTime(1500, t + 1.2); n.connect(x); x.connect(ga); ga.connect(g.sfx);
+        for(let i = 0; i < 18; i++){ const tt = t + Math.random() * 1, cg = decayEnv(c, tt, 0.001, 0.03, 0.015), cn = noiseSrc(c, tt, tt + 0.02), cx = hp(c, 5000); cn.connect(cx); cx.connect(cg); cg.connect(g.sfx); }
+      } else {                                            // Wald: Holz knackt, Blätter rascheln
+        const n = noiseSrc(c, t, t + 0.12), x = bp(c, 900, 2), ng = decayEnv(c, t, 0.001, 0.4, 0.07); n.connect(x); x.connect(ng); ng.connect(g.sfx);
+        const o1 = osc(c, 'triangle', 220, t, t + 0.2), og = decayEnv(c, t, 0.001, 0.15, 0.1); o1.frequency.exponentialRampToValueAtTime(90, t + 0.1); o1.connect(og); og.connect(g.sfx);
+        const r = noiseSrc(c, t + 0.05, t + 1), rx = bp(c, 3500, 0.8), rg = gainEnv(c, t + 0.05, 0.15, 0.12, 0.25, 0.5); r.connect(rx); rx.connect(rg); rg.connect(g.sfx);
+      }
+      const sg = decayEnv(c, t, 0.01, 0.05, 0.8), so = osc(c, 'sine', hz(rnd(55, 60)), t, t + 1); so.frequency.exponentialRampToValueAtTime(hz(43), t + 0.8); so.connect(sg); sg.connect(g.sfx); sg.connect(g.sfxRev);
+    },
+    click(c, g, t){                                       // dezenter Knopfklick
+      const o = osc(c, 'sine', 1800, t, t + 0.04), og = decayEnv(c, t, 0.001, 0.05, 0.025); o.frequency.exponentialRampToValueAtTime(900, t + 0.03); o.connect(og); og.connect(g.sfx);
+      const n = noiseSrc(c, t, t + 0.02), nx = hp(c, 4000), ng = decayEnv(c, t, 0.001, 0.04, 0.01); n.connect(nx); nx.connect(ng); ng.connect(g.sfx);
+    },
+    register(c, g, t){                                    // Kauf: Kassen-Klingeln
+      [[88, 0, 0.09], [93, 0.09, 0.1]].forEach(([m, d, a]) => { [[1, a], [2.7, a * 0.4], [5.1, a * 0.2]].forEach(([r, aa]) => { const og = decayEnv(c, t + d, 0.001, aa, 0.6); osc(c, 'sine', hz(m) * r, t + d, t + d + 0.9).connect(og); og.connect(g.sfx); og.connect(g.sfxRev); }); });
+      for(let i = 0; i < 5; i++) SFX.coin(c, g, t + 0.2 + i * rnd(0.04, 0.07));
+      const n = noiseSrc(c, t, t + 0.06), nx = bp(c, 1200, 2), ng = decayEnv(c, t, 0.001, 0.12, 0.04); n.connect(nx); nx.connect(ng); ng.connect(g.sfx);
+    },
+    sell(c, g, t){ for(let i = 0; i < 7; i++) SFX.coin(c, g, t + i * rnd(0.035, 0.075)); },
+    crackle(c, g, t){                                     // Lagerfeuer: Knacken
+      const n = noiseSrc(c, t, t + 0.03), x = bp(c, rnd(1500, 4500), 2), ng = decayEnv(c, t, 0.001, rnd(0.25, 0.6), rnd(0.008, 0.025)); n.connect(x); x.connect(ng); ng.connect(g.sfx);
+    },
+    fire(c, g, t){                                        // Lagerfeuer: Rauschen (überlappend neu ausgelöst)
+      const n = noiseSrc(c, t, t + 1.8), x = lp(c, 600), ga = gainEnv(c, t, 0.5, 0.09, 0.9, 0.5); n.connect(x); x.connect(ga); ga.connect(g.sfx);
+    },
+    rest(c, g, t){                                        // Rasten: sanfter Akkord
+      [[55, 0.05], [62, 0.04], [67, 0.035], [71, 0.03], [74, 0.02]].forEach(([m, a], k) => { const og = gainEnv(c, t + k * 0.12, 0.5, a, 0.8, 1.4); const o = osc(c, 'sine', hz(m), t + k * 0.12, t + 3.2); o.connect(og); og.connect(g.sfx); og.connect(g.sfxRev); });
+    },
+    rock(c, g, t, o = {}){                                // Stein schlägt auf
+      const big = o.big ? 1.4 : 1, n = noiseSrc(c, t, t + 0.3), x = lp(c, rnd(900, 1600)), ng = decayEnv(c, t, 0.001, 0.3 * big, rnd(0.08, 0.14)); n.connect(x); x.connect(ng); ng.connect(g.sfx);
+      const th = osc(c, 'sine', rnd(90, 130), t, t + 0.3), tg = decayEnv(c, t, 0.002, 0.3 * big, 0.12); th.frequency.exponentialRampToValueAtTime(40, t + 0.12); th.connect(tg); tg.connect(g.sfx);
+      for(let i = 0; i < 3; i++){ const tt = t + 0.03 + Math.random() * 0.15, cg = decayEnv(c, tt, 0.001, 0.06, 0.03), cn = noiseSrc(c, tt, tt + 0.05), cx = bp(c, rnd(1200, 2600), 2); cn.connect(cx); cx.connect(cg); cg.connect(g.sfx); }
+    },
+    drip(c, g, t){                                        // Bluttropfen
+      const f = rnd(900, 1400), o = osc(c, 'sine', f, t, t + 0.12), og = decayEnv(c, t, 0.002, 0.08, 0.07); o.frequency.exponentialRampToValueAtTime(f * 2.2, t + 0.05); o.connect(og); og.connect(g.sfx); og.connect(g.sfxRev);
+    },
+    heartbeat(c, g, t){                                   // dumpfer Herzschlag
+      [0, 0.22].forEach((d, i) => { const o = osc(c, 'sine', i ? 55 : 62, t + d, t + d + 0.3), og = decayEnv(c, t + d, 0.005, i ? 0.35 : 0.45, 0.16); o.frequency.exponentialRampToValueAtTime(38, t + d + 0.15); o.connect(og); og.connect(g.sfx); });
+    },
+    vine(c, g, t){                                        // Ranken knirschen, Dornen stechen
+      const n = noiseSrc(c, t, t + 0.6), x = bp(c, 1200, 4), ga = gainEnv(c, t, 0.1, 0.12, 0.3, 0.2); x.frequency.setValueAtTime(700, t); x.frequency.linearRampToValueAtTime(1800, t + 0.5); n.connect(x); x.connect(ga); ga.connect(g.sfx);
+      for(let i = 0; i < 4; i++){ const tt = t + 0.1 + i * 0.12, og = decayEnv(c, tt, 0.001, 0.07, 0.04); const o = osc(c, 'square', rnd(1800, 2600), tt, tt + 0.05); o.connect(og); og.connect(g.sfx); }
+    },
+    snow(c, g, t){                                        // Schnee rutscht
+      const n = noiseSrc(c, t, t + 0.9), x = lp(c, 1800), ga = gainEnv(c, t, 0.1, 0.25, 0.4, 0.35); x.frequency.setValueAtTime(2400, t); x.frequency.exponentialRampToValueAtTime(500, t + 0.8); n.connect(x); x.connect(ga); ga.connect(g.sfx); ga.connect(g.sfxRev);
+      const o = osc(c, 'sine', 80, t, t + 0.6), og = decayEnv(c, t + 0.05, 0.02, 0.18, 0.3); o.connect(og); og.connect(g.sfx);
+    },
+    blade(c, g, t){                                       // Klingen schnellen hervor
+      const n = noiseSrc(c, t, t + 0.25), x = bp(c, 3000, 2), ga = gainEnv(c, t, 0.04, 0.2, 0.05, 0.12); x.frequency.setValueAtTime(1500, t); x.frequency.exponentialRampToValueAtTime(6000, t + 0.12); n.connect(x); x.connect(ga); ga.connect(g.sfx);
+      [[2100, 0.06], [3300, 0.04], [5200, 0.025]].forEach(([f, a]) => { const og = decayEnv(c, t + 0.1, 0.001, a, 0.35); osc(c, 'sine', f, t + 0.1, t + 0.6).connect(og); og.connect(g.sfx); og.connect(g.sfxRev); });
+    },
+    sandfx(c, g, t){ SFX.death(c, g, t, {b:'desert'}); },
+    smoke(c, g, t){                                       // Djinn-Rauch
+      const n = noiseSrc(c, t, t + 0.9), x = bp(c, 600, 1.5), ga = gainEnv(c, t, 0.25, 0.18, 0.3, 0.35); x.frequency.setValueAtTime(400, t); x.frequency.exponentialRampToValueAtTime(1600, t + 0.8); n.connect(x); x.connect(ga); ga.connect(g.sfx);
+      [79, 83, 88].forEach((m, k) => { const tt = t + 0.1 + k * 0.1, og = decayEnv(c, tt, 0.01, 0.04, 0.6); const o = osc(c, 'sine', hz(m), tt, tt + 0.8); o.frequency.linearRampToValueAtTime(hz(m) * 0.94, tt + 0.7); o.connect(og); og.connect(g.sfx); og.connect(g.sfxRev); });
+    },
+    crack(c, g, t){                                       // etwas bricht ab (max HP)
+      const n = noiseSrc(c, t, t + 0.15), x = hp(c, 1200), ng = decayEnv(c, t, 0.001, 0.4, 0.06); n.connect(x); x.connect(ng); ng.connect(g.sfx);
+      const o = osc(c, 'triangle', 420, t, t + 0.3), og = decayEnv(c, t, 0.001, 0.15, 0.15); o.frequency.exponentialRampToValueAtTime(110, t + 0.2); o.connect(og); og.connect(g.sfx);
+      const th = osc(c, 'sine', 90, t + 0.35, t + 0.6), tg = decayEnv(c, t + 0.35, 0.002, 0.2, 0.1); th.connect(tg); tg.connect(g.sfx);
+    },
+    coinloss(c, g, t){ for(let i = 0; i < 6; i++){ const tt = t + i * 0.07, f = 2400 - i * 220; [[1, 0.07], [2.4, 0.03]].forEach(([r, a]) => { const og = decayEnv(c, tt, 0.001, a, 0.18); osc(c, 'sine', f * r, tt, tt + 0.3).connect(og); og.connect(g.sfx); }); } },
+    curse(c, g, t){                                       // Fluch / Hex
+      [[49, 0.06], [52, 0.05], [55, 0.04], [58, 0.035]].forEach(([m, a]) => { const o = osc(c, 'sawtooth', hz(m), t, t + 1.3), x = lp(c, 900), og = gainEnv(c, t, 0.08, a, 0.5, 0.6); o.frequency.linearRampToValueAtTime(hz(m - 1), t + 1.1); o.connect(x); x.connect(og); og.connect(g.sfx); og.connect(g.sfxRev); });
+      const n = noiseSrc(c, t, t + 0.8), nx = bp(c, 500, 2), ng = gainEnv(c, t, 0.05, 0.12, 0.2, 0.5); n.connect(nx); nx.connect(ng); ng.connect(g.sfx);
+    },
+    rumble(c, g, t){                                      // Boss-Raum: tiefes Grollen
+      const n = noiseSrc(c, t, t + 3), x = lp(c, 140, 1.2), ga = gainEnv(c, t, 0.8, 0.45, 1.6, 1); n.connect(x); x.connect(ga); ga.connect(g.sfx);
+      const o = osc(c, 'sine', 38, t, t + 3), og = gainEnv(c, t, 0.9, 0.3, 1.4, 1); o.frequency.linearRampToValueAtTime(30, t + 2.8); o.connect(og); og.connect(g.sfx);
+    },
+    roar(c, g, t){                                        // Boss-Phasenwechsel: Brüllen
+      const o = osc(c, 'sawtooth', 120, t, t + 1.5), o2 = osc(c, 'sawtooth', 123, t, t + 1.5), x = lp(c, 900, 2), og = gainEnv(c, t, 0.12, 0.16, 0.7, 0.6);
+      o.frequency.setValueAtTime(110, t); o.frequency.linearRampToValueAtTime(150, t + 0.3); o.frequency.exponentialRampToValueAtTime(70, t + 1.3); o2.frequency.setValueAtTime(113, t); o2.frequency.linearRampToValueAtTime(155, t + 0.3); o2.frequency.exponentialRampToValueAtTime(72, t + 1.3);
+      const lfo = osc(c, 'sine', 18, t, t + 1.5), lg = c.createGain(); lg.gain.value = 12; lfo.connect(lg); lg.connect(o.frequency); lg.connect(o2.frequency);
+      x.frequency.setValueAtTime(400, t); x.frequency.linearRampToValueAtTime(1400, t + 0.3); x.frequency.exponentialRampToValueAtTime(350, t + 1.3);
+      o.connect(x); o2.connect(x); x.connect(og); og.connect(g.sfx); og.connect(g.sfxRev);
+      const n = noiseSrc(c, t, t + 1.4), nx = bp(c, 700, 0.9), ng = gainEnv(c, t, 0.1, 0.22, 0.6, 0.6); n.connect(nx); nx.connect(ng); ng.connect(g.sfx);
+    },
   };
   let lastHitT = 0;
   function sfx(kind, opt){
@@ -15843,6 +16194,7 @@ const AUDIO = (() => {
     const t = A.ctx.currentTime;
     if(kind === 'hit'){ if(t - lastHitT < 0.045) return; lastHitT = t; }
     if(kind === 'coin'){ if(t - (last.coinT || 0) < 0.04) return; last.coinT = t; }
+    if(kind === 'heal' || kind === 'block' || kind === 'click' || kind === 'death'){ if(t - (last[kind + 'T'] || 0) < (kind === 'click' ? 0.05 : 0.12)) return; last[kind + 'T'] = t; }
     try { SFX[kind](A.ctx, A.g, t + 0.005, opt); } catch(e){}
   }
 
