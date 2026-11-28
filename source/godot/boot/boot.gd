@@ -33,22 +33,22 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():                # nur für Tests: --update-url=… / --quit
 		if a.begins_with("--update-url="): url = a.substr(13)
 	var local := read_version()
-	_say("Version %d – suche nach Updates…" % int(local.get("version", 0)))
+	_say("Version %s – suche nach Updates…" % vlabel(local))
 	if url.contains("OWNER"):
 		start_game(); return
 	var remote = await fetch_json(url)
 	if remote == null or int(remote.get("version", 0)) <= int(local.get("version", 0)):
 		start_game(); return
 	if remote.has("engine") and remote["engine"] != APP_ENGINE:
-		_say("Version %d ist da, braucht aber eine neue Programmdatei.\nBitte das komplette Spiel neu herunterladen:\n%s" % [int(remote["version"]), remote.get("full_url", "")])
+		_say("Version %s ist da, braucht aber eine neue Programmdatei.\nBitte das komplette Spiel neu herunterladen:\n%s" % [vlabel(remote), remote.get("full_url", "")])
 		await get_tree().create_timer(6.0).timeout
 		start_game(); return
-	_say("Lade Update auf Version %d…" % int(remote["version"]))
+	_say("Lade Update auf Version %s…" % vlabel(remote))
 	if await download(remote["pck_url"], PATCH_TMP) and _sha_ok(PATCH_TMP, remote.get("sha256", "")):
 		DirAccess.rename_absolute(ProjectSettings.globalize_path(PATCH_TMP), ProjectSettings.globalize_path(PATCH))
 		ProjectSettings.load_resource_pack(PATCH, true)
 		var f := FileAccess.open(PATCH_INFO, FileAccess.WRITE); f.store_string(JSON.stringify({"version": int(remote["version"])})); f.close()
-		_say("Update auf Version %d installiert." % int(read_version().get("version", 0)))
+		_say("Update auf Version %s installiert." % vlabel(remote))
 	else:
 		_say("Update fehlgeschlagen – starte mit der bisherigen Version.")
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(PATCH_TMP))
@@ -64,6 +64,10 @@ func _patch_version() -> int:
 func _drop_patch() -> void:
 	for p in [PATCH, PATCH_INFO]:
 		if FileAccess.file_exists(p): DirAccess.remove_absolute(ProjectSettings.globalize_path(p))
+
+static func vlabel(v: Dictionary) -> String:
+	# Anzeige-Version (z. B. „0.5“); intern zählt weiter die ganze Zahl „version“ für die Updates
+	return str(v.get("label", int(v.get("version", 0))))
 
 static func read_version() -> Dictionary:
 	var f := FileAccess.open("res://version.json", FileAccess.READ)
@@ -109,7 +113,7 @@ func _sha_ok(path: String, want: String) -> bool:
 func start_game() -> void:
 	if OS.get_cmdline_user_args().has("--quit"): print("BOOT_DONE version=", int(read_version().get("version", 0))); get_tree().quit(); return
 	if ResourceLoader.exists(MAIN_SCENE): get_tree().change_scene_to_file.call_deferred(MAIN_SCENE)
-	else: _say("Into the Abyss – Version %d\n(Die Spieloberfläche folgt in Phase 2.)" % int(read_version().get("version", 0)))
+	else: _say("Into the Abyss – Version %s\n(Die Spieloberfläche folgt in Phase 2.)" % vlabel(read_version()))
 
 func _build_ui() -> void:
 	var bg := ColorRect.new(); bg.color = Color(0.04, 0.03, 0.07); bg.set_anchors_preset(Control.PRESET_FULL_RECT); add_child(bg)

@@ -1005,7 +1005,8 @@ body.ontitle #hud{visibility:hidden}
 
 #menuBtn{display:inline-flex;align-items:center;justify-content:center;line-height:1}#menuBtn svg{margin-right:7px!important;vertical-align:0!important}
 #stage.noflash .flashfx{display:none}
-#hud .rprog{display:flex;gap:6px;align-items:center;padding:6px 4px;cursor:default}
+#statsBtn{margin-left:8px}
+#hud .rprog{display:flex;gap:6px;align-items:center;padding:6px 4px;margin-left:8px;cursor:default}
 .rprog .rp-b{display:flex;gap:2px;align-items:center}
 .rprog i{width:4px;height:9px;border-radius:2px;background:rgba(255,255,255,.14)}
 .rprog i.done{background:#a8884a}
@@ -1682,6 +1683,7 @@ body.ontitle #hud{visibility:hidden}
 
   <div id="hud">
     <div><button id="menuBtn" class="hudBtn" title="Menu (Esc)"><svg width="14" height="12" viewBox="0 0 14 12" style="vertical-align:-1px;margin-right:6px"><path d="M0 1h14M0 6h14M0 11h14" stroke="#efe6ff" stroke-width="2.4"/></svg>Menu</button>
+    <button id="statsBtn" class="hudBtn" title="Damage, healing, Block, debuffs and buffs per hero">Stats</button>
     <span class="fightLbl rprog" id="fightNo"></span></div>
     <div id="biomeLbl" class="biomeLbl"></div><span id="turnNo" style="display:none">1</span>
     <div class="hudR"><span id="hudGold" class="hudGold" data-tip="Gold of the hero you are looking at"></span><button id="invBtn" class="hudBtn" title="Inventory: Gold, gems and deck of every hero (I)">Inventory</button></div>
@@ -1720,7 +1722,6 @@ body.ontitle #hud{visibility:hidden}
   <div id="menu"><div class="mpanel">
     <div id="mMain">
       <h1 id="mTitle">Paused</h1>
-      <button class="mbtn" id="mStats">Stats</button>
       <button class="mbtn" id="glossBtn">Glossary</button>
       <button class="mbtn" id="mOptions">Options</button>
       <button class="mbtn" id="mPlayersBtn">Players</button>
@@ -2745,8 +2746,17 @@ function gainMomentum(h, n){
   if(h.status.momentum > before) floatText(h, `+${h.status.momentum - before} Momentum`, 'blk');
   updateUnit(h);
 }
-function addTempCard(h, key, n = 1, follow = false, bonus = null, up = false, foil = false){   // foil: Follow-up einer Foil-Karte ist selbst Foil   // up: Follow-up einer upgegradeten Karte ist selbst upgegradet    // Folgekarten: kosten 0, verschwinden nach dem Ausspielen (follow: behalten Kosten, Keyword Vanish)
-  for(let k = 0; k < n; k++) h.hand.push({...newCard(key), tmp:true, ...(follow ? {follow:true} : {}), ...(bonus ? {bonus:{...bonus}} : {}), ...(up && upgradeKind(CARDS[key]) ? {upgraded:true} : {}), ...(foil ? {foil:true} : {})});
+function fuGems(h, src, key){                                         // Gems der Quellkarte, die in die Follow-up-Karte passen
+  if(!h || !src || !((src.gems || []).length || src.rune)) return {gems:[]};
+  const tc = {id:'fu-test-' + key, key, gems:[]}; h.hand.push(tc);
+  try {
+    for(const g of src.gems || []) if(!canSocket(tc, g)) tc.gems.push({...g});
+    if(src.rune && !canSocket(tc, src.rune)) tc.rune = {...src.rune};
+  } finally { h.hand.splice(h.hand.indexOf(tc), 1); }
+  return tc.rune ? {gems:tc.gems, rune:tc.rune} : {gems:tc.gems};
+}
+function addTempCard(h, key, n = 1, follow = false, bonus = null, up = false, foil = false, src = null){   // foil: Follow-up einer Foil-Karte ist selbst Foil   // up: Follow-up einer upgegradeten Karte ist selbst upgegradet    // Folgekarten: kosten 0, verschwinden nach dem Ausspielen (follow: behalten Kosten, Keyword Vanish)
+  for(let k = 0; k < n; k++) h.hand.push({...newCard(key), tmp:true, ...(follow ? {follow:true} : {}), ...(bonus ? {bonus:{...bonus}} : {}), ...(up && upgradeKind(CARDS[key]) ? {upgraded:true} : {}), ...(foil ? {foil:true} : {}), ...(src ? fuGems(h, src, key) : {})});
   floatText(h, `+${n} ${CARDS[key].name}${n > 1 ? 's' : ''}`, 'status-f'); histNote(`+${n > 1 ? n + ' ' : ''}${CARDS[key].name} to the hand`);
 }
 
@@ -6885,7 +6895,7 @@ m2Add({
     txt:(s, x) => [cnd(cndOn('healedAny'), `If you already healed a hero this turn: draw <b>${x.healedDraw}</b> more.`)]},
   sacredflame:  {name:'Sacred Flame',      rarity:'common', cost:1, type:'attack', dmg:5, ax:{wrathDmg:5}, up:{dmg:3, ax:{wrathDmg:2}}, upText:'8, or 15 in Wrath',
     txt:(s, x) => [cnd(cndOn('wrath'), `In Wrath: deal <b>${s.dmg + x.wrathDmg}</b> damage instead.`)]},
-  astralinfusion:{name:'Astral Infusion',  rarity:'common', cost:1, type:'skill', allyTarget:true, ax:{infuse:3}, up:{ax:{infuse:2}}, upText:'+5',
+  astralinfusion:{name:'Astral Infusion',  rarity:'common', cost:1, type:'skill', allyTarget:true, ax:{infuse:5}, up:{ax:{infuse:3}}, upText:'+8',
     txt:(s, x, b) => [`Your next heal on the target this turn heals ${m2v(x.infuse, b('infuse'))} more.`]},
   hymndawn:     {name:'Hymn of Dawn',      rarity:'common', cost:1, type:'skill', allyTarget:true, ax:{hymn:4}, up:{ax:{hymn:2}}, upText:'+6',
     txt:(s, x, b) => [`The next heal-over-time tick on the target heals ${m2v(x.hymn, b('hymn'))} more – at full HP its next attack deals that much more damage instead.`]},
@@ -9001,7 +9011,7 @@ async function execute(a){
       const p = S.post[a.h]; if(!p || p.picked) return;
       p.picked = true;
       if(p.fell) return;                                              // gefallen: nichts zu wählen, kein Reroll-Token
-      if(a.key && p.cards.includes(a.key)){ const nc = newCard(a.key); if(p.foils && p.foils[p.cards.indexOf(a.key)]) nc.foil = true; h.deck.push(nc); toast(`${h.name} added ${nc.foil ? 'FOIL ' : ''}${CARDS[a.key].name}`); }
+      if(a.key && p.cards.includes(a.key)){ const nc = newCard(a.key); if(p.foils && p.foils[p.cards.indexOf(a.key)]) nc.foil = true; h.deck.push(nc); }
       else { h.rerolls++; toast(`${h.name} skipped and got a Reroll Token`); }   // Überspringen = Reroll-Token
       return;
     }
@@ -9281,6 +9291,7 @@ function buildUnit(u, isHero){ if(PREVIEW) return document.createElement('div');
   updateUnit(u);
   return el;
 }
+const intentValue = (e, base) => { let v = attackValue(e, base); if(e.status.overgrown) v = Math.round(v * (1 + AFX().overgrown / 100)); if(e.status.witching) v += AFX().witch * e.status.witching; return v; };   // Anzeige im Intent
 const attackValue = (e, base) => { let v = base + (e.status.strength || 0); if((e.status.dream || 0) >= 4) v = Math.floor(v * 0.75); return e.status.weak ? Math.round(v * WEAK_MULT) : v; };
 const DEBUFF_SET = new Set(['poison','burn','weak','vulnerable','ice','mark','dream','owed','brittle','drained','frozen','corruptedMind','hunted','sentence','deepmark','binding']);   // Anzeige: rechts in roter Kapsel
 function statusHTML(u){
@@ -9304,7 +9315,7 @@ function intentHTML(e){
   const tauntH0 = tauntHero();
   if(it.dmg){
     const tauntH = tauntH0 && !TAUNT_KEEPS.has(atkOf(it)) ? tauntH0 : null;   // AoE/Splash bleiben unverändert
-    const type = tauntH && atkOf(it) !== 'pierce' ? 'normal' : atkOf(it), v = attackValue(e, it.dmg), T = ATK_TYPES[type];
+    const type = tauntH && atkOf(it) !== 'pierce' ? 'normal' : atkOf(it), v = intentValue(e, it.dmg), T = ATK_TYPES[type];
     const tg = atkTargets(e, it).map(([h, m]) => m === 1 ? h.name : `${h.name} (half)`).join(', ');
     parts.push(`<span class="ip atk at-${type}${e.status.weak ? ' weakened' : ''}">${ATK_SVG[type](.95)}${v}${it.hits > 1 ? `<small>×${it.hits}</small>` : ''}</span>`);
     L.push([ATK_SVG[type](.5), tauntH ? `Taunted: <b>${T.name}</b> on <b>${tauntH.name}</b>: <b>${v}</b>${it.hits > 1 ? ` × ${it.hits}` : ''} damage` : `<b>${T.name}</b> – ${T.desc}: <b>${v}</b>${it.hits > 1 ? ` × ${it.hits}` : ''} damage`]);
@@ -9843,7 +9854,7 @@ function showKeywords(el, c){
   if(made){                                                           // erschaffene Karte (z.B. Soul Avatar) als eigene Vorschau
     const pv = document.createElement('div'); pv.id = 'kwPrev';
     const fu = s && s.followUp && s.followUp.key === made;
-    pv.innerHTML = `<div class="kwpt">${fu ? 'Follow up' : 'Creates'}: ${CARDS[made].name}</div>`; CD_BUILD = !fu && !!CARDS[made].crafted; try { pv.appendChild(makeCard(fu ? {...{id:'pv-' + made, key:made, gems:[]}, tmp:true, follow:true, ...(c.upgraded && upgradeKind(CARDS[made]) ? {upgraded:true} : {}), ...(c.foil ? {foil:true} : {})} : {key:made, gems:[]})); } finally { CD_BUILD = false; }
+    pv.innerHTML = `<div class="kwpt">${fu ? 'Follow up' : 'Creates'}: ${CARDS[made].name}</div>`; CD_BUILD = !fu && !!CARDS[made].crafted; try { pv.appendChild(makeCard(fu ? {...{id:'pv-' + made, key:made, gems:[]}, ...(c.gems && c.gems.length || c.rune ? fuGems(heroOfCard(c) || viewHero(), c, made) : {}), tmp:true, follow:true, ...(c.upgraded && upgradeKind(CARDS[made]) ? {upgraded:true} : {}), ...(c.foil ? {foil:true} : {})} : {key:made, gems:[]})); } finally { CD_BUILD = false; }
     st.appendChild(pv);
     const bx = list.length ? parseFloat(box.style.left) : (toRight ? right : Math.max(6, left));
     const px = list.length ? (toRight ? bx + w + 10 : bx - 160) : bx;
@@ -10731,7 +10742,7 @@ async function playCardInner(h, i, target){
     if(s.momentum) gainMomentum(h, s.momentum);
     if(s.momentumDouble){ gainMomentum(h, h.status.momentum || 0); }
     if(s.createCard) addTempCard(h, s.createCard.key, s.createCard.n);
-    if(s.followUp && CARDS[s.followUp.key] && !(s.ax && s.ax.fuNeed && AX.prior < s.ax.fuNeed) && (!(s.followUp.chance < 1) || rng() < s.followUp.chance)) addTempCard(h, s.followUp.key, s.followUp.n, true, s.followIf7 && t7 ? {...(s.followUp.bonus || {}), dmg:((s.followUp.bonus || {}).dmg || 0) + s.followIf7.dmg} : s.followUp.bonus, !!c.upgraded, !!c.foil);   // Follow up: Karte mit Vanish, weg nach dem Kampf
+    if(s.followUp && CARDS[s.followUp.key] && !(s.ax && s.ax.fuNeed && AX.prior < s.ax.fuNeed) && (!(s.followUp.chance < 1) || rng() < s.followUp.chance)) addTempCard(h, s.followUp.key, s.followUp.n, true, s.followIf7 && t7 ? {...(s.followUp.bonus || {}), dmg:((s.followUp.bonus || {}).dmg || 0) + s.followIf7.dmg} : s.followUp.bonus, !!c.upgraded, !!c.foil, c);   // Follow up: Karte mit Vanish (erbt passende Gems), weg nach dem Kampf
     if(s.makeRune){ const rn = rollRune(); h.gems.push(rn); toast(`${h.name} found a ${RUNE_TYPES[rn.type].name}!`); updateCounters(); }
     if(s.runeFx === 'siphon' && markedBefore){ h.energy = Math.min(MAX_SAVED_ENERGY, h.energy + 2); updateUnit(h); floatText(h, '+2 Energy', 'blk'); }
     if(s.poisonTrigger){
@@ -13286,7 +13297,7 @@ function ev2Bind(ev){
   else sortCards(h.deck).forEach(card => {
     const ok = c.kind === 'upgrade' ? canUpgrade(card) : c.kind === 'foil' ? !card.foil : true;
     const w = document.createElement('div'); w.className = 'ev-card'; const el = makeCard(card); w.appendChild(el);
-    if(ok){ el.classList.add('pickable'); el.onclick = () => c.kind === 'upgrade' ? showUpgradePreview(card, () => { if(busy()) return; const oe = makeCard(card); send({card:card.id}); gxUpgradeFx(oe, () => { const nc = h.deck.find(x => x.id === card.id); return nc && nc.upgraded ? makeCard(nc) : null; }); }) : send({card:card.id}); }
+    if(ok){ el.classList.add('pickable'); el.onclick = () => c.kind === 'upgrade' ? showUpgradePreview(card, () => { if(busy()) return; const oe = makeCard(card); send({card:card.id}); gxUpgradeFx(oe, () => { const nc = h.deck.find(x => x.id === card.id); return nc && nc.upgraded ? makeCard(nc) : null; }); }) : (c.kind === 'remove' || c.kind === 'prune') ? (() => { if(busy()) return; try { gxPoofFx(el); el.style.visibility = 'hidden'; } catch(e){} setTimeout(() => send({card:card.id}), 900); })() : send({card:card.id}); }
     else { el.style.opacity = .45; w.insertAdjacentHTML('beforeend', `<div class="evbtns"><span class="keys">${c.kind === 'foil' ? 'Already Foil' : 'Already upgraded'}</span></div>`); }
     grid.appendChild(w);
   });
@@ -14422,7 +14433,7 @@ $('#glossBtn').addEventListener('click', ev => { ev.stopPropagation(); if(menuOp
   let h = null; try { h = (S.heroes && heroList().length) ? (activeHero() || heroList().find(x => mine(x.id))) : null; } catch(e){}
   if(h && h.spec && !mine(h.id)) h = heroList().find(x => mine(x.id) && x.spec) || h;
   showGlossary('cards', h && h.spec && specOf(h.id, h.spec) ? h.id + ':' + h.spec : null); });
-$('#mStats').addEventListener('click', ev => { ev.stopPropagation(); if(!S.runActive) return; closeMenu(); showStats('fight'); });
+$('#statsBtn').addEventListener('click', ev => { ev.stopPropagation(); showStats('fight'); });
 function showStats(scope = 'fight'){
   document.querySelectorAll('#hcPrev').forEach(x => x.remove());
   deselect();
@@ -14689,7 +14700,7 @@ function gxFuseFx(from, ng){                                          // 3 Gems 
       {transform:`translate(${cx}px,${cy}px) translate(-50%,-50%) scale(.3) rotate(480deg)`, opacity:0}
     ], {duration:820 * k, easing:'cubic-bezier(.5,0,.6,1)', fill:'forwards'});
   });
-  const at = 800 * k;
+  const at = 800 * k; try { AUDIO.sfx('swirl', {d:.8}); } catch(e){} setTimeout(() => { try { AUDIO.sfx('fuse'); } catch(e){} }, at);
   fx.querySelectorAll('.gxfx-ring').forEach((r, i) => { r.style.left = cx + 'px'; r.style.top = cy + 'px';
     r.animate([{transform:'translate(-50%,-50%) scale(.1)', opacity:0}, {transform:'translate(-50%,-50%) scale(.2)', opacity:1, offset:.05}, {transform:`translate(-50%,-50%) scale(${i ? 2.6 : 1.8})`, opacity:0}],
       {duration:(i ? 900 : 650) * k, delay:at + i * 90 * k, easing:'cubic-bezier(.2,.7,.3,1)', fill:'both'}); });
@@ -14718,7 +14729,7 @@ function gxFuseFx(from, ng){                                          // 3 Gems 
 function gxHintSeen(){ try { return !!localStorage.getItem('dc-gxhint'); } catch(e){ return false; } }
 function gxHintDone(){ try { localStorage.setItem('dc-gxhint', '1'); } catch(e){} }
 function gxPoofFx(cardEl){                                           // Karte zerfällt: Verzerrung, Rauch, Glut
-  if(FASTFWD) return;
+  if(FASTFWD) return; try { AUDIO.sfx('poof'); } catch(e){}
   const k = GX_FX_SLOW, r = cardEl.getBoundingClientRect();
   const fx = document.createElement('div'); fx.className = 'gxpoof'; document.body.appendChild(fx);
   const seed = Math.floor(Math.random() * 99);
@@ -14774,14 +14785,14 @@ function gxShine(card, idx, key){
   if(gxOff()) return;
   const k = gxK(), col = RARITY[CARDS[key].rarity].color;
   const w = document.createElement('i'); w.className = 'gx-wipe'; w.innerHTML = '<b></b>'; card.appendChild(w);
-  const d = (350 + idx * 160) * k;
+  const d = (350 + idx * 160) * k; setTimeout(() => { try { AUDIO.sfx('shine'); } catch(e){} }, d);
   w.firstChild.animate([{transform:'translateX(-130%) skewX(-18deg)'}, {transform:'translateX(260%) skewX(-18deg)'}], {duration:750 * k, delay:d, easing:'cubic-bezier(.4,0,.2,1)', fill:'both'});
   card.animate([{boxShadow:'0 0 0 0 transparent'}, {boxShadow:`0 0 0 3px ${col}, 0 0 34px ${col}`, offset:.4}, {boxShadow:'0 0 0 0 transparent'}], {duration:1100 * k, delay:d});
   setTimeout(() => w.remove(), d + 800 * k);
 }
 /* Belohnung gewählt: Karte fliegt im Bogen zum Stapel, die anderen verblassen */
 function gxRewardFx(card, box){
-  if(gxOff()) return;
+  if(gxOff()) return; try { AUDIO.sfx('whoosh', {d:.5, v:.4}); } catch(e){}
   const k = gxK(), L = gxLayer('', 1100 * k);
   const tgtEl = [$('#drawPile'), $('#invBtn')].find(e => e && e.getBoundingClientRect().width > 0);
   const tr = tgtEl ? tgtEl.getBoundingClientRect() : {left:innerWidth - 120, top:innerHeight - 160, width:60, height:80};
@@ -14815,6 +14826,7 @@ function gxCoinFx(h, p){
     hop.forEach(([x, y], j) => fr.push({transform:`translate(${x}px,${y}px) scale(1)`, opacity:1, offset:.02 + j / hop.length * .4}));
     fly.forEach(([x, y, t], j) => j && fr.push({transform:`translate(${x}px,${y}px) scale(${1 - .35 * t})`, opacity:1, offset:.42 + j / (fly.length - 1) * .58}));
     c.animate(fr, {duration:1300 * k, delay:i * 65 * k, easing:'linear', fill:'both'});
+    setTimeout(() => { try { AUDIO.sfx('coin'); } catch(e){} }, (i * 65 + 1280) * k);
   }
   setTimeout(() => {
     hudGold(); const hg = $('#hudGold');
@@ -14825,7 +14837,7 @@ function gxCoinFx(h, p){
 }
 /* Raumwechsel: Blende wie ein Blick durch die Tür */
 function gxRoomFx(){
-  if(gxOff() || !S.runActive || !S.room) return;
+  if(gxOff() || !S.runActive || !S.room) return; try { AUDIO.sfx('whoosh', {d:.45, v:.38, down:true}); } catch(e){}
   const k = gxK(), d = gxLayer('gxroom', 600 * k);
   d.animate([{'--gxr':'6%'}, {'--gxr':'110%'}], {duration:560 * k, easing:'cubic-bezier(.25,.6,.35,1)', fill:'forwards'});
 }
@@ -14846,6 +14858,7 @@ function gxBuffBump(u, sb){
     if(DEBUFF_SET.has(key) || !STATUS[key] || STATUS[key].flag) continue;
     const d = now[key] - (prev[key] || 0); if(d <= 0) continue;
     const ic = sb.querySelector('.status.s-' + key); if(!ic) continue;
+    try { AUDIO.sfx('bump'); } catch(e){}
     ic.animate([{transform:'none'}, {transform:'translateY(-8px) scale(1.3)', offset:.35}, {transform:'translateY(0) scale(.92)', offset:.7}, {transform:'none'}], {duration:480 * k, easing:'ease-out'});
     const t = document.createElement('i'); t.className = 'gx-bump'; t.textContent = '+' + (Math.round(d * 10) / 10); ic.appendChild(t);
     t.animate([{transform:'translate(-50%,0)', opacity:0}, {transform:'translate(-50%,-10px)', opacity:1, offset:.2}, {transform:'translate(-50%,-28px)', opacity:0}], {duration:1050 * k, easing:'ease-out', fill:'forwards'});
@@ -14854,7 +14867,7 @@ function gxBuffBump(u, sb){
 }
 /* Gem eingesetzt: Gem schnappt in den Sockel, Lichtring, geänderte Werte blinken */
 function gxSocketFx(sp){
-  if(gxOff()) return;
+  if(gxOff()) return; try { AUDIO.sfx('socket'); } catch(e){}
   const k = gxK(), wrap = document.querySelector(`#gsDeck .gs-wrap[data-cid="${sp.cid}"]`), card = wrap && wrap.querySelector('.card'); if(!card) return;
   const sock = card.querySelectorAll('.sockets .socket')[sp.n];
   if(sock){
@@ -14931,7 +14944,7 @@ function gxUpgradeFx(oldEl, getNew){
       sp.animate([{transform:'translate(0,0) scale(1)', opacity:1}, {transform:`translate(${gx * .65}px,${gy * .65}px) scale(.9)`, opacity:1, offset:.45}, {transform:`translate(${gx}px,${gy + 110}px) scale(.2)`, opacity:0}],
         {duration:(450 + Math.random() * 450) * k, easing:'cubic-bezier(.15,.6,.5,1)', fill:'forwards'}); }
   };
-  const swap = ne => { st.replaceChild(ne, st.firstChild);
+  const swap = ne => { try { AUDIO.sfx('upgraded'); } catch(e){} st.replaceChild(ne, st.firstChild);
     st.style.filter = '';
     ne.animate([{filter:'brightness(3.5) saturate(0)'}, {filter:'brightness(1.5)', offset:.35}, {filter:'none'}], {duration:800 * k});
     st.animate([{filter:'drop-shadow(0 0 0 rgba(255,207,74,0))'}, {filter:'drop-shadow(0 0 34px rgba(255,207,74,1))', offset:.3}, {filter:'drop-shadow(0 0 10px rgba(255,207,74,.5))'}], {duration:1100 * k, fill:'forwards'});
@@ -14939,7 +14952,7 @@ function gxUpgradeFx(oldEl, getNew){
     w.firstChild.animate([{transform:'translateX(-130%) skewX(-18deg)'}, {transform:'translateX(260%) skewX(-18deg)'}], {duration:700 * k, delay:250 * k, easing:'cubic-bezier(.4,0,.2,1)', fill:'both'});
     const lb = document.createElement('div'); lb.className = 'gxup-lbl'; lb.textContent = 'Upgraded!'; const br = ne.getBoundingClientRect(); lb.style.left = cx + 'px'; lb.style.top = (br.bottom + 18) + 'px'; L.appendChild(lb);
     lb.animate([{opacity:0, transform:'translate(-50%,8px) scale(.9)'}, {opacity:1, transform:'translate(-50%,0) scale(1)', offset:.3}, {opacity:1, offset:.75}, {opacity:0}], {duration:1000 * k, fill:'forwards'}); };
-  hits.forEach((h, i) => setTimeout(() => { hitFx(i); if(i === 2){ let n = 0; const t = setInterval(() => { const ne = getNew(); if(ne || ++n > 150){ clearInterval(t); if(ne) swap(ne); } }, 20); } }, h * T));
+  hits.forEach((h, i) => setTimeout(() => { try { AUDIO.sfx('hammer', {n:i}); } catch(e){} hitFx(i); if(i === 2){ let n = 0; const t = setInterval(() => { const ne = getNew(); if(ne || ++n > 150){ clearInterval(t); if(ne) swap(ne); } }, 20); } }, h * T));
 }
 /* Waffenkammer: der genommene Schatz fliegt in die Mitte, zeigt was man bekommt, und fliegt dann zum Inventar */
 function gxArmoryFx(h, it, el, r, gem, dv){
@@ -14969,7 +14982,8 @@ function gxArmoryFx(h, it, el, r, gem, dv){
   ic.animate([{filter:'drop-shadow(0 0 0 transparent)'}, {filter:`drop-shadow(0 0 ${14 / S1}px ${col}) drop-shadow(0 0 ${4 / S1}px #fff)`, offset:f(525)}, {filter:`drop-shadow(0 0 ${8 / S1}px ${col})`, offset:f(1200)}, {filter:`drop-shadow(0 0 ${11 / S1}px ${col})`, offset:f(1800)}, {filter:`drop-shadow(0 0 ${8 / S1}px ${col})`, offset:f(2260)}], {duration:T, fill:'forwards'});
   if(gem){ ic.querySelector('.gxar-art').animate([{opacity:1}, {opacity:1, offset:f(455)}, {opacity:0, offset:f(560)}, {opacity:0}], {duration:T, fill:'forwards'});
     ic.querySelector('.gxar-gem').animate([{opacity:0, transform:'scale(.3) rotate(-30deg)'}, {opacity:0, transform:'scale(.3) rotate(-30deg)', offset:f(470)}, {opacity:1, transform:'scale(1.15) rotate(6deg)', offset:f(595)}, {opacity:1, transform:'scale(1) rotate(0)', offset:f(735)}, {opacity:1, transform:'none'}], {duration:T, fill:'forwards'}); }
-  setTimeout(() => {                                                   // Lichtring beim Ankommen
+  try { AUDIO.sfx('whoosh', {d:.4, v:.3}); } catch(e){}
+  setTimeout(() => { try { AUDIO.sfx('reveal'); } catch(e){}                                                  // Lichtring beim Ankommen
     const rg = document.createElement('i'); rg.className = 'gxar-ring'; rg.style.cssText = `left:${cx}px;top:${cy}px;--c:${col}`; L.appendChild(rg);
     rg.animate([{opacity:.9, transform:'translate(-50%,-50%) scale(.3)'}, {opacity:0, transform:'translate(-50%,-50%) scale(2.4)'}], {duration:600 * k, easing:'cubic-bezier(.1,.7,.3,1)', fill:'forwards'});
   }, f(470) * T);
@@ -14980,7 +14994,7 @@ function gxArmoryFx(h, it, el, r, gem, dv){
 }
 /* Sieg: Konfetti und Lichtstrahlen */
 function gxWinFx(){
-  if(gxOff()) return;
+  if(gxOff()) return; try { AUDIO.sfx('win'); } catch(e){}
   const k = gxK(), ov = $('#overlay'), rays = document.createElement('div'); rays.className = 'gx-rays'; ov.insertBefore(rays, ov.firstChild);
   rays.animate([{opacity:0, transform:'translate(-50%,-50%) rotate(0deg) scale(.6)'}, {opacity:1, transform:'translate(-50%,-50%) rotate(40deg) scale(1)', offset:.25}, {opacity:.85, transform:'translate(-50%,-50%) rotate(140deg) scale(1.05)'}], {duration:9000 * k, fill:'forwards'});
   const L = gxLayer('gxtop', 6000 * k), cols = ['#ffcf4a', '#ff6a8a', '#5ae08a', '#4ab4ff', '#c58aff', '#fff'];
@@ -14992,7 +15006,7 @@ function gxWinFx(){
 }
 /* Niederlage: Helden blenden langsam ins Dunkel aus */
 function gxDefeatFx(){
-  const k = gxK();
+  const k = gxK(); try { AUDIO.sfx('defeat'); } catch(e){}
   document.querySelectorAll('#playerSide .unit').forEach((u, i) => u.animate([{filter:'none', opacity:1}, {filter:'brightness(.05) saturate(0)', opacity:.35}], {duration:1700 * k, delay:i * 120 * k, easing:'ease-in', fill:'forwards'}));
   const v = gxLayer('gxdark', 2200 * k);
   v.animate([{opacity:0}, {opacity:1, offset:.8}, {opacity:.85}], {duration:2100 * k, fill:'forwards'});
@@ -15760,12 +15774,75 @@ const AUDIO = (() => {
       fx.connect(ng); ng.connect(g.sfx); ng.connect(g.sfxRev);
       if(o.hero){ const og = decayEnv(c, t + 0.01, 0.003, 0.08, 0.2), oo = osc(c, 'triangle', rnd(220, 260), t, t + 0.3); oo.frequency.exponentialRampToValueAtTime(140, t + 0.2); oo.connect(og); og.connect(g.sfx); }
     },
+    hammer(c, g, t, o = {}){                             // Schmiedehammer auf Amboss: Klang (unharmonische Teiltöne) + dumpfer Schlag + Klick
+      const big = o.n === 2, p = rnd(0.97, 1.03) * (1 + (o.n || 0) * 0.03);
+      [[1, 0.5, 1.1], [2.76, 0.32, 0.8], [5.4, 0.2, 0.55], [8.93, 0.12, 0.35], [13.3, 0.06, 0.22]].forEach(([r, a, d]) => {
+        const og = decayEnv(c, t, 0.001, a * (big ? 0.42 : 0.3), d * (big ? 1.4 : 1)); osc(c, 'sine', 560 * r * p, t, t + 2).connect(og); og.connect(g.sfx); og.connect(g.sfxRev); });
+      const th = osc(c, 'sine', 120, t, t + 0.4); th.frequency.exponentialRampToValueAtTime(45, t + 0.14);
+      const tg = decayEnv(c, t, 0.002, big ? 0.7 : 0.5, 0.2); th.connect(tg); tg.connect(g.sfx);
+      const n = noiseSrc(c, t, t + 0.12), nx = hp(c, 1800), ng = decayEnv(c, t, 0.001, 0.35, 0.05); n.connect(nx); nx.connect(ng); ng.connect(g.sfx);
+      if(big){ for(let i = 0; i < 6; i++){ const tt = t + 0.02 + i * 0.03, sg = decayEnv(c, tt, 0.001, 0.05, 0.08); const sn = noiseSrc(c, tt, tt + 0.1), sx = bp(c, rnd(4000, 7000), 4); sn.connect(sx); sx.connect(sg); sg.connect(g.sfx); } }
+    },
+    upgraded(c, g, t){                                    // aufsteigendes Funkeln nach dem Upgrade
+      [72, 76, 79, 84, 88].forEach((m, k) => { const tt = t + k * 0.055, og = decayEnv(c, tt, 0.003, 0.1, 0.6); osc(c, 'triangle', hz(m), tt, tt + 0.8).connect(og); og.connect(g.sfx); og.connect(g.sfxRev); });
+    },
+    whoosh(c, g, t, o = {}){                              // Luftzug (Karte fliegt, Raumwechsel)
+      const d = o.d || 0.35, n = noiseSrc(c, t, t + d + 0.1), x = bp(c, 500, 1.2), ga = gainEnv(c, t, d * 0.45, (o.v || 0.25), d * 0.5, d * 0.5);
+      x.frequency.setValueAtTime(o.down ? 2600 : 400, t); x.frequency.exponentialRampToValueAtTime(o.down ? 300 : 2400, t + d);
+      n.connect(x); x.connect(ga); ga.connect(g.sfx);
+    },
+    coin(c, g, t){                                        // Münze klingt
+      const f = rnd(1900, 2600); [[1, 0.09], [2.4, 0.05], [3.9, 0.025]].forEach(([r, a]) => { const og = decayEnv(c, t, 0.001, a, 0.22); osc(c, 'sine', f * r, t, t + 0.4).connect(og); og.connect(g.sfx); });
+    },
+    socket(c, g, t, o = {}){                              // Gem rastet ein: Klick + Glocke
+      const n = noiseSrc(c, t, t + 0.05), x = hp(c, 3000), ng = decayEnv(c, t, 0.001, 0.25, 0.025); n.connect(x); x.connect(ng); ng.connect(g.sfx);
+      const k0 = osc(c, 'square', 900, t, t + 0.04), kg = decayEnv(c, t, 0.001, 0.05, 0.03); k0.connect(kg); kg.connect(g.sfx);
+      [84, 91, 96].forEach((m, k) => { const tt = t + 0.08 + k * 0.07, og = decayEnv(c, tt, 0.002, 0.09, 0.9); osc(c, 'sine', hz(m), tt, tt + 1.2).connect(og); og.connect(g.sfx); og.connect(g.sfxRev); });
+    },
+    shine(c, g, t){                                       // Glanz über seltener Karte
+      for(let i = 0; i < 8; i++){ const tt = t + i * 0.035, og = decayEnv(c, tt, 0.002, 0.045, 0.35); osc(c, 'sine', hz(86 + i * 2 + (i % 2) * 3), tt, tt + 0.5).connect(og); og.connect(g.sfx); og.connect(g.sfxRev); }
+    },
+    bump(c, g, t){                                        // Buff steigt
+      const o = osc(c, 'sine', 520, t, t + 0.2); o.frequency.exponentialRampToValueAtTime(1100, t + 0.09);
+      const og = decayEnv(c, t, 0.003, 0.12, 0.14); o.connect(og); og.connect(g.sfx);
+    },
+    swirl(c, g, t, o = {}){                               // Gems wirbeln zusammen (ansteigend)
+      const d = o.d || 0.8, n = noiseSrc(c, t, t + d), x = bp(c, 300, 3), ga = gainEnv(c, t, d * 0.8, 0.16, d * 0.85, 0.12);
+      x.frequency.setValueAtTime(300, t); x.frequency.exponentialRampToValueAtTime(3500, t + d); n.connect(x); x.connect(ga); ga.connect(g.sfx);
+      const s = osc(c, 'triangle', hz(60), t, t + d), sg = gainEnv(c, t, d * 0.7, 0.08, d * 0.8, 0.1); s.frequency.exponentialRampToValueAtTime(hz(84), t + d); s.connect(sg); sg.connect(g.sfx); sg.connect(g.sfxRev);
+    },
+    fuse(c, g, t){                                        // Verschmelzen: Wumms + leuchtender Akkord
+      const b = osc(c, 'sine', 90, t, t + 0.6); b.frequency.exponentialRampToValueAtTime(40, t + 0.3); const bg = decayEnv(c, t, 0.003, 0.42, 0.35); b.connect(bg); bg.connect(g.sfx);
+      const n = noiseSrc(c, t, t + 0.4), nx = lp(c, 2500), ng = decayEnv(c, t, 0.001, 0.24, 0.2); n.connect(nx); nx.connect(ng); ng.connect(g.sfx); ng.connect(g.sfxRev);
+      [72, 76, 79, 83, 88].forEach((m, k) => { const og = gainEnv(c, t, 0.03, 0.06, 0.3, 1.3); osc(c, k % 2 ? 'sine' : 'triangle', hz(m), t, t + 2).connect(og); og.connect(g.sfx); og.connect(g.sfxRev); });
+    },
+    poof(c, g, t){                                        // Karte löst sich in Rauch auf
+      const n = noiseSrc(c, t, t + 1.3), x = lp(c, 3000), ga = gainEnv(c, t, 0.08, 0.32, 0.25, 0.9);
+      x.frequency.setValueAtTime(3500, t); x.frequency.exponentialRampToValueAtTime(400, t + 1.1); n.connect(x); x.connect(ga); ga.connect(g.sfx); ga.connect(g.sfxRev);
+      for(let i = 0; i < 10; i++){ const tt = t + 0.15 + Math.random() * 0.7, cg = decayEnv(c, tt, 0.001, 0.06, 0.02); const cn = noiseSrc(c, tt, tt + 0.03), cx = bp(c, rnd(2000, 5000), 3); cn.connect(cx); cx.connect(cg); cg.connect(g.sfx); }
+      const o = osc(c, 'sine', 300, t, t + 0.5); o.frequency.exponentialRampToValueAtTime(90, t + 0.45); const og = decayEnv(c, t, 0.01, 0.12, 0.4); o.connect(og); og.connect(g.sfx);
+    },
+    reveal(c, g, t){                                      // Schatz erscheint (Waffenkammer)
+      const s = osc(c, 'triangle', hz(67), t, t + 0.3), sg = gainEnv(c, t, 0.2, 0.06, 0.22, 0.08); s.frequency.exponentialRampToValueAtTime(hz(79), t + 0.25); s.connect(sg); sg.connect(g.sfx);
+      [79, 83, 86, 91].forEach((m, k) => { const tt = t + 0.25 + k * 0.06, og = decayEnv(c, tt, 0.002, 0.08, 0.9); osc(c, 'sine', hz(m), tt, tt + 1.1).connect(og); og.connect(g.sfx); og.connect(g.sfxRev); });
+    },
+    win(c, g, t){                                         // kleine Fanfare
+      [[60, 0], [64, 0.14], [67, 0.28], [72, 0.42]].forEach(([m, d]) => { const og = gainEnv(c, t + d, 0.01, 0.14, d === 0.42 ? 0.6 : 0.1, d === 0.42 ? 1.4 : 0.2);
+        [0, 7].forEach(dt => osc(c, 'sawtooth', hz(m + 12) * (1 + dt / 1200), t + d, t + d + 2.2).connect(og)); const lx = lp(c, 2200); og.connect(lx); lx.connect(g.sfx); lx.connect(g.sfxRev); });
+      [84, 88, 91, 96].forEach((m, k) => { const tt = t + 0.5 + k * 0.08, og = decayEnv(c, tt, 0.002, 0.07, 1.2); osc(c, 'sine', hz(m), tt, tt + 1.4).connect(og); og.connect(g.sfx); og.connect(g.sfxRev); });
+    },
+    defeat(c, g, t){                                      // dunkler, absteigender Klang
+      [[50, 0.07], [53, 0.05], [57, 0.04]].forEach(([m, a]) => { const o = osc(c, 'sawtooth', hz(m), t, t + 2.6), x = lp(c, 700), og = gainEnv(c, t, 0.4, a, 1.2, 1.2);
+        o.frequency.exponentialRampToValueAtTime(hz(m - 5), t + 2.2); o.connect(x); x.connect(og); og.connect(g.sfx); og.connect(g.sfxRev); });
+      const b = osc(c, 'sine', 65, t, t + 2.5), bg = gainEnv(c, t, 0.3, 0.16, 1.2, 1.1); b.frequency.exponentialRampToValueAtTime(40, t + 2.3); b.connect(bg); bg.connect(g.sfx);
+    },
   };
   let lastHitT = 0;
   function sfx(kind, opt){
     if(FASTFWD || !A.ctx || !SFX[kind]) return;
     const t = A.ctx.currentTime;
     if(kind === 'hit'){ if(t - lastHitT < 0.045) return; lastHitT = t; }
+    if(kind === 'coin'){ if(t - (last.coinT || 0) < 0.04) return; last.coinT = t; }
     try { SFX[kind](A.ctx, A.g, t + 0.005, opt); } catch(e){}
   }
 

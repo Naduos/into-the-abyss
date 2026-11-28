@@ -21,7 +21,8 @@ sh tools/export_data.sh >/dev/null
 
 # 2. Versionsnummer erhöhen, Update-Adresse eintragen
 V=$(python3 -c "import json;print(int(json.load(open('version.json'))['version'])+1)")
-printf '{"version": %s, "date": "%s"}\n' "$V" "$(date +%F)" > version.json
+LABEL=${LABEL:-$(python3 -c "import json;print(json.load(open('version.json')).get('label',''))")}   # Anzeige-Version (z. B. 0.5)
+printf '{"version": %s, "label": "%s", "date": "%s"}\n' "$V" "${LABEL:-$V}" "$(date +%F)" > version.json
 sed -i "s#^const UPDATE_URL := .*#const UPDATE_URL := \"$RAW/updates/latest.json\"#" boot/boot.gd
 
 # 3. Exportieren
@@ -46,7 +47,7 @@ mkdir -p "$CLONE/updates" "$CLONE/download"
 rm -f "$CLONE"/updates/game-*.pck
 cp "$OUT/game-$V.pck" "$CLONE/updates/"
 cat > "$CLONE/updates/latest.json" <<EOF
-{"version": $V, "engine": "$ENG", "sha256": "$SHA",
+{"version": $V, "label": "${LABEL:-$V}", "engine": "$ENG", "sha256": "$SHA",
  "pck_url": "$RAW/updates/game-$V.pck",
  "full_url": "https://github.com/$REPO#download",
  "zip_url": "$RAW/download/IntoTheAbyss.zip",
@@ -61,7 +62,7 @@ tar --exclude='./.godot' --exclude='./tools/node_modules' --exclude='*.html' -cf
 cp "$(dirname "$HTML")"/exp/*.js "$(dirname "$HTML")"/exp/inject.py "$CLONE/source/cards/" 2>/dev/null || true
 cd "$CLONE"
 git add -A
-git commit -q -m "Into the Abyss Version $V${NOTES:+ – $NOTES}
+git commit -q -m "Into the Abyss Version ${LABEL:-$V} (Build $V)${NOTES:+ – $NOTES}
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01VL2RaEuLfFe5JqWnxBQh1H"
